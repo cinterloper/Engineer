@@ -1,0 +1,101 @@
+abstract Engineer.Module(Efl.Object)
+{
+   implements
+   {
+      Efl.Object.constructor;
+      Efl.Object.destructor;
+   }
+
+   events
+   {
+   }
+
+   methods
+   {
+      efl_object_constructor
+      {
+         return: Efl.Object;
+      }
+
+      efl_object_destructor
+      {
+      }
+
+      iterate
+      {
+      }
+
+      @property data
+      {
+         get { return: void*; }
+         keys
+         {
+            cacheid: uint;
+         }
+      }
+
+      data_swap
+      {
+         params
+         {
+            @in componenta: uint;
+            @in componentb: uint;
+         }
+      }
+
+      component_create
+      {
+         params
+         {
+            @in parent: uint;
+         }
+         return: uint;
+      }
+
+      component_destroy
+      {
+         params
+         {
+            @in targetid: uint;
+         }
+      }
+
+      component_load
+      {
+      }
+
+      component_save
+      {
+      }
+
+      add @class @virtual_pure
+      {
+         return: Efl.Object;
+      }
+
+      component_awake @class @virtual_pure
+      {
+         params
+         {
+            @in dt: ulong;
+         }
+      }
+
+      component_start @class @virtual_pure
+      {
+          params
+         {
+            @in dt: ulong;
+         }
+      }
+
+      component_update @class @virtual_pure
+      {
+         params
+         {
+            @in dt: ulong;
+         }
+      }
+
+   }
+}

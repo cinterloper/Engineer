@@ -1,0 +1,19 @@
+class Engineer.Transform(Engineer.Module)
+{
+   implements
+   {
+      Engineer.Module.init;
+      Engineer.Module.component_awake;
+      Engineer.Module.component_start;
+      Engineer.Module.component_update;
+   }
+
+   events
+   {
+   }
+
+   methods
+   {
+   }
+}
+

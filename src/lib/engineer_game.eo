@@ -1,0 +1,78 @@
+struct Engineer_Game_Node
+{
+   ipaddress: void_ptr;
+   mode: string;
+}
+
+struct Engineer_Game_Module
+{
+   id:     uint;
+   handle: void_ptr;
+
+   add:    void_ptr;
+   load:   void_ptr;
+   save:   void_ptr;
+   del:    void_ptr;
+
+   awake:  void_ptr;
+   start:  void_ptr;
+   update: void_ptr;
+}
+
+class Engineer.Game(Efl.Object)
+{
+   implements
+   {
+      Efl.Object.constructor;
+      Efl.Object.finalize;
+      Efl.Object.destructor;
+   }
+
+   constructors
+   {
+   }
+
+   events
+   {
+   }
+
+   methods
+   {
+
+      file_load
+      {
+      }
+
+      file_save
+      {
+      }
+
+      file_close
+      {
+      }
+
+      module_load
+      {
+         params
+         {
+            @in file: char*;
+         }
+      }
+
+      module_close
+      {
+         params
+         {
+            @in target: Efl.Object;
+         }
+      }
+
+      module_lookup
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+   }
+}

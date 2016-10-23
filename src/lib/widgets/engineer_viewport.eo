@@ -1,0 +1,42 @@
+class Engineer.Viewport(Efl.Object)
+{
+   eo_prefix: engineer_widget_viewport
+
+   methods {
+      @property alpha {
+         get {}
+         set {}
+         values {
+            byte: alpha;
+         }
+      }
+
+      @property buffers {
+         get {}
+         set {}
+         values {
+            void: blue;
+            void: red;
+         }
+      }
+
+      @property camera {
+         get {}
+         set {}
+         values {
+            void: camera;
+         }
+      }
+
+      update {
+      }
+
+      resize {
+      }
+
+   }
+
+   implements {
+      Elf.Object.constructor;
+   }
+}

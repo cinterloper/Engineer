@@ -1,0 +1,23 @@
+mixin Engineer.Database ()
+{
+   implements
+   {
+   }
+
+   constructors
+   {
+      ._constructor;
+   }
+
+   methods
+   {
+      init
+      {
+      }
+
+      shutdown
+      {
+      }
+   }
+}
+

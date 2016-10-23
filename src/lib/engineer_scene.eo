@@ -1,0 +1,435 @@
+struct Engineer_Scene_Module
+{
+   handle: Efl.Object;
+   data:   void_ptr;
+}
+
+struct Engineer_Scene_Entity
+{
+   id:             uint;
+   sector:         uint;
+   status:         uint;
+   referencecount: uint;
+   name:           string;
+
+   parent:         uint;
+   siblingnext:    uint;
+   siblingprev:    uint;
+   firstcomponent: uint;
+   firstentity:    uint;
+}
+
+struct Engineer_Scene_Component
+{
+   id:             uint;
+   type:           uint;
+   status:         uint;
+   referencecount: uint;
+   name:           string;
+
+   parent:         uint;
+   siblingnext:    uint;
+   siblingprev:    uint;
+}
+
+struct Engineer_Scene_Sector
+{
+   component: Engineer_Scene_Component*;
+   cache:     array<Efl_Object>;
+   lookup:    hash<uint, uint>;
+   clock:     Efl.Loop.Timer;
+   rate:      uint;
+   size:      uint;
+}
+
+struct Engineer_Scene_Sector_Entry
+{
+   rate:      uint;
+   size:      uint;
+}
+
+class Engineer.Scene(Efl.Object)
+{
+   implements
+   {
+      Efl.Object.constructor;
+      Efl.Object.finalize;
+      Efl.Object.destructor;
+   }
+
+   constructors
+   {
+   }
+
+   events
+   {
+      sector_iterate_cb;
+   }
+
+   methods
+   {
+      efl_object_constructor
+      {
+         params
+         {
+            @in path: char*;
+            @in name: char*;
+         }
+         return: Efl.Object;
+      }
+
+      efl_object_destructor
+      {
+      }
+
+      @property game
+      {
+         get { return: string; }
+         set
+         {
+            values
+            {
+               path: string;
+            }
+         }
+      }
+
+      @property name
+      {
+         get { return: string; }
+         set
+         {
+            values
+            {
+               name: string;
+            }
+         }
+      }
+
+      file_load
+      {
+      }
+
+      file_save
+      {
+      }
+
+      file_sync
+      {
+      }
+
+      entity_create
+      {
+         params
+         {
+            @in parent: uint;
+            @in name: string;
+         }
+         return: uint;
+
+      }
+
+      entity_destroy
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      entity_dispose
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      entity_load
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      entity_save
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      entity_lookup
+      {
+         params
+         {
+            target: uint;
+         }
+         return: Engineer_Scene_Entity*;
+      }
+
+      entity_data_swap
+      {
+         params
+         {
+            targeta: uint;
+            targetb: uint;
+         }
+      }
+
+      @property entity_status
+      {
+         get { return: uint; }
+         set
+         {
+            values
+            {
+               mode: char;
+            }
+         }
+         keys
+         {
+            target: uint;
+         }
+      }
+
+      @property entity_parent
+      {
+         get { return: uint; }
+         set
+         {
+            values
+            {
+               parent: uint;
+            }
+         }
+         keys
+         {
+            target: uint;
+         }
+      }
+
+      entity_sibling_swap
+      {
+         params
+         {
+            @in siblinga: uint;
+            @in siblingb: uint;
+         }
+      }
+
+      @property entity_children
+      {
+         get { return: Eina.Inarray*; }
+         keys
+         {
+            target: uint;
+         }
+
+      }
+
+      @property entity_components
+      {
+         get { return: Eina.Inarray*; }
+         keys
+         {
+            target: uint;
+         }
+      }
+
+      entity_id_use
+      {
+         params
+         {
+         }
+         return: uint;
+      }
+
+      entity_id_free
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      component_create
+      {
+         params
+         {
+            @in parent: uint;
+         }
+         return: uint;
+      }
+
+      component_destroy
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      component_dispose
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      component_load
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      component_save
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      component_lookup
+      {
+         params
+         {
+            target: uint;
+         }
+         return: Engineer_Scene_Component*;
+      }
+
+      component_data_swap
+      {
+         params
+         {
+            targeta: uint;
+            targetb: uint;
+         }
+      }
+
+      @property component_status
+      {
+         get { return: uint; }
+         set
+         {
+            values
+            {
+               mode: char;
+            }
+         }
+         keys
+         {
+            target: uint;
+         }
+      }
+
+      @property component_parent
+      {
+         get { return: uint; }
+         set
+         {
+            values
+            {
+               parent: uint;
+            }
+         }
+         keys
+         {
+            target: uint;
+         }
+      }
+
+      component_sibling_swap
+      {
+         params
+         {
+            @in siblinga: uint;
+            @in siblingb: uint;
+         }
+      }
+
+      component_id_use
+      {
+         params
+         {
+         }
+         return: uint;
+      }
+
+      component_id_free
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      sector_create
+      {
+         params
+         {
+            @in parent: uint;
+         }
+         return: uint;
+
+      }
+
+      sector_destroy
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      sector_dispose
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      sector_load
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      sector_save
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      sector_lookup
+      {
+         params
+         {
+            target: uint;
+         }
+         return: Engineer_Scene_Sector*;
+      }
+
+      sector_data_swap
+      {
+         params
+         {
+            targeta: uint;
+            targetb: uint;
+         }
+      }
+   }
+
+}

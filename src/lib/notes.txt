@@ -1,0 +1,226 @@
+#include <stdio.h>
+#include <string.h>
+#include <db.h>
+#include <Ecore.h>
+#include <Eo.h>
+#include "engineer_module.eo.h"
+
+// some_component.eo
+class Some.Component(Engineer.Module) {
+    // ...
+}
+
+
+// a module.c, generates module.so composed of some_obj1.eo.c, other_obj2.eo.c...
+#include "some_component.eo.h"
+
+//...
+
+EAPI Efl_Class *
+engineer_module_class_get(void)
+{
+    return SOME_COMPONENT_CLASS; // defined in some_component.eo.h
+}
+
+
+// your code.c
+static void
+load_module(const char *file)
+{
+    Eina_Module *m;
+    Eo *(*module_class_get)(void);
+    Efl_Class *engineer_module_class;
+
+    m = eina_module_new(file);
+    eina_module_load(m);
+
+    module_class_get = eina_module_symbol_get(m, "engineer_module_class_get"); // get that function from module.so
+    engineer_module_class = module_class_get(); // call that function
+
+    my_ctx->eina_modules = eina_list_append(my_ctx->eina_modules, m);
+    my_ctx->engineer_modules_classes = eina_list_merge(my_ctx->engineer_modules_classes, engineer_module_class);
+}
+
+static void
+load_all_modules(void) {
+    Eina_List *n;
+    Efl_Class *cls;
+
+    for (f in files) { // read your dir
+        load_module(f);
+    }
+
+    EINA_LIST_FOREACH(ctx->engineer_modules_classes, n, cls) {
+       Eo *engineer_module = efl_add(cls, NULL); // instantiate a new module for your scene
+       printf("engineer_module_class=%p, class=%s\n", cls, efl_class_name_get(cls)); // will print Some_Component
+    }
+
+
+}
+
+      //uint *targetid = eina_hash_find(pd->unlookup, &dataindex);
+      /*if (engineer_scene_component_status_get(obj, *targetid) < 3)  engineer_module_component_destroy_cb(obj, targetid);
+      else*/
+
+       /*  // Figure out where in each data inarray each of our target's payload is held.
+   uint *indexa = eina_hash_find(pd->lookup, &componenta);
+   uint *indexb = eina_hash_find(pd->lookup, &componentb);
+
+   Eina_Iterator *iterator = eina_hash_iterator_data_new(pd->data);
+   Eina_Inarray  *keydata;
+   uint          *value, buffer;
+
+   // Iterate thru each inarray in our module data hashtable, swapping the target payloads in each.
+   EINA_ITERATOR_FOREACH(iterator, keydata)
+   {
+      value  =  eina_inarray_nth(keydata, *indexa);
+      buffer = *value;
+
+      eina_inarray_replace_at(keydata, *indexa, indexb);
+      eina_inarray_replace_at(keydata, *indexb, &buffer);
+   };*/
+
+   /*
+   Eina_Iterator *iterator = eina_hash_iterator_data_new(pd->data);
+   void          *data;
+   uint           index;
+
+   EINA_ITERATOR_FOREACH(iterator, data)
+   {
+      index = eina_inarray_push(data, NULL);
+   };
+   eina_hash_add(pd->lookup, &componentid, &index);
+*/
+
+EOLIAN static void
+_engineer_module_key_add(Eo *obj, Engineer_Module_Data *pd,
+        char *key, uint size)
+{
+   Eina_Inarray *data = eina_inarray_new(size, 0);
+   eina_hash_add(pd->data, key, data);
+}
+
+EOLIAN static void
+_engineer_module_vec2_key_add(Eo *obj, Engineer_Module_Data *pd,
+        char key[62])
+{
+   char subkey[64];
+
+   strcpy(subkey, key);
+   strcat(subkey, ".x");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".y");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+}
+
+EOLIAN static void
+_engineer_module_vec3_key_add(Eo *obj, Engineer_Module_Data *pd,
+        char key[62])
+{
+   char subkey[64];
+
+   strcpy(subkey, key);
+   strcat(subkey, ".x");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".y");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".z");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+}
+
+EOLIAN static void
+_engineer_module_quat_key_add(Eo *obj, Engineer_Module_Data *pd,
+        char key[62])
+{
+   char subkey[64];
+
+   strcpy(subkey, key);
+   strcat(subkey, ".w");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".x");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".y");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".z");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+}
+
+EOLIAN static void
+_engineer_module_mtrx_key_add(Eo *obj, Engineer_Module_Data *pd,
+        char key[58])
+{
+   char subkey[64];
+
+   // Row 0.
+   strcpy(subkey, key);
+   strcat(subkey, ".cell0a");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".cell0b");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".cell0c");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   // Row 1.
+   strcpy(subkey, key);
+   strcat(subkey, ".cell1a");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".cell1b");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".cell1c");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   // Row 2.
+   strcpy(subkey, key);
+   strcat(subkey, ".cell2a");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".cell2b");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+
+   strcpy(subkey, key);
+   strcat(subkey, ".cell2c");
+   engineer_module_key_add(obj, subkey, sizeof(ulong));
+}
+
+/*/ Component Data Macros
+#define data_set(key, payload) engineer_module_component_data_set(obj, key, payload)
+#define data_get(key)          engineer_module_component_data_get(obj, key)
+
+// Module Construction Macros
+#define key_add(key, size) engineer_module_key_add(obj, key, size)
+
+#define int_key_add(key)    engineer_module_key_add(obj, key, sizeof(int))
+#define uint_key_add(key)   engineer_module_key_add(obj, key, sizeof(uint))
+#define long_key_add(key)   engineer_module_key_add(obj, key, sizeof(long))
+#define ulong_key_add(key)  engineer_module_key_add(obj, key, sizeof(ulong))
+#define float_key_add(key)  engineer_module_key_add(obj, key, sizeof(float))
+#define double_key_add(key) engineer_module_key_add(obj, key, sizeof(double))
+
+#define vec2_key_add(key) engineer_module_vec3_key_add(obj, key)
+#define vec3_key_add(key) engineer_module_vec3_key_add(obj, key)
+#define quat_key_add(key) engineer_module_quat_key_add(obj, key)
+#define mtrx_key_add(key) engineer_module_mtrx_key_add(obj, key)
+*/
+
+EXTRA_DIST = engineer_main.h
