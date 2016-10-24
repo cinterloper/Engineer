@@ -1,9 +1,3 @@
-struct Engineer_Scene_Module
-{
-   handle: Efl.Object;
-   data:   void_ptr;
-}
-
 struct Engineer_Scene_Entity
 {
    id:             uint;
@@ -34,6 +28,7 @@ struct Engineer_Scene_Component
 
 struct Engineer_Scene_Sector
 {
+   scene:     void_ptr;
    component: Engineer_Scene_Component*;
    cache:     array<Efl_Object>;
    lookup:    hash<uint, uint>;
@@ -70,11 +65,6 @@ class Engineer.Scene(Efl.Object)
    {
       efl_object_constructor
       {
-         params
-         {
-            @in path: char*;
-            @in name: char*;
-         }
          return: Efl.Object;
       }
 

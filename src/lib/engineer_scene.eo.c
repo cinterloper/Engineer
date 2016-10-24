@@ -57,9 +57,9 @@ unsigned int _engineer_scene_component_parent_get(Eo *obj, Engineer_Scene_Data *
 
 EOAPI EFL_FUNC_BODYV_CONST(engineer_scene_component_parent_get, unsigned int, 0, EFL_FUNC_CALL(target), unsigned int target);
 
-Efl_Object * _engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd, char *path, char *name);
+Efl_Object * _engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd);
 
-EOAPI EFL_FUNC_BODYV(engineer_scene_efl_object_constructor, Efl_Object *, 0, EFL_FUNC_CALL(path, name), char *path, char *name);
+EOAPI EFL_FUNC_BODY(engineer_scene_efl_object_constructor, Efl_Object *, 0);
 
 void _engineer_scene_efl_object_destructor(Eo *obj, Engineer_Scene_Data *pd);
 

@@ -40,6 +40,8 @@ typedef struct
    Eina_Inarray *sectorcache;     // Our in-core Gremlin data cache.
    Eina_Hash    *sectorlookup;    // Gremlin component lookup hashtable, uses a ComponentID.
 
+   DB           *moduletable;
+
    DB           *entitymeta;
    DB           *entitytable;
    DB           *componentmeta;
@@ -288,19 +290,6 @@ _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
 }
 
 EOLIAN static void
-_engineer_scene_entity_destroy(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
-        uint target)
-{
-  engineer_scene_entity_status_set(obj, target, 1);
-}
-
-EOLIAN static void
-_engineer_scene_entity_dispose(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
-        uint target EINA_UNUSED)
-{
-}
-
-EOLIAN static void
 _engineer_scene_entity_load(Eo *obj, Engineer_Scene_Data *pd,
         uint target)
 {
@@ -327,15 +316,16 @@ _engineer_scene_entity_load(Eo *obj, Engineer_Scene_Data *pd,
 
    // We need to call engineer_module_component_load() on each of this Entities' component data,
    // in this Entities' Sector cache.
-   Engineer_Scene_Sector *sector = engineer_scene_sector_lookup(obj, payload->sector);
-   Engineer_Game_Module *module;
-   Eina_List *list, *next;
-
    Eo *(*component_load)(Eo *obj, uint target);
-   EINA_LIST_FOREACH_SAFE(sector->modules, list, next, module)
+   Engineer_Scene_Sector *sector = engineer_scene_sector_lookup(obj, payload->sector);
+   Engineer_Game_Module  *module;
+   uint index, count = eina_inarray_count(pd->modulecache);
+   for (uint current = 0; current < count; current++)
    {
+      module = eina_inarray_nth(pd->modulecache, current);
       component_load = module->load;
-      component_load(module->data, target); //fixme
+      index = *(uint*)eina_hash_find(sector->lookup, &current);
+      component_load(eina_inarray_nth(sector->cache, index), target);
    }
 
    // If this entity does not have a sector component, and has any child entities, load them.
@@ -382,6 +372,19 @@ _engineer_scene_entity_save(Eo *obj, Engineer_Scene_Data *pd,
    engineer_scene_entity_data_swap(obj, target, swapee->id);
    eina_hash_del(pd->entitylookup, &target, NULL);
    eina_inarray_pop(pd->entitycache);
+}
+
+EOLIAN static void
+_engineer_scene_entity_destroy(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
+        uint target)
+{
+  engineer_scene_entity_status_set(obj, target, 1);
+}
+
+EOLIAN static void
+_engineer_scene_entity_dispose(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
+        uint target EINA_UNUSED)
+{
 }
 
 EOLIAN Engineer_Scene_Entity *
@@ -856,14 +859,16 @@ _engineer_scene_sector_iterate_cb(void *data)
    float time = ecore_time_get();
 
    Engineer_Scene_Sector *sector = data;
-
-   Eina_Iterator *iterator = eina_list_iterator_new(sector->cache);
-   Engineer_Game_Module *current;
+   Engineer_Scene_Data   *scene = sector->scene;
+   Engineer_Game_Module  *module;
    Eo *(*module_update)(Eo *obj);
-   EINA_ITERATOR_FOREACH(iterator, current)
+   uint *target, count = eina_inarray_count(scene->modulecache);
+   for (uint index = 0; index < count; index++)
    {
-      module_update = current->update;
-      module_update(current->data);
+      module = eina_inarray_nth(scene->modulecache, index);
+      module_update = module->update;
+      target = eina_hash_find(sector->lookup, &module->id);
+      module_update(eina_inarray_nth(sector->cache, *target));
    }
 
    time -= ecore_time_get();
@@ -931,8 +936,9 @@ _engineer_scene_sector_load(Eo *obj, Engineer_Scene_Data *pd,
    // Check to see if the target data was returned, if so, set our sector data from it.
    entry = data.data;
    if (entry == NULL) return;
-   payload.rate = entry->rate;
-   payload.size = entry->size;
+
+   // Include a pointer to the parent Scene's private data, we will need it during iteration.
+   payload.scene = pd;
 
    // Load the sector component metadata and link to it.
    engineer_scene_component_load(obj, target);
@@ -940,25 +946,28 @@ _engineer_scene_sector_load(Eo *obj, Engineer_Scene_Data *pd,
 
    // Create and fill our sector.module array with a new module cache for each loaded module.
    payload.cache = NULL;
-
    Eo *(*module_add)(Eo  *obj);
-   Engineer_Game_Module  *class;
-   Engineer_Scene_Module  cache;
-   uint count = eina_inarray_count(pd->modulecache);
+   Engineer_Game_Module  *module;
+   Efl_Object            *cache;
+   uint index, count = eina_inarray_count(pd->modulecache);
    for (uint current = 0; current < count; current++)
    {
-      class = eina_inarray_nth(pd->modulecache, current);
-      module_add = class->add;
-      cache.handle = module_add(obj);
-      cache.data = efl_super(cache.handle, ENGINEER_MODULE_CLASS);
-      eina_inarray_push(payload.cache, &cache);
+      module = eina_inarray_nth(pd->modulecache, current);
+      module_add = module->add;
+      cache = module_add(obj);
+      index = eina_inarray_push(payload.cache, cache);
+      eina_hash_add(payload.lookup, &module->id, &index);
    }
 
    // Create and start our Sector's iteration clock.
    ecore_timer_add(1/payload.rate, _engineer_scene_sector_iterate_cb, &payload.clock);
 
+   // Load our persistent data from the DB.
+   payload.rate = entry->rate;
+   payload.size = entry->size;
+
    // Add a new data entry for our new Sector to the *sectorcache and set up it's *sectorlookup.
-   uint index = eina_inarray_push(pd->sectorcache, &payload);
+   index = eina_inarray_push(pd->sectorcache, &payload);
    eina_hash_add(pd->sectorlookup, &target, &index);
 }
 
@@ -984,7 +993,7 @@ _engineer_scene_sector_save(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
 }
 
 EOLIAN static void
-_engineer_scene_sector_unload(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
+_engineer_scene_sector_unload(Eo *obj, Engineer_Scene_Data *pd,
         uint target)
 {
    engineer_scene_sector_save(obj, target); // Should really be engineer_scene_component_unload

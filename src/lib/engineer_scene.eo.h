@@ -11,12 +11,6 @@ typedef Eo Engineer_Scene;
 #ifndef _ENGINEER_SCENE_EO_TYPES
 #define _ENGINEER_SCENE_EO_TYPES
 
-typedef struct _Engineer_Scene_Module
-{
-  Efl_Object *handle;
-  void *data;
-} Engineer_Scene_Module;
-
 typedef struct _Engineer_Scene_Entity
 {
   unsigned int id;
@@ -45,6 +39,7 @@ typedef struct _Engineer_Scene_Component
 
 typedef struct _Engineer_Scene_Sector
 {
+  void *scene;
   Engineer_Scene_Component *component;
   Eina_Inarray *cache;
   Eina_Hash *lookup;
@@ -93,7 +88,7 @@ EOAPI void engineer_scene_component_parent_set(Eo *obj, unsigned int target, uns
 
 EOAPI unsigned int engineer_scene_component_parent_get(const Eo *obj, unsigned int target);
 
-EOAPI Efl_Object *engineer_scene_efl_object_constructor(Eo *obj, char *path, char *name);
+EOAPI Efl_Object *engineer_scene_efl_object_constructor(Eo *obj);
 
 EOAPI void engineer_scene_efl_object_destructor(Eo *obj);
 

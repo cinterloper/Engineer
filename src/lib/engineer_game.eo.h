@@ -19,6 +19,7 @@ typedef struct _Engineer_Game_Node
 
 typedef struct _Engineer_Game_Module
 {
+  unsigned int id;
   void *handle;
   void *add;
   void *load;
