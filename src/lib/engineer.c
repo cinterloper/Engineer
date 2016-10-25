@@ -69,13 +69,13 @@ eng_scene_new(char *name) // add a pointer to the game.
    return efl_add(ENGINEER_SCENE_CLASS, NULL,
            engineer_scene_name_set(efl_added, name)); // need to set up project pathing.
 }
-
+/*
 EAPI void
 eng_module_load(Eo *obj, char *path)
 {
    //engineer_scene_module_load(obj, path);
 }
-
+*/
 EAPI uint
 eng_entity_create(Eo *obj, uint parent, const char *name)
 {

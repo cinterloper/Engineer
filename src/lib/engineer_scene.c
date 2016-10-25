@@ -625,19 +625,6 @@ _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd,
 }
 
 EOLIAN static void
-_engineer_scene_component_destroy(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
-        uint target)
-{
-   engineer_scene_component_status_set(obj, target, 1);
-}
-
-EOLIAN static void
-_engineer_scene_component_dispose(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
-        uint target EINA_UNUSED)
-{
-}
-
-EOLIAN static void
 _engineer_scene_component_load(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint target)
 {
@@ -684,6 +671,18 @@ _engineer_scene_component_save(Eo *obj, Engineer_Scene_Data *pd,
    eina_inarray_pop(pd->componentcache);
 }
 
+EOLIAN static void
+_engineer_scene_component_destroy(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
+        uint target)
+{
+   engineer_scene_component_status_set(obj, target, 1);
+}
+
+EOLIAN static void
+_engineer_scene_component_dispose(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
+        uint target EINA_UNUSED)
+{
+}
 
 EOLIAN static Engineer_Scene_Component *
 _engineer_scene_component_lookup(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
@@ -928,7 +927,7 @@ _engineer_scene_sector_load(Eo *obj, Engineer_Scene_Data *pd,
    memset(&data, 0, sizeof(DBT));
    key.data = &target;
    key.size = sizeof(uint);
-   data.data = entry;
+   //data.data = entry;
    data.ulen = sizeof(*entry);
    data.flags = DB_DBT_USERMEM;
    pd->sectortable->get(pd->sectortable, NULL, &key, &data, 0);

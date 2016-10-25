@@ -51,11 +51,43 @@ class Engineer.Game(Efl.Object)
       {
       }
 
+      scene_add
+      {
+         params
+         {
+            @in name: string;
+         }
+      }
+
+      scene_load
+      {
+         params
+         {
+            @in name: string;
+         }
+      }
+
+      scene_save
+      {
+         params
+         {
+            @in name: string;
+         }
+      }
+
+      scene_unload
+      {
+         params
+         {
+            @in name: string;
+         }
+      }
+
       module_load
       {
          params
          {
-            @in file: char*;
+            @in file: string;
          }
       }
 
@@ -73,6 +105,7 @@ class Engineer.Game(Efl.Object)
          {
             @in target: uint;
          }
+         return: char*;
       }
    }
 }

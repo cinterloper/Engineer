@@ -116,7 +116,7 @@ _engineer_game_file_close(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd)
 
 EOLIAN static void
 _engineer_game_scene_add(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
-        char *name)
+        const char *name)
 {
    // Make sure that this scene does not already exist in the scene db.
    DBT key, data;
@@ -135,7 +135,7 @@ _engineer_game_scene_add(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED
 
 EOLIAN static void
 _engineer_game_scene_load(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
-        char *name)
+        const char *name)
 {
    // Check to see if an entry for the target scene is present in the game scene database.
    DBT key, data;
@@ -155,20 +155,20 @@ _engineer_game_scene_load(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSE
 
 EOLIAN static void
 _engineer_game_scene_save(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
-        char *name)
+        const char *name EINA_UNUSED)
 {
 }
 
 EOLIAN static void
 _engineer_game_scene_unload(Eo *obj, Engineer_Game_Data *pd EINA_UNUSED,
-        char *name)
+        const char *name)
 {
    engineer_game_scene_save(obj, name);
 }
 
 EOLIAN static void
 _engineer_game_module_load(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd,
-       char *name)
+       const char *name)
 {
    Engineer_Game_Module module;
 

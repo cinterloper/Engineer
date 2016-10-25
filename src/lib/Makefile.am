@@ -15,6 +15,6 @@ lib_LTLIBRARIES = libengineer.la
 includes_HEADERS = Engineer.h
 includesdir = $(includedir)/engineer-@VMAJ@
 
-libengineer_la_SOURCES = engineer.c engineer_scene.c
+libengineer_la_SOURCES = engineer.c engineer_game.c engineer_scene.c
 libengineer_la_LIBADD = @EFL_LIBS@ -lm -ldb
 libengineer_la_LDFLAGS = -no-undefined @EFL_LTLIBRARY_FLAGS@
