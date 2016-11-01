@@ -4,8 +4,8 @@
 #include "Engineer.h"
 #include "engineer_module.h"
 
-#define my_pi 3.1415926536897932384626
-#define my_k1 0.6072529350088812561694
+#define PI 3.1415926536897932384626
+#define K1 0.6072529350088812561694
 
 #define LUT_SIZE 64 // LUT = Lookup Table.  This needs to be set to the size of our integer bitwidth.
 
@@ -45,6 +45,28 @@
 #define QUATNORM(a)    engineer_math_quat_normalize(a)
 #define QUATMTRX(a)    engineer_math_quat_matrixify(a)
 
+typedef long EngScalar;
+typedef long EngAngle;
+
+typedef struct
+{
+   EngScalar x, y;
+}
+EngVec2
+
+typedef struct
+{
+   EngScalar x, y, z;
+}
+EngVec3
+
+typedef struct
+{
+   EngAngle  w;
+   EngScalar x, y, z;
+}
+EngQuat
+
 void cordic_init();
 void cordic_test();
 
@@ -60,21 +82,21 @@ void cordic_hyperbolic_init();
 void cordic_hyperbolic_ymode();
 void cordic_hyperbolic_zmode();
 
-long engineer_math_mul(long a, long b);
-long engineer_math_div(long a, long b);
+EngScalar engineer_math_mul(EngScalar a, EngScalar b);
+EngScalar engineer_math_div(EngScalar a, EngScalar b);
 
-cordic_ans_t engineer_math_sincos(long a);
-long         engineer_math_tan(long a);
-long         engineer_math_atan(long a);
-long         engineer_math_asin(long a);
+EngVec2   engineer_math_sincos(EngAngle a);
+EngScalar engineer_math_tan(EngAngle a);
+EngScalar engineer_math_atan(EngAngle a);
+EngScalar engineer_math_asin(EngAngle a);
 
-cordic_ans_t engineer_math_sincosh(long a);
-long         engineer_math_tanh(long a);
-long         engineer_math_atanh(long a);
+EngVec2   engineer_math_sincosh(EngAngle a);
+EngScalar engineer_math_tanh(EngAngle a);
+EngScalar engineer_math_atanh(EngAngle a);
 
-long engineer_math_exp(long a);
-long engineer_math_ln(long a);
-long engineer_math_sqrt(long a);
+EngScalar engineer_math_exp(EngScalar a);
+EngScalar engineer_math_ln(EngScalar a);
+EngScalar engineer_math_sqrt(EngScalar a);
 
 #endif
 

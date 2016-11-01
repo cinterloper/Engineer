@@ -27,67 +27,68 @@ cordic_test()
 {
     // Let's run a few tests.
     long v, x, c, ans;
+    float output;
 
     cordic_init();
 
     x = 1 << magnitude;
     v = cordic_atan(x);
-    printf("atan %f = %f\n", x, v);
+    printf("atan %d = %d\n", x, v);
 
     x = 1 << magnitude;
     ans = cordic_sincos(x);
     c = ans.x;
     v = ans.y;
-    printf("cos %f = %f\n", x, c);
-    printf("sin %f = %f\n", x, v);
+    printf("cos %d = %d\n", x, c);
+    printf("sin %d = %d\n", x, v);
 
     x = 1 << magnitude;
     v = cordic_tan(x);
-    printf("tan %f = %f\n", x, v);
+    printf("tan %d = %d\n", x, v);
 
     x = 1 << (magnitude - 1);
     v = cordic_asin(x);
-    printf("asin %f = %f\n", x, v);
+    printf("asin %d = %d\n", x, v);
 
     x = 1 << magnitude;
     ans = cordic_sincosh(x);
     c = ans.x;
     v = ans.y;
-    printf("cosh %f = %f\n", x, c);
-    printf("sinh %f = %f\n", x, v);
+    printf("cosh %d = %d\n", x, c);
+    printf("sinh %d = %d\n", x, v);
 
     x = 1 << magnitude;
     v = cordic_tanh(x);
-    printf("tanh %f = %f\n", x, v);
+    printf("tanh %d = %d\n", x, v);
 
     x = 1 << (magnitude - 1);
     v = cordic_atanh(x);
-    printf("atanh %f = %f\n", x, v);
+    printf("atanh %d = %d\n", x, v);
 
     x = 0.8;
     v = cordic_ln(x);
-    printf("log %f = %f\n", x, v);
+    printf("log %d = %d\n", x, v);
 
     x = 2 << magnitude;
     v = cordic_sqrt(x);
-    printf("sqrt %f = %f\n", x, v);
+    printf("sqrt %d = %d\n", x, v);
 
     x = 1 << magnitude;
     v = cordic_exp(x);
-    printf("exp %f = %f\n", x, v);
+    printf("exp %d = %d\n", x, v);
     x = 2 << magnitude;
     v = cordic_exp(x);
-    printf("exp %f = %f\n", x, v);
+    printf("exp %d = %d\n", x, v);
 
     x = 1 << (magnitude - 1);
     c = 2;
     v = cordic_mul(x, c);
-    printf("mul %f %f = %f\n", x, c, v);
+    printf("mul %d %d = %d\n", x, c, v);
 
     x = 1 << magnitude;
     c = 2 << magnitude;
     v = cordic_div(x, c);
-    printf("div %f %f = %f\n", x, c, v);
+    printf("div %d %d = %d\n", x, c, v);
 }
 
 
@@ -329,8 +330,8 @@ cordic_hyperbolic_zmode(long *x0, long *y0, long *z0)
 
 /*** Linear Functions ***/
 
-long
-engineer_math_mul(long a, long b)
+EngScalar
+engineer_math_mul(EngScalar a, EngScalar b)
 {
     long x, y, z;
 
@@ -342,8 +343,8 @@ engineer_math_mul(long a, long b)
     return y;
 }
 
-long
-engineer_math_div(long a, long b)
+EngScalar
+engineer_math_div(EngScalar a, EngScalar b)
 {
     long x, y, z;
 
@@ -358,13 +359,13 @@ engineer_math_div(long a, long b)
 
 /*** Circular Functions ***/
 
-cordic_ans_t
-engineer_math_sincos(long a)
+EngVec2
+engineer_math_sincos(EngAngle a)
 {
    // Domain: |a| < 1.74
    long sinp;
    long cosp;
-   cordic_ans_t ans;
+   EngVec2 ans;
 
    sinp = 0;
    cosp = cordic_gain_c;
@@ -375,8 +376,8 @@ engineer_math_sincos(long a)
    return ans;
 }
 
-long
-engineer_math_tan(long a)
+EngScalar
+engineer_math_tan(EngAngle a)
 {
     // Domain: |a| < 1.74
     long sinp;
@@ -391,8 +392,8 @@ engineer_math_tan(long a)
     return ans;
 }
 
-long
-engineer_math_atan(long a)
+EngScalar
+engineer_math_atan(EngAngle a)
 {
     // Domain: all a
     long x = 1 << magnitude;
@@ -403,23 +404,23 @@ engineer_math_atan(long a)
     return z;
 }
 
-long
-engineer_math_asin(long a)
+EngScalar
+engineer_math_asin(EngAngle a)
 {
     // Domain: |a| < 0.98
     // We use the trig identity for this, as there really isnt a good way to vectorize it directly.
-    return cordic_atan(DIVD(a, SQRT(1 - MULT(a,a))));
+    return cordic_atan(DIVD(a, SQRT(1 - MULT(a, a))));
 }
 
 
 /*** Hyperbolic Functions ***/
 
-cordic_ans_t
-engineer_math_sincosh(long a)
+EngVec2
+engineer_math_sincosh(EngAngle a)
 {
    // Domain: |a| < 1.13 OR |a| <= 1.125, after scaling,
    long y, coshp;
-   cordic_ans_t ans;
+   EngVec2 ans;
 
    coshp  = cordic_gain_h;
    y      = 0;
@@ -431,8 +432,8 @@ engineer_math_sincosh(long a)
    return ans;
 }
 
-long
-engineer_math_tanh(long a)
+EngScalar
+engineer_math_tanh(EngAngle a)
 {
     // Domain: |a| < 1.13 units.
     long sinhp, coshp, ans;
@@ -445,8 +446,8 @@ engineer_math_tanh(long a)
     return ans;
 }
 
-long
-engineer_math_atanh(long a)
+EngScalar
+engineer_math_atanh(EngAngle a)
 {
     // Domain: |a| < 1.13 units.
     long x, z, ans;
@@ -459,8 +460,8 @@ engineer_math_atanh(long a)
     return ans;
 }
 
-long
-engineer_math_exp(long a)
+EngScalar
+engineer_math_exp(EngScalar a)
 {
     long sinhp, coshp, ans;
 
@@ -473,8 +474,8 @@ engineer_math_exp(long a)
     return ans;
 }
 
-long
-engineer_math_ln(long a)
+EngScalar
+engineer_math_ln(EngScalar a)
 {
     // Domain: 0.1 < a < 9.58 units.
     long x, y, z, ans;
@@ -488,8 +489,8 @@ engineer_math_ln(long a)
     return ans;
 }
 
-long
-engineer_math_sqrt(long a)
+EngScalar
+engineer_math_sqrt(EngScalar a)
 {
     // Domain: 0.03 < a < 2 units.
     long x, y, z, ans;
