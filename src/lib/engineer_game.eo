@@ -51,7 +51,7 @@ class Engineer.Game(Efl.Object)
       {
       }
 
-      scene_add
+      scene_create
       {
          params
          {
@@ -83,6 +83,14 @@ class Engineer.Game(Efl.Object)
          }
       }
 
+      module_register
+      {
+         params
+         {
+            @in name: string;
+         }
+      }
+
       module_load
       {
          params
@@ -91,11 +99,19 @@ class Engineer.Game(Efl.Object)
          }
       }
 
-      module_close
+      module_unload
       {
          params
          {
             @in target: Efl.Object;
+         }
+      }
+
+      module_unregister
+      {
+         params
+         {
+            @in name: string;
          }
       }
 
@@ -106,6 +122,19 @@ class Engineer.Game(Efl.Object)
             @in target: uint;
          }
          return: char*;
+      }
+
+      module_id_use
+      {
+         return: uint;
+      }
+
+      module_id_free
+      {
+         params
+         {
+            @in target: uint;
+         }
       }
    }
 }

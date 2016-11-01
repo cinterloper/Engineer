@@ -11,9 +11,9 @@ void _engineer_game_file_close(Eo *obj, Engineer_Game_Data *pd);
 
 EOAPI EFL_VOID_FUNC_BODY(engineer_game_file_close);
 
-void _engineer_game_scene_add(Eo *obj, Engineer_Game_Data *pd, const char *name);
+void _engineer_game_scene_create(Eo *obj, Engineer_Game_Data *pd, const char *name);
 
-EOAPI EFL_VOID_FUNC_BODYV(engineer_game_scene_add, EFL_FUNC_CALL(name), const char *name);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_game_scene_create, EFL_FUNC_CALL(name), const char *name);
 
 void _engineer_game_scene_load(Eo *obj, Engineer_Game_Data *pd, const char *name);
 
@@ -27,17 +27,33 @@ void _engineer_game_scene_unload(Eo *obj, Engineer_Game_Data *pd, const char *na
 
 EOAPI EFL_VOID_FUNC_BODYV(engineer_game_scene_unload, EFL_FUNC_CALL(name), const char *name);
 
+void _engineer_game_module_register(Eo *obj, Engineer_Game_Data *pd, const char *name);
+
+EOAPI EFL_VOID_FUNC_BODYV(engineer_game_module_register, EFL_FUNC_CALL(name), const char *name);
+
 void _engineer_game_module_load(Eo *obj, Engineer_Game_Data *pd, const char *file);
 
 EOAPI EFL_VOID_FUNC_BODYV(engineer_game_module_load, EFL_FUNC_CALL(file), const char *file);
 
-void _engineer_game_module_close(Eo *obj, Engineer_Game_Data *pd, Efl_Object *target);
+void _engineer_game_module_unload(Eo *obj, Engineer_Game_Data *pd, Efl_Object *target);
 
-EOAPI EFL_VOID_FUNC_BODYV(engineer_game_module_close, EFL_FUNC_CALL(target), Efl_Object *target);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_game_module_unload, EFL_FUNC_CALL(target), Efl_Object *target);
+
+void _engineer_game_module_unregister(Eo *obj, Engineer_Game_Data *pd, const char *name);
+
+EOAPI EFL_VOID_FUNC_BODYV(engineer_game_module_unregister, EFL_FUNC_CALL(name), const char *name);
 
 char * _engineer_game_module_lookup(Eo *obj, Engineer_Game_Data *pd, unsigned int target);
 
 EOAPI EFL_FUNC_BODYV(engineer_game_module_lookup, char *, 0, EFL_FUNC_CALL(target), unsigned int target);
+
+unsigned int _engineer_game_module_id_use(Eo *obj, Engineer_Game_Data *pd);
+
+EOAPI EFL_FUNC_BODY(engineer_game_module_id_use, unsigned int, 0);
+
+void _engineer_game_module_id_free(Eo *obj, Engineer_Game_Data *pd, unsigned int target);
+
+EOAPI EFL_VOID_FUNC_BODYV(engineer_game_module_id_free, EFL_FUNC_CALL(target), unsigned int target);
 
 Efl_Object * _engineer_game_efl_object_constructor(Eo *obj, Engineer_Game_Data *pd);
 
@@ -58,13 +74,17 @@ _engineer_game_class_initializer(Efl_Class *klass)
       EFL_OBJECT_OP_FUNC(engineer_game_file_load, _engineer_game_file_load),
       EFL_OBJECT_OP_FUNC(engineer_game_file_save, _engineer_game_file_save),
       EFL_OBJECT_OP_FUNC(engineer_game_file_close, _engineer_game_file_close),
-      EFL_OBJECT_OP_FUNC(engineer_game_scene_add, _engineer_game_scene_add),
+      EFL_OBJECT_OP_FUNC(engineer_game_scene_create, _engineer_game_scene_create),
       EFL_OBJECT_OP_FUNC(engineer_game_scene_load, _engineer_game_scene_load),
       EFL_OBJECT_OP_FUNC(engineer_game_scene_save, _engineer_game_scene_save),
       EFL_OBJECT_OP_FUNC(engineer_game_scene_unload, _engineer_game_scene_unload),
+      EFL_OBJECT_OP_FUNC(engineer_game_module_register, _engineer_game_module_register),
       EFL_OBJECT_OP_FUNC(engineer_game_module_load, _engineer_game_module_load),
-      EFL_OBJECT_OP_FUNC(engineer_game_module_close, _engineer_game_module_close),
-      EFL_OBJECT_OP_FUNC(engineer_game_module_lookup, _engineer_game_module_lookup)
+      EFL_OBJECT_OP_FUNC(engineer_game_module_unload, _engineer_game_module_unload),
+      EFL_OBJECT_OP_FUNC(engineer_game_module_unregister, _engineer_game_module_unregister),
+      EFL_OBJECT_OP_FUNC(engineer_game_module_lookup, _engineer_game_module_lookup),
+      EFL_OBJECT_OP_FUNC(engineer_game_module_id_use, _engineer_game_module_id_use),
+      EFL_OBJECT_OP_FUNC(engineer_game_module_id_free, _engineer_game_module_id_free)
    );
 
    return efl_class_functions_set(klass, &ops, NULL);

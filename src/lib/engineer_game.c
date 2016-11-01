@@ -16,7 +16,7 @@ typedef struct
    DB_ENV       *database;    // The handle pointer for our game database file/environment.
    DB           *nodetable;
    DB           *scenetable;
-   DB           *moduletable; // This is a list of modules that have been registered to the game.
+   DB           *moduletable; // This is a list of modules that have been registered to the game, referenced by thier ID.
 }
 Engineer_Game_Data;
 
@@ -42,7 +42,10 @@ _engineer_game_efl_object_finalize(Eo *obj, Engineer_Game_Data *pd)
       DB_CREATE,       // Open flags.
       0);
 
+   // Load the file pointed to by the path var.
    engineer_game_file_load(obj);
+
+   // Load any registered modules automatically.
 
    return obj;
 }
@@ -115,10 +118,10 @@ _engineer_game_file_close(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd)
 }
 
 EOLIAN static void
-_engineer_game_scene_add(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
+_engineer_game_scene_create(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
         const char *name)
 {
-   // Make sure that this scene does not already exist in the scene db.
+   // Make sure that a scene with this name does not already exist in the scene db.
    DBT key, data;
    memset(&key, 0, sizeof(DBT));
    memset(&data, 0, sizeof(DBT));
@@ -127,14 +130,14 @@ _engineer_game_scene_add(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED
    key.flags = DB_DBT_USERMEM;
    if (pd->scenetable->get(pd->scenetable, NULL, &key, &data, 0) != DB_NOTFOUND) return;
 
-   // Make sure that the scene file is valid.
-
    // Add an entry to the scene database here.
    pd->scenetable->put(pd->scenetable, NULL, &key, &data, 0);
+
+   engineer_game_scene_load(obj, name);
 }
 
 EOLIAN static void
-_engineer_game_scene_load(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
+_engineer_game_scene_load(Eo *obj, Engineer_Game_Data *pd,
         const char *name)
 {
    // Check to see if an entry for the target scene is present in the game scene database.
@@ -146,11 +149,20 @@ _engineer_game_scene_load(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSE
    key.flags = DB_DBT_USERMEM;
    if (pd->scenetable->get(pd->scenetable, NULL, &key, &data, 0) == DB_NOTFOUND) return;
 
-   // Check to see if the associated scene file is present.
+   // Make sure that the scene file is valid.
+   const char path[PATH_MAX];
+   snprintf(path, sizeof(path), "%s/data/scenes/%s/", pd->path, name); //fixme
+   if (!ecore_file_is_dir(path)) return;
 
+   // Create the scene object and load the data into it.
+   Efl_Object *scene;
+   scene = efl_add(ENGINEER_SCENE_CLASS, obj,
+              engineer_scene_game_set(efl_added, pd->name),
+              engineer_scene_name_set(efl_added, name));
 
-      //if (eina_hash_find(pd->scenes, name)) return NULL;
-         //eina_hash_add(pd->scenes, name, scene);
+   // Add the newly created scene object to the pd->scenes list using it's name as the key.
+   if (eina_hash_find(pd->scenes, name)) return;
+   eina_hash_add(pd->scenes, name, scene);
 }
 
 EOLIAN static void
@@ -164,6 +176,14 @@ _engineer_game_scene_unload(Eo *obj, Engineer_Game_Data *pd EINA_UNUSED,
         const char *name)
 {
    engineer_game_scene_save(obj, name);
+}
+
+EOLIAN static void
+_engineer_game_module_register(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
+        const char *name)
+{
+   char file[PATH_MAX];
+   snprintf(file, sizeof(*file), "data/modules/%s.module", name);
 }
 
 EOLIAN static void
@@ -190,12 +210,18 @@ _engineer_game_module_load(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd,
 }
 
 EOLIAN static void
-_engineer_game_module_close(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
+_engineer_game_module_unload(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
         Eo *target EINA_UNUSED)
 {
   // Eina_Module *module;
 
   // module = eina_list_find(pd->modulecache, target);
+}
+
+EOLIAN static void
+_engineer_game_module_unregister(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
+        const char *name EINA_UNUSED)
+{
 }
 
 EOLIAN static char *

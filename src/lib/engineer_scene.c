@@ -22,8 +22,8 @@ Engineer_Scene_DB_Module;
 
 typedef struct
 {
-   const char   *game;          // Name of the game this scene belongs to. Must also be unique.
-   const char   *name;             // The name of this scene. MUST be unique, the code will check.
+   const char   *game;            // Name of the game this scene belongs to. Must also be unique.
+   const char   *name;            // The name of this scene. MUST be unique, the code will check.
 
    unsigned int  entitycount;
    Eina_Inarray *entityqueue;

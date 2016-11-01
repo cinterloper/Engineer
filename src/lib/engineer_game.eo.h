@@ -42,7 +42,7 @@ EOAPI void engineer_game_file_save(Eo *obj);
 
 EOAPI void engineer_game_file_close(Eo *obj);
 
-EOAPI void engineer_game_scene_add(Eo *obj, const char *name);
+EOAPI void engineer_game_scene_create(Eo *obj, const char *name);
 
 EOAPI void engineer_game_scene_load(Eo *obj, const char *name);
 
@@ -50,11 +50,19 @@ EOAPI void engineer_game_scene_save(Eo *obj, const char *name);
 
 EOAPI void engineer_game_scene_unload(Eo *obj, const char *name);
 
+EOAPI void engineer_game_module_register(Eo *obj, const char *name);
+
 EOAPI void engineer_game_module_load(Eo *obj, const char *file);
 
-EOAPI void engineer_game_module_close(Eo *obj, Efl_Object *target);
+EOAPI void engineer_game_module_unload(Eo *obj, Efl_Object *target);
+
+EOAPI void engineer_game_module_unregister(Eo *obj, const char *name);
 
 EOAPI char *engineer_game_module_lookup(Eo *obj, unsigned int target);
+
+EOAPI unsigned int engineer_game_module_id_use(Eo *obj);
+
+EOAPI void engineer_game_module_id_free(Eo *obj, unsigned int target);
 
 
 #endif
