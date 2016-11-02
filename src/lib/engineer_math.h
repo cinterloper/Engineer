@@ -7,31 +7,33 @@
 #define PI 3.1415926536897932384626
 #define K1 0.6072529350088812561694
 
-#define LUT_SIZE 64 // LUT = Lookup Table.  This needs to be set to the size of our integer bitwidth.
+#define SCALE   64 // This needs to be set to the size of our integer bitwidth.
+#define ANGLMAG 48 // Angle Magnitude, how many places from the left our unit radix is placed.
+#define SCLRMAG 16 // Scalar Magnitude, must ALWAYS be greater than Scalar Magnitude.
 
 // Define this to perform all (non 2^x) multiplications and divisions with the cordic linear method.
 #define CORDIC_LINEAR    1
 
 #ifdef CORDIC_LINEAR
-#define MULT(a, b)    engineer_math_mul(a, b)
-#define DIVD(a, b)    engineer_math_div(a, b)
+#define MULT(a, b)      engineer_math_mul(a, b)
+#define DIVD(a, b)      engineer_math_div(a, b)
 #else
-#define MULT(a, b)    (a) * (b)
-#define DIVD(a, b)    (a) / (b)
+#define MULT(a, b)      (a) * (b)
+#define DIVD(a, b)      (a) / (b)
 #endif
 
-#define EXP(a)     engineer_math_exp(a)
-#define LOG(a)     engineer_math_ln(a)
-#define SQRT(a)    engineer_math_sqrt(a)
+#define EXP(a)          engineer_math_exp(a)
+#define LOG(a)          engineer_math_ln(a)
+#define SQRT(a)         engineer_math_sqrt(a)
 
-#define SINCOS(a)  engineer_math_sincos(a)
-#define TAN(a)     engineer_math_tan(a)
-#define ATAN(a)    engineer_math_atan(a)
-#define ASIN(a)    engineer_math_asin(a)
+#define SINCOS(a)       engineer_math_sincos(a)
+#define TAN(a)          engineer_math_tan(a)
+#define ATAN(a)         engineer_math_atan(a)
+#define ASIN(a)         engineer_math_asin(a)
 
-#define SINCOSH(a) engineer_math_sinhcosh(a)
-#define TANH(a)    engineer_math_tanh(a)
-#define ATANH(a)   engineer_math_atanh(a)
+#define SINCOSH(a)      engineer_math_sincosh(a)
+#define TANH(a)         engineer_math_tanh(a)
+#define ATANH(a)        engineer_math_atanh(a)
 
 #define VEC2DOT(a, b)
 #define VEC2CROSS(a, b)
@@ -41,31 +43,39 @@
 #define VEC3CROSS(a, b)
 #define VEC3NORM(a, b)
 
-#define QUATMULT(a, b) engineer_math_quat_multiply(a, b)
-#define QUATNORM(a)    engineer_math_quat_normalize(a)
-#define QUATMTRX(a)    engineer_math_quat_matrixify(a)
+#define QUATMULT(a, b)  engineer_math_quat_multiply(a, b)
+#define QUATNORM(a)     engineer_math_quat_normalize(a)
+#define QUATMTRX(a)     engineer_math_quat_matrixify(a)
 
-typedef long EngScalar;
-typedef long EngAngle;
+typedef long EngSclr;
+typedef long EngAngl;
 
 typedef struct
 {
-   EngScalar x, y;
+   EngSclr x, y;
 }
 EngVec2
 
 typedef struct
 {
-   EngScalar x, y, z;
+   EngSclr x, y, z;
 }
 EngVec3
 
 typedef struct
 {
-   EngAngle  w;
-   EngScalar x, y, z;
+   EngAngl w;
+   EngSclr x, y, z;
 }
 EngQuat
+
+typedef struct
+{
+   EngSclr cell00, cell01, cell02;
+   EngSclr cell10, cell11, cell12;
+   EngSclr cell20, cell21, cell22;
+}
+EngMtrx
 
 void cordic_init();
 void cordic_test();
@@ -82,21 +92,21 @@ void cordic_hyperbolic_init();
 void cordic_hyperbolic_ymode();
 void cordic_hyperbolic_zmode();
 
-EngScalar engineer_math_mul(EngScalar a, EngScalar b);
-EngScalar engineer_math_div(EngScalar a, EngScalar b);
+EngSclr engineer_math_mul(EngSclr a, EngSclr b);
+EngSclr engineer_math_div(EngSclr a, EngSclr b);
 
-EngVec2   engineer_math_sincos(EngAngle a);
-EngScalar engineer_math_tan(EngAngle a);
-EngScalar engineer_math_atan(EngAngle a);
-EngScalar engineer_math_asin(EngAngle a);
+EngVec2 engineer_math_sincos(EngAngl a);
+EngSclr engineer_math_tan(EngAngl a);
+EngSclr engineer_math_atan(EngAngl a);
+EngSclr engineer_math_asin(EngAngl a);
 
-EngVec2   engineer_math_sincosh(EngAngle a);
-EngScalar engineer_math_tanh(EngAngle a);
-EngScalar engineer_math_atanh(EngAngle a);
+EngVec2 engineer_math_sincosh(EngAngl a);
+EngSclr engineer_math_tanh(EngAngl a);
+EngSclr engineer_math_atanh(EngAngl a);
 
-EngScalar engineer_math_exp(EngScalar a);
-EngScalar engineer_math_ln(EngScalar a);
-EngScalar engineer_math_sqrt(EngScalar a);
+EngSclr engineer_math_exp(EngSclr a);
+EngSclr engineer_math_ln(EngSclr a);
+EngSclr engineer_math_sqrt(EngSclr a);
 
 #endif
 
