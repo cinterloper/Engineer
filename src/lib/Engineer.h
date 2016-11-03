@@ -34,11 +34,13 @@ extern "C" {
 #define EFL_BETA_API_SUPPORT
 
 #include <stdio.h>
+#include <math.h>
 #include <string.h>
 #include <db.h>
 #include <Ecore_Getopt.h>
 #include <Elementary.h>
 
+#include "engineer_math.h"
 #include "engineer_game.h"
 #include "engineer_scene.h"
 //#include "engineer_module.h"

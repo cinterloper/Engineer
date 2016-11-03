@@ -18,114 +18,13 @@ cordic_init()
    cordic_hyperbolic_init();
 }
 
-void
-cordic_test()
-{
-    // Let's run a few tests.
-    long v, x, c;
-    EngVec2 ans;
-    double outputa, outputb, outputc;
-
-    cordic_init();
-
-    x = 1 << ANGLMAG; // 1.0
-    v = ATAN(x);
-    outputa = x / (1 << ANGLMAG);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC ATAN(%f) = %f\n", outputa, outputb);
-
-    x = 1 << ANGLMAG; // 1.0
-    ans = SINCOS(x);
-    c = ans.x;
-    v = ans.y;
-    outputa = x / (1 << ANGLMAG);
-    outputb = c / (1 << SCLRMAG);
-    printf("CORDIC COS(%f) = %f\n", outputa, outputb);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC SIN(%f) = %f\n", outputa, outputb);
-
-    x = 1 << ANGLMAG; // 1.0
-    v = TAN(x);
-    outputa = x / (1 << ANGLMAG);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC TAN(%f) = %f\n", outputa, outputb);
-
-    x = 1 << (ANGLMAG - 1); // 0.5
-    v = ASIN(x);
-    outputa = x / (1 << ANGLMAG);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC ASIN(%f) = %f\n", outputa, outputb);
-
-    x = 1 << ANGLMAG; // 1.0
-    ans = SINCOSH(x);
-    c = ans.x;
-    v = ans.y;
-    outputa = x / (1 << ANGLMAG);
-    outputb = c / (1 << SCLRMAG);
-    printf("CORDIC COSH(%f) = %f\n", outputa, outputb);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC SINH (%f) = %f\n", outputa, outputb);
-
-    x = 1 << ANGLMAG; // 1.0
-    v = TANH(x);
-    outputa = x / (1 << ANGLMAG);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC TANH(%f) = %f\n", outputa, outputb);
-
-    x = 1 << (ANGLMAG - 1);
-    v = ATANH(x);
-    outputa = x / (1 << ANGLMAG);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC ATANH(%f) = %f\n", outputa, outputb);
-
-    x = 3 * (1 << SCLRMAG - 2); // 0.75
-    v = LOG(x);
-    outputa = x / (1 << SCLRMAG);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC LOG(%f) = %f\n", outputa, outputb);
-
-    x = 2 << SCLRMAG;
-    v = SQRT(x);
-    outputa = x / (1 << SCLRMAG);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC SQRT(%f) = %f\n", outputa, outputb);
-
-    x = 1 << SCLRMAG; // 1.0
-    v = EXP(x);
-    outputa = x / (1 << SCLRMAG);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC EXP(%f) = %f\n", outputa, outputb);
-    x = 2 << SCLRMAG; // 2.0
-    v = EXP(x);
-    outputa = x / (1 << SCLRMAG);
-    outputb = v / (1 << SCLRMAG);
-    printf("CORDIC EXP(%f) = %f\n", outputa, outputb);
-
-    x = 1 << (SCLRMAG - 1); // 0.5
-    c = 2 << SCLRMAG;
-    v = MULT(x, c);
-    outputa = x / (1 << SCLRMAG);
-    outputb = c / (1 << SCLRMAG);
-    outputc = v / (1 << SCLRMAG);
-    printf("CORDIC MULT(%f, %f) = %f\n", outputa, outputb, outputc);
-
-    x = 1 << SCLRMAG;
-    c = 2 << SCLRMAG;
-    v = DIVD(x, c);
-    outputa = x / (1 << SCLRMAG);
-    outputb = c / (1 << SCLRMAG);
-    outputc = v / (1 << SCLRMAG);
-    printf("CORDIC DIVD(%f, %f) = %f\n", outputa, outputb, outputc);
-}
-
-
 /*** Linear CORDIC ***/
 
 void
 cordic_linear_init()
 {
    // Compute our Lookup Table for the linear CORDIC algorithims.
-   long t = 1 << SCLRMAG;
+   EngSclr t = (EngSclr)1 << SCLRMAG;
    uint i;
    for (i = 0; i < SCALE; ++i)
    {
@@ -183,7 +82,7 @@ void
 cordic_circular_init()
 {
    // Compute our Lookup Table for the circular CORDIC computers.
-   long t = 1 << ANGLMAG;
+   EngAngl t = (EngAngl)1 << ANGLMAG;
    uint i;
    for (i = 0; i < SCALE; ++i)
    {
@@ -192,11 +91,11 @@ cordic_circular_init()
    }
 
    // Calculate circular gain by evaluating cos(0) without inverse gain.
-   long x = 1 << ANGLMAG;
+   long x = (EngAngl)1 << ANGLMAG;
    long y = 0;
    long z = 0;
    cordic_circular_zmode(&x, &y, &z);
-   cordic_gain_c = (1 << ANGLMAG) / x;
+   cordic_gain_c = ((EngAngl)1 << ANGLMAG) / x;
 }
 
 void
@@ -258,13 +157,13 @@ void
 cordic_hyperbolic_init()
 {
    // Compute our Lookup Table for the hyperbolic CORDIC computers.
-   uint t = 1 << ANGLMAG;
+   EngAngl t = (EngAngl)1 << ANGLMAG;
    uint i;
    for (i = 0; i < SCALE; ++i)
    {
       t = t >> 1;
-      cordic_lut_h[i] = (long)(log(((1 << ANGLMAG) + t)
-                                 / ((1 << ANGLMAG) - t))) >> 1;
+      cordic_lut_h[i] = (long)(log((((EngAngl)1 << ANGLMAG) + t)
+                                 / (((EngAngl)1 << ANGLMAG) - t))) >> 1;
    }
 
    // Set up our usage mask for the cyclical doubled iteration of the hyperbolic cordic.
@@ -284,11 +183,11 @@ cordic_hyperbolic_init()
    }
 
    // Calculate hyperbolic gain.
-   long x = 1 << ANGLMAG; // 1.0
+   long x = (EngAngl)1 << ANGLMAG; // 1.0
    long y = 0;            // 0.0
    long z = 0;            // 0.0
    cordic_hyperbolic_zmode(&x, &y, &z);
-   cordic_gain_h = (1 << ANGLMAG) / x;
+   cordic_gain_h = ((EngAngl)1 << ANGLMAG) / x;
 }
 
 void
@@ -422,7 +321,7 @@ EngSclr
 engineer_math_atan(EngAngl a)
 {
     // Domain: all a
-    long x = 1 << ANGLMAG;
+    long x = (EngAngl)1 << ANGLMAG;
     long z = 0;
 
     cordic_circular_ymode(&x, &a, &z);
@@ -435,7 +334,7 @@ engineer_math_asin(EngAngl a)
 {
     // Domain: |a| < 0.98
     // We use the trig identity for this, as there really isnt a good way to vectorize it directly.
-    return cordic_atan(DIVD(a, SQRT(1 - MULT(a, a))));
+    return ATAN(DIVD(a, SQRT(1 - MULT(a, a))));
 }
 
 
@@ -478,7 +377,7 @@ engineer_math_atanh(EngAngl a)
     // Domain: |a| < 1.13 units.
     long x, z, ans;
 
-    x = 1 << ANGLMAG;
+    x = (EngAngl)1 << ANGLMAG;
     z = 0;
     cordic_hyperbolic_ymode(&x, &a, &z);
     ans = z;
@@ -506,8 +405,8 @@ engineer_math_ln(EngSclr a)
     // Domain: 0.1 < a < 9.58 units.
     long x, y, z, ans;
 
-    x = a + (1 << SCLRMAG);
-    y = a - (1 << SCLRMAG);
+    x = a + ((EngSclr)1 << SCLRMAG);
+    y = a - ((EngSclr)1 << SCLRMAG);
     z = 0;
     cordic_hyperbolic_ymode(&x, &y, &z);
     ans =  z << 1;
@@ -521,8 +420,8 @@ engineer_math_sqrt(EngSclr a)
     // Domain: 0.03 < a < 2 units.
     long x, y, z, ans;
 
-    x = a + (1 << (SCLRMAG - 2));
-    y = a - (1 << (SCLRMAG - 2));
+    x = a + ((EngSclr)1 << (SCLRMAG - 2));
+    y = a - ((EngSclr)1 << (SCLRMAG - 2));
     z = 0;
     cordic_hyperbolic_ymode(&x, &y, &z);
     ans = MULT(x, cordic_gain_h);

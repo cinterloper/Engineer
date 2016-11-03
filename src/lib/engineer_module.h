@@ -1,7 +1,7 @@
 #ifndef _ENGINEER_MODULE_H_
 #define _ENGINEER_MODULE_H_
 
-#include "../Engineer.h"
+#include "Engineer.h"
 
 #ifndef NAME
    #define COMPONENT void
@@ -37,10 +37,10 @@
 
 #endif
 
-#define add    EINA_UNUSED OVERRIDE_add
-#define awake  EINA_UNUSED OVERRIDE_component_awake
-#define start  EINA_UNUSED OVERRIDE_component_start
-#define update EINA_UNUSED OVERRIDE_component_update
+#define add    OVERRIDE_add
+#define awake  OVERRIDE_component_awake
+#define start  OVERRIDE_component_start
+#define update OVERRIDE_component_update
 
 #include "engineer_module.eo.h"
 

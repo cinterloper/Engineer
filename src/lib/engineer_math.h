@@ -8,7 +8,7 @@
 #define K1 0.6072529350088812561694
 
 #define SCALE   64 // This needs to be set to the size of our integer bitwidth.
-#define ANGLMAG 48 // Angle Magnitude, how many places from the left our unit radix is placed.
+#define ANGLMAG 60 // Angle Magnitude, how many places from the left our unit radix is placed.
 #define SCLRMAG 16 // Scalar Magnitude, must ALWAYS be greater than Scalar Magnitude.
 
 // Define this to perform all (non 2^x) multiplications and divisions with the cordic linear method.
@@ -35,17 +35,17 @@
 #define TANH(a)         engineer_math_tanh(a)
 #define ATANH(a)        engineer_math_atanh(a)
 
-#define VEC2DOT(a, b)
-#define VEC2CROSS(a, b)
-#define VEC2NORM(a)
+//#define VEC2DOT(a, b)
+//#define VEC2CROSS(a, b)
+//#define VEC2NORM(a)
 
-#define VEC3DOT(a, b)
-#define VEC3CROSS(a, b)
-#define VEC3NORM(a, b)
+//#define VEC3DOT(a, b)
+//#define VEC3CROSS(a, b)
+//#define VEC3NORM(a, b)
 
-#define QUATMULT(a, b)  engineer_math_quat_multiply(a, b)
-#define QUATNORM(a)     engineer_math_quat_normalize(a)
-#define QUATMTRX(a)     engineer_math_quat_matrixify(a)
+//#define QUATMULT(a, b)  engineer_math_quat_multiply(a, b)
+//#define QUATNORM(a)     engineer_math_quat_normalize(a)
+//#define QUATMTRX(a)     engineer_math_quat_matrixify(a)
 
 typedef long EngSclr;
 typedef long EngAngl;
@@ -54,20 +54,20 @@ typedef struct
 {
    EngSclr x, y;
 }
-EngVec2
+EngVec2;
 
 typedef struct
 {
    EngSclr x, y, z;
 }
-EngVec3
+EngVec3;
 
 typedef struct
 {
    EngAngl w;
    EngSclr x, y, z;
 }
-EngQuat
+EngQuat;
 
 typedef struct
 {
@@ -75,10 +75,9 @@ typedef struct
    EngSclr cell10, cell11, cell12;
    EngSclr cell20, cell21, cell22;
 }
-EngMtrx
+EngMtrx;
 
 void cordic_init();
-void cordic_test();
 
 void cordic_linear_init();
 void cordic_linear_ymode();
