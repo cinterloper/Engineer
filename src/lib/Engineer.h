@@ -34,7 +34,6 @@ extern "C" {
 #define EFL_BETA_API_SUPPORT
 
 #include <stdio.h>
-#include <math.h>
 #include <string.h>
 #include <db.h>
 #include <Ecore_Getopt.h>
@@ -43,7 +42,6 @@ extern "C" {
 #include "engineer_math.h"
 #include "engineer_game.h"
 #include "engineer_scene.h"
-//#include "engineer_module.h"
 
 #define UINT_NULL 0xFFFFFFFF
 #define ULONG_NULL 0xFFFFFFFFFFFFFFFF

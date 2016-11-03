@@ -1,14 +1,14 @@
 #include "engineer_math.h"
 
 // Gains
-long cordic_gain_c;
-long cordic_gain_h;
+Word cordic_gain_c;
+Word cordic_gain_h;
 
 // LUTs
-long cordic_lut_l[SCALE]; // Linear Lookup Table.
-long cordic_lut_c[SCALE]; // Circular Lookup Table.
-long cordic_lut_h[SCALE]; // Hyperbolic Lookup Table.
-long cordic_lut_m[SCALE]; // Hyperbolic Repeat Mask Lookup Table.
+Word cordic_lut_l[SCALE]; // Linear Lookup Table.
+Word cordic_lut_c[SCALE]; // Circular Lookup Table.
+Word cordic_lut_h[SCALE]; // Hyperbolic Lookup Table.
+Word cordic_lut_m[SCALE]; // Hyperbolic Repeat Mask Lookup Table.
 
 void
 cordic_init()
@@ -24,24 +24,24 @@ void
 cordic_linear_init()
 {
    // Compute our Lookup Table for the linear CORDIC algorithims.
-   EngSclr t = (EngSclr)1 << SCLRMAG;
+   Word t = (Word)1 << SCLRMAG;
    uint i;
    for (i = 0; i < SCALE; ++i)
    {
-      cordic_lut_l[i]  = atan(t);
+      cordic_lut_l[i] = t; //(Word)t * ((Word)1 << SCLRMAG));
       t = t >> 1;
    }
 }
 
 void
-cordic_linear_ymode(long *x0, long *y0, long *z0)
+cordic_linear_ymode(Word *x0, Word *y0, Word *z0)
 {
-   long x  = *x0;
-   long y  = *y0;
-   long z  = *z0;
-   long ds = 0;
+   Word x  = *x0;
+   Word y  = *y0;
+   Word z  = *z0;
+   Word ds = 0;
 
-   for (uint i = 0; i < SCALE; i++)
+   for (uint i = 0; i < SCALE ; i++)
    {
       ds = y >> (SCALE - 1); // Most Significant Bit
 
@@ -55,12 +55,12 @@ cordic_linear_ymode(long *x0, long *y0, long *z0)
 }
 
 void
-cordic_linear_zmode(long *x0, long *y0, long *z0)
+cordic_linear_zmode(Word *x0, Word *y0, Word *z0)
 {
-   long x  = *x0;
-   long y  = *y0;
-   long z  = *z0;
-   long ds = 0;
+   Word x  = *x0;
+   Word y  = *y0;
+   Word z  = *z0;
+   Word ds = 0;
 
    for (uint i = 0; i < SCALE; i++)
    {
@@ -258,7 +258,7 @@ cordic_hyperbolic_zmode(long *x0, long *y0, long *z0)
 EngSclr
 engineer_math_mul(EngSclr a, EngSclr b)
 {
-    long x, y, z;
+    Word x, y, z;
 
     x = a;
     y = 0;
@@ -271,7 +271,7 @@ engineer_math_mul(EngSclr a, EngSclr b)
 EngSclr
 engineer_math_div(EngSclr a, EngSclr b)
 {
-    long x, y, z;
+    Word x, y, z;
 
     x = b;
     y = a;

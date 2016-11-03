@@ -47,8 +47,9 @@
 //#define QUATNORM(a)     engineer_math_quat_normalize(a)
 //#define QUATMTRX(a)     engineer_math_quat_matrixify(a)
 
-typedef long EngSclr;
-typedef long EngAngl;
+typedef long Word;    // This sets the word size used by the Engineer.so library.
+typedef Word EngSclr; // Both our Scalar and Angular values should have a word
+typedef Word EngAngl; //    size equal to our library word size.
 
 typedef struct
 {
