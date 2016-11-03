@@ -19,7 +19,7 @@ int main()
 
    cordic_sincos_test(1.00);
    cordic_sincos_test(0.50);
-
+/*
    cordic_tan_test(1.00);
    cordic_tan_test(0.50);
 
@@ -48,7 +48,7 @@ int main()
    cordic_sqrt_test(4.00);
    cordic_sqrt_test(9.00);
    cordic_sqrt_test(16.00);
-
+*/
    return 0;
 }
 
@@ -58,15 +58,14 @@ cordic_mult_test(double a, double b)
    Word v, x, c;
    double outputa, outputb, outputc;
 
-   x = (Word)(a * ((Word)1 << SCLRMAG));
-   c = (Word)(b * ((Word)1 << SCLRMAG));
-   printf("MULT converted inputs %d, %d\n", x, c);
+   x = (Word)(a * SCLRBASE);
+   c = (Word)(b * SCLRBASE);
    v = MULT(x, c);
-   printf("MULT converted output %d\n", v);
-   outputa = (double)x / ((Word)1 << SCLRMAG);
-   outputb = (double)c / ((Word)1 << SCLRMAG);
-   outputc = (double)v / ((Word)1 << SCLRMAG);
-   printf("CORDIC MULT(%f, %f) = %f\n\n", outputa, outputb, outputc);
+   outputa = (double)x / SCLRBASE;
+   outputb = (double)c / SCLRBASE;
+   outputc = (double)v / SCLRBASE;
+   printf("FX CORDIC MULT(%ld * %ld) = %ld\n", x, c, v);
+   printf("FP CORDIC MULT(%f * %f) = %f\n\n", outputa, outputb, outputc);
 }
 
 void
@@ -75,13 +74,14 @@ cordic_divd_test(double a, double b)
    Word v, x, c;
    double outputa, outputb, outputc;
 
-   x = (Word)(a * ((Word)1 << SCLRMAG));
-   c = (Word)(b * ((Word)1 << SCLRMAG));
+   x = (Word)(a * SCLRBASE);
+   c = (Word)(b * SCLRBASE);
    v = DIVD(x, c);
-   outputa = (double)x / ((Word)1 << SCLRMAG);
-   outputb = (double)c / ((Word)1 << SCLRMAG);
-   outputc = (double)v / ((Word)1 << SCLRMAG);
-   printf("CORDIC DIVD(%f, %f) = %f\n\n", outputa, outputb, outputc);
+   outputa = (double)x / SCLRBASE;
+   outputb = (double)c / SCLRBASE;
+   outputc = (double)v / SCLRBASE;
+   printf("FX CORDIC DIVD(%ld / %ld) = %ld\n", x, c, v);
+   printf("FP CORDIC DIVD(%f / %f) = %f\n\n", outputa, outputb, outputc);
 }
 
 void
@@ -91,15 +91,17 @@ cordic_sincos_test(double a)
    EngVec2 ans;
    double outputa, outputb;
 
-   x = (Word)(a * ((Word)1 << ANGLMAG));
+   x = (Word)(a * ANGLBASE);
    ans = SINCOS(x);
    c = ans.x;
    v = ans.y;
-   outputa = (double)x / ((Word)1 << ANGLMAG);
-   outputb = (double)c / ((Word)1 << SCLRMAG);
-   printf("CORDIC COS(%f) = %f\n", outputa, outputb);
-   outputb = (double)v / ((Word)1 << SCLRMAG);
-   printf("CORDIC SIN(%f) = %f\n", outputa, outputb);
+   outputa = (double)x / ANGLBASE;
+   outputb = (double)c / ANGLBASE;
+   printf("FX CORDIC COS(%ld) = %ld\n", x, c);
+   printf("FP CORDIC COS(%f) = %f\n\n", outputa, outputb);
+   outputb = (double)v / ANGLBASE;
+   printf("FX CORDIC SIN(%ld) = %ld\n", x, v);
+   printf("FP CORDIC SIN(%f) = %f\n\n", outputa, outputb);
 }
 
 void
@@ -108,10 +110,10 @@ cordic_tan_test(double a)
    Word v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ((Word)1 << ANGLMAG));
+   x = (Word)(a * ANGLBASE);
    v = TAN(x);
-   outputa = (double)x / ((Word)1 << ANGLMAG);
-   outputb = (double)v / ((Word)1 << SCLRMAG);
+   outputa = (double)x / ANGLBASE;
+   outputb = (double)v / SCLRBASE;
    printf("CORDIC TAN(%f) = %f\n", outputa, outputb);
 }
 
@@ -121,10 +123,10 @@ cordic_atan_test(double a)
    Word v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ((Word)1 << ANGLMAG));
+   x = (Word)(a * ANGLBASE);
    v = ATAN(x);
-   outputa = (double)x / ((Word)1 << ANGLMAG);
-   outputb = (double)v / ((Word)1 << SCLRMAG);
+   outputa = (double)x / ANGLBASE;
+   outputb = (double)v / SCLRBASE;
    printf("CORDIC ATAN(%f) = %f\n", outputa, outputb);
 }
 
@@ -134,10 +136,10 @@ cordic_asin_test(double a)
    Word v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ((Word)1 << ANGLMAG));
+   x = (Word)(a * ANGLBASE);
    v = ASIN(x);
-   outputa = (double)x / ((Word)1 << ANGLMAG);
-   outputb = (double)v / ((Word)1 << SCLRMAG);
+   outputa = (double)x / ANGLBASE;
+   outputb = (double)v / SCLRBASE;
    printf("CORDIC ASIN(%f) = %f\n", outputa, outputb);
 }
 
@@ -148,14 +150,14 @@ cordic_sincosh_test(double a)
    EngVec2 ans;
    double outputa, outputb;
 
-   x = (Word)(a * ((Word)1 << ANGLMAG));
+   x = (Word)(a * ANGLBASE);
    ans = SINCOSH(x);
    c = ans.x;
    v = ans.y;
-   outputa = (double)x / ((Word)1 << ANGLMAG);
-   outputb = (double)c / ((Word)1 << SCLRMAG);
+   outputa = (double)x / ANGLBASE;
+   outputb = (double)c / SCLRBASE;
    printf("CORDIC COSH(%f) = %f\n", outputa, outputb);
-   outputb = (double)v / ((Word)1 << SCLRMAG);
+   outputb = (double)v / SCLRBASE;
    printf("CORDIC SINH (%f) = %f\n", outputa, outputb);
 }
 
@@ -165,10 +167,10 @@ cordic_tanh_test(double a)
    Word v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ((Word)1 << ANGLMAG));
+   x = (Word)(a * ANGLBASE);
    v = TANH(x);
-   outputa = (double)x / ((Word)1 << ANGLMAG);
-   outputb = (double)v / ((Word)1 << SCLRMAG);
+   outputa = (double)x / ANGLBASE;
+   outputb = (double)v / SCLRBASE;
    printf("CORDIC TANH(%f) = %f\n", outputa, outputb);
 }
 
@@ -178,10 +180,10 @@ cordic_atanh_test(double a)
    Word v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ((Word)1 << ANGLMAG));
+   x = (Word)(a * ANGLBASE);
    v = ATANH(x);
-   outputa = (double)x / ((Word)1 << ANGLMAG);
-   outputb = (double)v / ((Word)1 << SCLRMAG);
+   outputa = (double)x / ANGLBASE;
+   outputb = (double)v / SCLRBASE;
    printf("CORDIC ATANH(%f) = %f\n", outputa, outputb);
 }
 
@@ -191,10 +193,10 @@ cordic_exp_test(double a)
    Word v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ((Word)1 << SCLRMAG));
+   x = (Word)(a * SCLRBASE);
    v = EXP(x);
-   outputa = (double)x / ((Word)1 << SCLRMAG);
-   outputb = (double)v / ((Word)1 << SCLRMAG);
+   outputa = (double)x / SCLRBASE;
+   outputb = (double)v / SCLRBASE;
    printf("CORDIC EXP(%f) = %f\n", outputa, outputb);
 }
 
@@ -204,10 +206,10 @@ cordic_log_test(double a)
    Word v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ((Word)1 << SCLRMAG));
+   x = (Word)(a * SCLRBASE);
    v = LOG(x);
-   outputa = (double)x / ((Word)1 << SCLRMAG);
-   outputb = (double)v / ((Word)1 << SCLRMAG);
+   outputa = (double)x / SCLRBASE;
+   outputb = (double)v / SCLRBASE;
    printf("CORDIC LOG(%f) = %f\n", outputa, outputb);
 }
 
@@ -217,10 +219,10 @@ cordic_sqrt_test(double a)
    Word v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ((Word)1 << SCLRMAG));
+   x = (Word)(a * SCLRBASE);
    v = SQRT(x);
-   outputa = (double)x / ((Word)1 << SCLRMAG);
-   outputb = (double)v / ((Word)1 << SCLRMAG);
+   outputa = (double)x / SCLRBASE;
+   outputb = (double)v / SCLRBASE;
    printf("CORDIC SQRT(%f) = %f\n", outputa, outputb);
 }
 

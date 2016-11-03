@@ -24,11 +24,11 @@ void
 cordic_linear_init()
 {
    // Compute our Lookup Table for the linear CORDIC algorithims.
-   Word t = (Word)1 << SCLRMAG;
+   Word t = SCLRBASE;
    uint i;
    for (i = 0; i < SCALE; ++i)
    {
-      cordic_lut_l[i] = t; //(Word)t * ((Word)1 << SCLRMAG));
+      cordic_lut_l[i] = t;
       t = t >> 1;
    }
 }
@@ -41,9 +41,10 @@ cordic_linear_ymode(Word *x0, Word *y0, Word *z0)
    Word z  = *z0;
    Word ds = 0;
 
-   for (uint i = 0; i < SCALE ; i++)
+   for (uint i = 0; i < SCALE; i++)
    {
       ds = y >> (SCALE - 1); // Most Significant Bit
+      //z += (z & ds);         // Round up if our current y iteration is negative.
 
       y  = y - (((x >> i)          ^ ds) - ds);
       z  = z + (((cordic_lut_l[i]) ^ ds) - ds);
@@ -65,6 +66,7 @@ cordic_linear_zmode(Word *x0, Word *y0, Word *z0)
    for (uint i = 0; i < SCALE; i++)
    {
       ds = z >> (SCALE - 1); // Most Significant Bit
+      //y += (y & ds);         // Round up instead of rounding down. // (Word)1
 
       y  = y + (((x >> i)          ^ ds) - ds);
       z  = z - (((cordic_lut_l[i]) ^ ds) - ds);
@@ -82,30 +84,30 @@ void
 cordic_circular_init()
 {
    // Compute our Lookup Table for the circular CORDIC computers.
-   EngAngl t = (EngAngl)1 << ANGLMAG;
+   long double t = 1.0;
    uint i;
    for (i = 0; i < SCALE; ++i)
    {
-      cordic_lut_c[i]  = atan(t);
-      t = t >> 1;
+      cordic_lut_c[i]  = (Word)(atanl(t) * ANGLBASE);
+      t /= 2;
    }
 
    // Calculate circular gain by evaluating cos(0) without inverse gain.
-   long x = (EngAngl)1 << ANGLMAG;
-   long y = 0;
-   long z = 0;
+   Word x = ANGLBASE;
+   Word y = 0;
+   Word z = 0;
    cordic_circular_zmode(&x, &y, &z);
-   cordic_gain_c = ((EngAngl)1 << ANGLMAG) / x;
+   cordic_gain_c = (Word)(ANGLBASE / x);
 }
 
 void
-cordic_circular_ymode(long *x0, long *y0, long *z0)
+cordic_circular_ymode(Word *x0, Word *y0, Word *z0)
 {
-   long x  = *x0; // fixedpoint_get(cordic_fx_1K);
-   long y  = *y0;
-   long z  = *z0;
-   long dx = 0;
-   long ds = 0;
+   Word x  = *x0; // fixedpoint_get(cordic_fx_1K);
+   Word y  = *y0;
+   Word z  = *z0;
+   Word dx = 0;
+   Word ds = 0;
 
    for (uint i = 0; i < SCALE; i++)
    {
@@ -124,13 +126,13 @@ cordic_circular_ymode(long *x0, long *y0, long *z0)
 }
 
 void
-cordic_circular_zmode(long *x0, long *y0, long *z0)
+cordic_circular_zmode(Word *x0, Word *y0, Word *z0)
 {
-   long x  = *x0; // fixedpoint_get(cordic_fx_1K);
-   long y  = *y0;
-   long z  = *z0;
-   long dx = 0;
-   long ds = 0;
+   Word x  = *x0; // fixedpoint_get(cordic_fx_1K);
+   Word y  = *y0;
+   Word z  = *z0;
+   Word dx = 0;
+   Word ds = 0;
 
    for (uint i = 0; i < SCALE; i++)
    {
@@ -157,13 +159,12 @@ void
 cordic_hyperbolic_init()
 {
    // Compute our Lookup Table for the hyperbolic CORDIC computers.
-   EngAngl t = (EngAngl)1 << ANGLMAG;
+   Word t = ANGLBASE;
    uint i;
    for (i = 0; i < SCALE; ++i)
    {
       t = t >> 1;
-      cordic_lut_h[i] = (long)(log((((EngAngl)1 << ANGLMAG) + t)
-                                 / (((EngAngl)1 << ANGLMAG) - t))) >> 1;
+      cordic_lut_h[i] = (Word)(log((ANGLBASE + t) / (ANGLBASE - t))) >> 1;
    }
 
    // Set up our usage mask for the cyclical doubled iteration of the hyperbolic cordic.
@@ -177,17 +178,17 @@ cordic_hyperbolic_init()
      }
      else
      {
-        cordic_lut_m[i] = (long)ldexp(1, SCALE);
+        cordic_lut_m[i] = (Word)ldexp(1, SCALE);
         t = 2;
      }
    }
 
    // Calculate hyperbolic gain.
-   long x = (EngAngl)1 << ANGLMAG; // 1.0
-   long y = 0;            // 0.0
-   long z = 0;            // 0.0
+   Word x = ANGLBASE;
+   Word y = 0;
+   Word z = 0;
    cordic_hyperbolic_zmode(&x, &y, &z);
-   cordic_gain_h = ((EngAngl)1 << ANGLMAG) / x;
+   cordic_gain_h = ANGLBASE / x;
 }
 
 void

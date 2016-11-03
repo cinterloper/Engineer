@@ -11,6 +11,9 @@
 #define ANGLMAG 60 // Angle Magnitude, how many places from the left our unit radix is placed.
 #define SCLRMAG 16 // Scalar Magnitude, must ALWAYS be greater than Scalar Magnitude.
 
+#define ANGLBASE ((Word)1 << ANGLMAG) // These define our Basis Vectors for
+#define SCLRBASE ((Word)1 << SCLRMAG) //    fractional conversion.
+
 // Define this to perform all (non 2^x) multiplications and divisions with the cordic linear method.
 #define CORDIC_LINEAR    1
 
