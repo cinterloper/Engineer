@@ -9,7 +9,7 @@
 
 #define SCALE   64 // This needs to be set to the size of our integer bitwidth.
 #define ANGLMAG 60 // Angle Magnitude, how many places from the left our unit radix is placed.
-#define SCLRMAG 16 // Scalar Magnitude, must ALWAYS be greater than Scalar Magnitude.
+#define SCLRMAG 24 // Scalar Magnitude, must ALWAYS be less than Angular Magnitude.
 
 #define ANGLBASE ((Word)1 << ANGLMAG) // These define our Basis Vectors for
 #define SCLRBASE ((Word)1 << SCLRMAG) //    fractional conversion.
@@ -50,9 +50,10 @@
 //#define QUATNORM(a)     engineer_math_quat_normalize(a)
 //#define QUATMTRX(a)     engineer_math_quat_matrixify(a)
 
-typedef long Word;    // This sets the word size used by the Engineer.so library.
-typedef Word EngSclr; // Both our Scalar and Angular values should have a word
-typedef Word EngAngl; //    size equal to our library word size.
+typedef long     Word;    // This sets the word size used by the Engineer.so library.
+typedef __int128 Rstr;    // This needs to be a data type twice the size of the Word.
+typedef          Word EngSclr; // Both our Scalar and Angular values should have a word
+typedef          Word EngAngl; //    size equal to our library word size.
 
 typedef struct
 {

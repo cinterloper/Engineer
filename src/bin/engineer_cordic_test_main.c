@@ -7,10 +7,23 @@ int main()
 
    cordic_mult_test(1.00, 1.00);
    cordic_mult_test(1.00, -1.00);
+   cordic_mult_test(-1.00, 1.00);
    cordic_mult_test(-1.00, -1.00);
+   cordic_mult_test(-2.00, -1.00);
+   cordic_mult_test(-1.00, -2.00);
+   cordic_mult_test(3.00, 2.00);
+   cordic_mult_test(-3.00, -2.00);
+   cordic_mult_test(-4.00, -2.00);
+   cordic_mult_test(-2.00, -4.00);
+   cordic_mult_test(-4.00, -8.00);
+   cordic_mult_test(2.00, 4.00);
    cordic_mult_test(0.50, 2.00);
+   cordic_mult_test(2.00, 0.50);
    cordic_mult_test(4.00, 0.25);
    cordic_mult_test(2.00, 2.00);
+   cordic_mult_test(64.00, 2.00);
+   cordic_mult_test(128.00, 0.50);
+   cordic_mult_test(64.00, 4.00);
 
    cordic_divd_test(1.00, 1.00);
    cordic_divd_test(2.00, 1.00);
@@ -61,9 +74,12 @@ cordic_mult_test(double a, double b)
    x = (Word)(a * SCLRBASE);
    c = (Word)(b * SCLRBASE);
    v = MULT(x, c);
-   outputa = (double)x / SCLRBASE;
-   outputb = (double)c / SCLRBASE;
-   outputc = (double)v / SCLRBASE;
+   x = x >> 8;
+   c = c >> 8;
+   v = v >> 8;
+   outputa = (double)x / (SCLRBASE >> 8);
+   outputb = (double)c / (SCLRBASE >> 8);
+   outputc = (double)v / (SCLRBASE >> 8);
    printf("FX CORDIC MULT(%ld * %ld) = %ld\n", x, c, v);
    printf("FP CORDIC MULT(%f * %f) = %f\n\n", outputa, outputb, outputc);
 }
@@ -77,9 +93,12 @@ cordic_divd_test(double a, double b)
    x = (Word)(a * SCLRBASE);
    c = (Word)(b * SCLRBASE);
    v = DIVD(x, c);
-   outputa = (double)x / SCLRBASE;
-   outputb = (double)c / SCLRBASE;
-   outputc = (double)v / SCLRBASE;
+   x = x >> 8;
+   c = c >> 8;
+   v = v >> 8;
+   outputa = (double)x / (SCLRBASE >> 8);
+   outputb = (double)c / (SCLRBASE >> 8);
+   outputc = (double)v / (SCLRBASE >> 8);
    printf("FX CORDIC DIVD(%ld / %ld) = %ld\n", x, c, v);
    printf("FP CORDIC DIVD(%f / %f) = %f\n\n", outputa, outputb, outputc);
 }

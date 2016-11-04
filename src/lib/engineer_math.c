@@ -41,10 +41,9 @@ cordic_linear_ymode(Word *x0, Word *y0, Word *z0)
    Word z  = *z0;
    Word ds = 0;
 
-   for (uint i = 0; i < SCALE; i++)
+   for (uint i = 0; i < SCALE; ++i)
    {
       ds = y >> (SCALE - 1); // Most Significant Bit
-      //z += (z & ds);         // Round up if our current y iteration is negative.
 
       y  = y - (((x >> i)          ^ ds) - ds);
       z  = z + (((cordic_lut_l[i]) ^ ds) - ds);
@@ -63,10 +62,9 @@ cordic_linear_zmode(Word *x0, Word *y0, Word *z0)
    Word z  = *z0;
    Word ds = 0;
 
-   for (uint i = 0; i < SCALE; i++)
+   for (uint i = 0; i < SCALE; ++i)
    {
       ds = z >> (SCALE - 1); // Most Significant Bit
-      //y += (y & ds);         // Round up instead of rounding down. // (Word)1
 
       y  = y + (((x >> i)          ^ ds) - ds);
       z  = z - (((cordic_lut_l[i]) ^ ds) - ds);
