@@ -1,7 +1,7 @@
 MAINTAINERCLEANFILES = Makefile.in
 
 PACKAGE_NAME = @PACKAGE_NAME@
-bin_PROGRAMS = engineer engineer_cordic_test
+bin_PROGRAMS = engineer engineer_math_test
 
 EDIPREFIX=`pkg-config --variable=prefix efl`
 
@@ -21,6 +21,6 @@ DEFS = -DLOCALEDIR=\"$(localedir)\" @DEFS@
 
 EXTRA_DIST = engineer_main.h
 
-engineer_cordic_test_SOURCES = engineer_cordic_test_main.c
-engineer_cordic_test_LDADD = @EFL_LIBS@ $(top_builddir)/src/lib/libengineer.la
+engineer_math_test_SOURCES = engineer_math_test_main.c
+engineer_math_test_LDADD = @EFL_LIBS@ $(top_builddir)/src/lib/libengineer.la
 

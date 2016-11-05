@@ -5,7 +5,6 @@ Word cordic_gain_c;
 Word cordic_gain_h;
 
 // LUTs
-Word cordic_lut_l[SCALE]; // Linear Lookup Table.
 Word cordic_lut_c[SCALE]; // Circular Lookup Table.
 Word cordic_lut_h[SCALE]; // Hyperbolic Lookup Table.
 Word cordic_lut_m[SCALE]; // Hyperbolic Repeat Mask Lookup Table.
@@ -13,12 +12,19 @@ Word cordic_lut_m[SCALE]; // Hyperbolic Repeat Mask Lookup Table.
 void
 cordic_init()
 {
+   #ifdef CORDIC_LINEAR
    cordic_linear_init();
+   #endif
    cordic_circular_init();
    cordic_hyperbolic_init();
 }
 
 /*** Linear CORDIC ***/
+
+#ifdef CORDIC_LINEAR
+// This is mostly useless, it's included as a simplified example of a working CORDIC.
+// For educational purposes only.
+Word cordic_lut_l[SCALE]; // Linear Lookup Table.
 
 void
 cordic_linear_init()
@@ -74,6 +80,7 @@ cordic_linear_zmode(Word *x0, Word *y0, Word *z0)
    *y0 = y;
    *z0 = z;
 }
+#endif
 
 
 /*** Circular CORDIC ***/
@@ -257,27 +264,37 @@ cordic_hyperbolic_zmode(long *x0, long *y0, long *z0)
 EngSclr
 engineer_math_mul(EngSclr a, EngSclr b)
 {
-    Word x, y, z;
+   #ifndef CORDIC_LINEAR
+   EngSclr buffer = a * b;
+   buffer += ((buffer & (1 << (SCLRMAG - 1)) ) << 1);
+   buffer >>= SCLRMAG;
 
-    x = a;
-    y = 0;
-    z = b;
-    cordic_linear_zmode(&x, &y, &z);
+   return buffer;
+   #else
+   Word x = a;
+   Word y = 0;
+   Word z = b;
+   cordic_linear_zmode(&x, &y, &z);
 
-    return y;
+   return y;
+   #endif
 }
 
 EngSclr
 engineer_math_div(EngSclr a, EngSclr b)
 {
-    Word x, y, z;
+   #ifndef CORDIC_LINEAR
+   EngSclr buffer = (a << SCLRMAG)/ b;
 
-    x = b;
-    y = a;
-    z = 0;
-    cordic_linear_ymode(&x, &y, &z);
+   return buffer;
+   #else
+   Word x = b;
+   Word y = a;
+   Word z = 0;
+   cordic_linear_ymode(&x, &y, &z);
 
-    return z;
+   return z;
+   #endif
 }
 
 
@@ -287,9 +304,8 @@ EngVec2
 engineer_math_sincos(EngAngl a)
 {
    // Domain: |a| < 1.74
-   long sinp;
-   long cosp;
    EngVec2 ans;
+   Word sinp, cosp;
 
    sinp = 0;
    cosp = cordic_gain_c;
@@ -303,37 +319,39 @@ engineer_math_sincos(EngAngl a)
 EngSclr
 engineer_math_tan(EngAngl a)
 {
-    // Domain: |a| < 1.74
-    long sinp;
-    long cosp;
-    long ans;
+   // Domain: |a| < 1.74
+   EngSclr ans;
+   Word sinp, cosp;
 
-    sinp = 0;
-    cosp = cordic_gain_c;
-    cordic_circular_zmode(&cosp, &sinp, &a);
-    ans = DIVD(sinp, cosp);
+   sinp = 0;
+   cosp = cordic_gain_c;
+   cordic_circular_zmode(&cosp, &sinp, &a);
+   ans = DIVD(sinp, cosp);
 
-    return ans;
+   return ans;
 }
 
 EngSclr
 engineer_math_atan(EngAngl a)
 {
-    // Domain: all a
-    long x = (EngAngl)1 << ANGLMAG;
-    long z = 0;
+   // Domain: all a
+   EngSclr ans;
+   Word x, z;
 
-    cordic_circular_ymode(&x, &a, &z);
+   x = (Word)1 << ANGLMAG;
+   z = 0;
+   cordic_circular_ymode(&x, &a, &z);
+   ans = z;
 
-    return z;
+   return ans;
 }
 
 EngSclr
 engineer_math_asin(EngAngl a)
 {
-    // Domain: |a| < 0.98
-    // We use the trig identity for this, as there really isnt a good way to vectorize it directly.
-    return ATAN(DIVD(a, SQRT(1 - MULT(a, a))));
+   // Domain: |a| < 0.98
+   // We use the trig identity for this, as there really isnt a good way to vectorize it directly.
+   return ATAN(DIVD(a, SQRT(1 - MULT(a, a))));
 }
 
 
@@ -343,13 +361,12 @@ EngVec2
 engineer_math_sincosh(EngAngl a)
 {
    // Domain: |a| < 1.13 OR |a| <= 1.125, after scaling,
-   long y, coshp;
    EngVec2 ans;
+   Word coshp, y;
 
    coshp  = cordic_gain_h;
    y      = 0;
    cordic_hyperbolic_zmode(&coshp, &y, &a);
-
    ans.x = coshp;
    ans.y = y;
 
@@ -359,129 +376,133 @@ engineer_math_sincosh(EngAngl a)
 EngSclr
 engineer_math_tanh(EngAngl a)
 {
-    // Domain: |a| < 1.13 units.
-    long sinhp, coshp, ans;
+   // Domain: |a| < 1.13 units.
+   EngSclr ans;
+   Word sinhp, coshp;
 
-    coshp = cordic_gain_h;
-    sinhp = 0;
-    cordic_hyperbolic_zmode(&coshp, &sinhp, &a);
-    ans = DIVD(sinhp, coshp);
+   coshp = cordic_gain_h;
+   sinhp = 0;
+   cordic_hyperbolic_zmode(&coshp, &sinhp, &a);
+   ans = DIVD(sinhp, coshp);
 
-    return ans;
+   return ans;
 }
 
 EngSclr
 engineer_math_atanh(EngAngl a)
 {
-    // Domain: |a| < 1.13 units.
-    long x, z, ans;
+   // Domain: |a| < 1.13 units.
+   EngSclr ans;
+   Word x, z;
 
-    x = (EngAngl)1 << ANGLMAG;
-    z = 0;
-    cordic_hyperbolic_ymode(&x, &a, &z);
-    ans = z;
+   x = (EngAngl)1 << ANGLMAG;
+   z = 0;
+   cordic_hyperbolic_ymode(&x, &a, &z);
+   ans = z;
 
-    return ans;
+   return ans;
 }
 
 EngSclr
 engineer_math_exp(EngSclr a)
 {
-    long sinhp, coshp, ans;
+   EngSclr ans;
+   Word sinhp, coshp;
 
-    coshp = cordic_gain_h;
-    sinhp = 0;
+   coshp = cordic_gain_h;
+   sinhp = 0;
+   cordic_hyperbolic_zmode(&coshp, &sinhp, &a);
+   ans = (sinhp + coshp);
 
-    cordic_hyperbolic_zmode(&coshp, &sinhp, &a);
-    ans = (sinhp + coshp);
-
-    return ans;
+   return ans;
 }
 
 EngSclr
 engineer_math_ln(EngSclr a)
 {
-    // Domain: 0.1 < a < 9.58 units.
-    long x, y, z, ans;
+   // Domain: 0.1 < a < 9.58 units.
+   EngSclr ans;
+   Word x, y, z;
 
-    x = a + ((EngSclr)1 << SCLRMAG);
-    y = a - ((EngSclr)1 << SCLRMAG);
-    z = 0;
-    cordic_hyperbolic_ymode(&x, &y, &z);
-    ans =  z << 1;
+   x = a + ((Word)1 << SCLRMAG);
+   y = a - ((Word)1 << SCLRMAG);
+   z = 0;
+   cordic_hyperbolic_ymode(&x, &y, &z);
+   ans =  z << 1;
 
-    return ans;
+   return ans;
 }
 
 EngSclr
 engineer_math_sqrt(EngSclr a)
 {
-    // Domain: 0.03 < a < 2 units.
-    long x, y, z, ans;
+   // Domain: 0.03 < a < 2 units.
+   EngSclr ans;
+   Word x, y, z;
 
-    x = a + ((EngSclr)1 << (SCLRMAG - 2));
-    y = a - ((EngSclr)1 << (SCLRMAG - 2));
-    z = 0;
-    cordic_hyperbolic_ymode(&x, &y, &z);
-    ans = MULT(x, cordic_gain_h);
+   x = a + ((Word)1 << (SCLRMAG - 2));
+   y = a - ((Word)1 << (SCLRMAG - 2));
+   z = 0;
+   cordic_hyperbolic_ymode(&x, &y, &z);
+   ans = MULT(x, cordic_gain_h);
 
-    return ans;
+   return ans;
 }
 /*
 static void
 engineer_math_quat_multiply(const EngQuat& q1, const EngQuat& q2)
 {
-     EngQuat quaternion;
-     quaternion.w = q1.w*q2.w - q1.x*q2.x - q1.y*q2.y - q1.z*q2.z;
-     quaternion.x = q1.w*q2.x + q1.x*q2.w + q1.y*q2.z - q1.z*q2.y;
-     quaternion.y = q1.w*q2.y + q1.y*q2.w + q1.z*q2.x - q1.x*q2.z; // x<>z Switched!
-     quaternion.z = q1.w*q2.z + q1.z*q2.w + q1.x*q2.y - q1.y*q2.x;
-     return quaternion;
+   EngQuat quaternion;
+   quaternion.w = q1.w*q2.w - q1.x*q2.x - q1.y*q2.y - q1.z*q2.z;
+   quaternion.x = q1.w*q2.x + q1.x*q2.w + q1.y*q2.z - q1.z*q2.y;
+   quaternion.y = q1.w*q2.y + q1.y*q2.w + q1.z*q2.x - q1.x*q2.z; // x<>z Switched!
+   quaternion.z = q1.w*q2.z + q1.z*q2.w + q1.x*q2.y - q1.y*q2.x;
+   return quaternion;
 }
 
 static EngQuat
 engineer_math_quat_normalize(const Quat& q)
 {
-     EngQuat quaternion;
-     float sq;
-     sq  = q.x * q.x;
-     sq += q.y * q.y;
-     sq += q.z * q.z;
-     sq += q.w * q.w;
-     //detect badness
-     assert(sq > 0.1f);
-     float inv = 1.0f / SQRT(sq);
-     quaternion.x = q.x * inv;
-     quaternion.y = q.y * inv;
-     quaternion.z = q.z * inv;
-     quaternion.w = q.w * inv;
-     return quaternion;
+   EngQuat quaternion;
+   float sq;
+   sq  = q.x * q.x;
+   sq += q.y * q.y;
+   sq += q.z * q.z;
+   sq += q.w * q.w;
+   //detect badness
+   assert(sq > 0.1f);
+   float inv = 1.0f / SQRT(sq);
+   quaternion.x = q.x * inv;
+   quaternion.y = q.y * inv;
+   quaternion.z = q.z * inv;
+   quaternion.w = q.w * inv;
+   return quaternion;
 }
 
 static EngMtrx
 engineer_math_quat_matrixify(const EngQuat &q)
 {
-     EngMtrx matrix;
+   EngMtrx matrix;
 
-     // Helper quantities, we calculate these up front to avoid redundancies.
-     float xSq  = q.x * q.x,  ySq  = q.y * q.y,  zSq  = q.z * q.z,  wSq = q.w * q.w;
-     float twoX = 2.0f * q.x, twoY = 2.0f * q.y, twoW = 2.0f * q.w;
-     float xy   = twoX * q.y, xz   = twoX * q.z, yz   = twoY * q.z;
-     float wx   = twoW * q.x, wy   = twoW * q.y, wz   = twoW * q.z;
+   // Helper quantities, we calculate these up front to avoid redundancies.
+   float xSq  = q.x * q.x,  ySq  = q.y * q.y,  zSq  = q.z * q.z,  wSq = q.w * q.w;
+   float twoX = 2.0f * q.x, twoY = 2.0f * q.y, twoW = 2.0f * q.w;
+   float xy   = twoX * q.y, xz   = twoX * q.z, yz   = twoY * q.z;
+   float wx   = twoW * q.x, wy   = twoW * q.y, wz   = twoW * q.z;
 
-     // Fill in the first row.
-     matrix.cell00 = wSq + xSq - ySq - zSq;
-     matrix.cell01 = xy - wz;
-     matrix.cell02 = xz + wy;
-     // Fill in the second row.
-     matrix.cell10 = xy + wz;
-     matrix.cell11 = wSq - xSq + ySq - zSq;
-     matrix.cell12 = yz - wx;
-     // Fill in the third row.
-     matrix.cell20 = xz - wy;
-     matrix.cell21 = yz + wx;
-     matrix.cell22 = wSq - xSq - ySq + zSq;
+   // Fill in the first row.
+   matrix.cell00 = wSq + xSq - ySq - zSq;
+   matrix.cell01 = xy - wz;
+   matrix.cell02 = xz + wy;
+   // Fill in the second row.
+   matrix.cell10 = xy + wz;
+   matrix.cell11 = wSq - xSq + ySq - zSq;
+   matrix.cell12 = yz - wx;
+   // Fill in the third row.
+   matrix.cell20 = xz - wy;
+   matrix.cell21 = yz + wx;
+   matrix.cell22 = wSq - xSq - ySq + zSq;
 
-     return matrix;
+   return matrix;
 }
 */

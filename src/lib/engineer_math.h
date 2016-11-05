@@ -8,22 +8,18 @@
 #define K1 0.6072529350088812561694
 
 #define SCALE   64 // This needs to be set to the size of our integer bitwidth.
-#define ANGLMAG 60 // Angle Magnitude, how many places from the left our unit radix is placed.
-#define SCLRMAG 24 // Scalar Magnitude, must ALWAYS be less than Angular Magnitude.
+#define ANGLMAG 62 // Angle Magnitude, how many places from the left our unit radix is placed.
+#define SCLRMAG 16 // Scalar Magnitude, must ALWAYS be less than Angular Magnitude.
 
 #define ANGLBASE ((Word)1 << ANGLMAG) // These define our Basis Vectors for
 #define SCLRBASE ((Word)1 << SCLRMAG) //    fractional conversion.
 
-// Define this to perform all (non 2^x) multiplications and divisions with the cordic linear method.
-#define CORDIC_LINEAR    1
+// Define this to perform all multiplications and divisions with the linear CORDIC method.
+// Protip: DO NOT DEFINE THIS.  It does NOT output correct vaules.
+//#define CORDIC_LINEAR    1
 
-#ifdef CORDIC_LINEAR
 #define MULT(a, b)      engineer_math_mul(a, b)
 #define DIVD(a, b)      engineer_math_div(a, b)
-#else
-#define MULT(a, b)      (a) * (b)
-#define DIVD(a, b)      (a) / (b)
-#endif
 
 #define EXP(a)          engineer_math_exp(a)
 #define LOG(a)          engineer_math_ln(a)
