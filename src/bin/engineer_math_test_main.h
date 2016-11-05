@@ -4,6 +4,8 @@
 #include <math.h>
 #include "../lib/Engineer.h"
 
+extern Word cordic_gain_c;
+
 void
 math_mult_test(double a, double b);
 

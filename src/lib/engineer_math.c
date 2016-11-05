@@ -12,16 +12,16 @@ Word cordic_lut_m[SCALE]; // Hyperbolic Repeat Mask Lookup Table.
 void
 cordic_init()
 {
-   #ifdef CORDIC_LINEAR
+   //#ifdef CORDIC_LINEAR
    cordic_linear_init();
-   #endif
+   //#endif
    cordic_circular_init();
    cordic_hyperbolic_init();
 }
 
 /*** Linear CORDIC ***/
 
-#ifdef CORDIC_LINEAR
+//#ifdef CORDIC_LINEAR
 // This is mostly useless, it's included as a simplified example of a working CORDIC.
 // For educational purposes only.
 Word cordic_lut_l[SCALE]; // Linear Lookup Table.
@@ -80,7 +80,7 @@ cordic_linear_zmode(Word *x0, Word *y0, Word *z0)
    *y0 = y;
    *z0 = z;
 }
-#endif
+//#endif
 
 
 /*** Circular CORDIC ***/
@@ -89,11 +89,11 @@ void
 cordic_circular_init()
 {
    // Compute our Lookup Table for the circular CORDIC computers.
-   long double t = 1.0;
+   double t = 1.0;
    uint i;
    for (i = 0; i < SCALE; ++i)
    {
-      cordic_lut_c[i]  = (Word)(atanl(t) * ANGLBASE);
+      cordic_lut_c[i] = (Word)(atan(t) * ANGLBASE);
       t /= 2;
    }
 
@@ -102,7 +102,12 @@ cordic_circular_init()
    Word y = 0;
    Word z = 0;
    cordic_circular_zmode(&x, &y, &z);
-   cordic_gain_c = (Word)(ANGLBASE / x);
+   printf("FX Circular Pre-Gain %ld\n", x);
+   printf("FP Circular Pre-Gain: %lf\n\n", (double)x / ANGLBASE);
+   Rstr basis = ANGLBASE;
+   Rstr invgain = x;
+
+   cordic_gain_c = (basis << ANGLMAG) / invgain;
 }
 
 void
@@ -193,7 +198,7 @@ cordic_hyperbolic_init()
    Word y = 0;
    Word z = 0;
    cordic_hyperbolic_zmode(&x, &y, &z);
-   cordic_gain_h = ANGLBASE / x;
+   cordic_gain_h = DIVD(ANGLBASE, x);// (ANGLBASE << ANGLMAG)/ x
 }
 
 void
@@ -262,14 +267,14 @@ cordic_hyperbolic_zmode(long *x0, long *y0, long *z0)
 /*** Linear Functions ***/
 
 EngSclr
-engineer_math_mul(EngSclr a, EngSclr b)
+engineer_math_mult(EngSclr a, EngSclr b)
 {
    #ifndef CORDIC_LINEAR
-   EngSclr buffer = a * b;
-   buffer += ((buffer & (1 << (SCLRMAG - 1)) ) << 1);
-   buffer >>= SCLRMAG;
+   EngSclr output = a * b;
+   output += ((output & (1 << (SCLRMAG - 1)) ) << 1);
+   output >>= SCLRMAG;
 
-   return buffer;
+   return output;
    #else
    Word x = a;
    Word y = 0;
@@ -281,12 +286,12 @@ engineer_math_mul(EngSclr a, EngSclr b)
 }
 
 EngSclr
-engineer_math_div(EngSclr a, EngSclr b)
+engineer_math_divd(EngSclr a, EngSclr b)
 {
    #ifndef CORDIC_LINEAR
-   EngSclr buffer = (a << SCLRMAG)/ b;
+   EngSclr output = (a << SCLRMAG)/ b;
 
-   return buffer;
+   return output;
    #else
    Word x = b;
    Word y = a;
@@ -304,46 +309,50 @@ EngVec2
 engineer_math_sincos(EngAngl a)
 {
    // Domain: |a| < 1.74
-   EngVec2 ans;
-   Word sinp, cosp;
+   EngVec2 output;
+   Word sin, cos;
 
-   sinp = 0;
-   cosp = cordic_gain_c;
-   cordic_circular_zmode(&cosp, &sinp, &a);
-   ans.x = cosp;
-   ans.y = sinp;
+   sin = 0;
+   cos = cordic_gain_c;
+   cordic_circular_zmode(&cos, &sin, &a);
+   output.x = cos;
+   output.y = sin;
 
-   return ans;
+   return output;
 }
 
 EngSclr
 engineer_math_tan(EngAngl a)
 {
    // Domain: |a| < 1.74
-   EngSclr ans;
-   Word sinp, cosp;
+   EngSclr output;
+   Word sin, cos;
 
-   sinp = 0;
-   cosp = cordic_gain_c;
-   cordic_circular_zmode(&cosp, &sinp, &a);
-   ans = DIVD(sinp, cosp);
+   sin = 0;
+   cos = cordic_gain_c;
+   cordic_circular_zmode(&cos, &sin, &a);
+   Rstr sinout = sin;
+   Rstr cosout = cos;
 
-   return ans;
+   output = (sinout << ANGLMAG) / cosout;
+   //output = DIVD(sin, cos);
+
+   return output;
 }
 
 EngSclr
 engineer_math_atan(EngAngl a)
 {
    // Domain: all a
-   EngSclr ans;
+   EngSclr output;
    Word x, z;
 
    x = (Word)1 << ANGLMAG;
    z = 0;
    cordic_circular_ymode(&x, &a, &z);
-   ans = z;
+   output = z;
 
-   return ans;
+   return output;
 }
 
 EngSclr

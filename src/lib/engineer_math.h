@@ -5,7 +5,6 @@
 #include "engineer_module.h"
 
 #define PI 3.1415926536897932384626
-#define K1 0.6072529350088812561694
 
 #define SCALE   64 // This needs to be set to the size of our integer bitwidth.
 #define ANGLMAG 62 // Angle Magnitude, how many places from the left our unit radix is placed.
@@ -18,8 +17,8 @@
 // Protip: DO NOT DEFINE THIS.  It does NOT output correct vaules.
 //#define CORDIC_LINEAR    1
 
-#define MULT(a, b)      engineer_math_mul(a, b)
-#define DIVD(a, b)      engineer_math_div(a, b)
+#define MULT(a, b)      engineer_math_mult(a, b)
+#define DIVD(a, b)      engineer_math_divd(a, b)
 
 #define EXP(a)          engineer_math_exp(a)
 #define LOG(a)          engineer_math_ln(a)
@@ -92,8 +91,8 @@ void cordic_hyperbolic_init();
 void cordic_hyperbolic_ymode();
 void cordic_hyperbolic_zmode();
 
-EngSclr engineer_math_mul(EngSclr a, EngSclr b);
-EngSclr engineer_math_div(EngSclr a, EngSclr b);
+EngSclr engineer_math_mult(EngSclr a, EngSclr b);
+EngSclr engineer_math_divd(EngSclr a, EngSclr b);
 
 EngVec2 engineer_math_sincos(EngAngl a);
 EngSclr engineer_math_tan(EngAngl a);

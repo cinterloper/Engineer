@@ -2,8 +2,11 @@
 
 int main()
 {
-   // Let's test the CORDIC library for accuracy.
+   // Let's test the engineer_math library for accuracy.
    cordic_init();
+
+   printf("FX Circular Gain: %ld\n", cordic_gain_c);
+   printf("FP Circular Gain: %lf\n\n", (double)cordic_gain_c / ANGLBASE);
 
    math_mult_test(1.00, 1.00);
    math_mult_test(1.00, -1.00);
@@ -47,10 +50,10 @@ int main()
 
    math_sincos_test(1.00);
    math_sincos_test(0.50);
-/*
+
    math_tan_test(1.00);
    math_tan_test(0.50);
-
+/*
    math_atan_test(1.00);
    math_atan_test(0.50);
 
@@ -141,7 +144,7 @@ math_tan_test(double a)
    x = (Word)(a * ANGLBASE);
    v = TAN(x);
    outputa = (double)x / ANGLBASE;
-   outputb = (double)v / SCLRBASE;
+   outputb = (double)v / ANGLBASE;
    printf("TAN(%f) = %f\n", outputa, outputb);
 }
 
