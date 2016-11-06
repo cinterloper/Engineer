@@ -8,6 +8,9 @@ int main()
    printf("FX Circular Gain: %ld\n", cordic_gain_c);
    printf("FP Circular Gain: %lf\n\n", (double)cordic_gain_c / ANGLBASE);
 
+   printf("FX Hyperbolic Gain: %ld\n", cordic_gain_h);
+   printf("FP Hyperbolic Gain: %lf\n\n", (double)cordic_gain_h / ANGLBASE);
+
    math_mult_test(1.00, 1.00);
    math_mult_test(1.00, -1.00);
    math_mult_test(-1.00, 1.00);
@@ -53,13 +56,13 @@ int main()
 
    math_tan_test(1.00);
    math_tan_test(0.50);
-/*
+
    math_atan_test(1.00);
    math_atan_test(0.50);
 
    math_asin_test(1.00);
    math_asin_test(0.50);
-
+/*
    math_sincosh_test(1.00);
    math_sincosh_test(0.50);
 
@@ -127,10 +130,10 @@ math_sincos_test(double a)
    c = ans.x;
    v = ans.y;
    outputa = (double)x / ANGLBASE;
-   outputb = (double)c / ANGLBASE;
+   outputb = (double)c / SCLRBASE;
    printf("FX COS(%ld) = %ld\n", x, c);
    printf("FP COS(%f) = %f\n\n", outputa, outputb);
-   outputb = (double)v / ANGLBASE;
+   outputb = (double)v / SCLRBASE;
    printf("FX SIN(%ld) = %ld\n", x, v);
    printf("FP SIN(%f) = %f\n\n", outputa, outputb);
 }
@@ -144,8 +147,9 @@ math_tan_test(double a)
    x = (Word)(a * ANGLBASE);
    v = TAN(x);
    outputa = (double)x / ANGLBASE;
-   outputb = (double)v / ANGLBASE;
-   printf("TAN(%f) = %f\n", outputa, outputb);
+   outputb = (double)v / SCLRBASE;
+   printf("FX TAN(%ld) = %ld\n", x, v);
+   printf("FP TAN(%f) = %f\n\n", outputa, outputb);
 }
 
 void
@@ -158,7 +162,8 @@ math_atan_test(double a)
    v = ATAN(x);
    outputa = (double)x / ANGLBASE;
    outputb = (double)v / SCLRBASE;
-   printf("ATAN(%f) = %f\n", outputa, outputb);
+   printf("FX ATAN(%ld) = %ld\n", x, v);
+   printf("FP ATAN(%f) = %f\n\n", outputa, outputb);
 }
 
 void
@@ -171,7 +176,8 @@ math_asin_test(double a)
    v = ASIN(x);
    outputa = (double)x / ANGLBASE;
    outputb = (double)v / SCLRBASE;
-   printf("ASIN(%f) = %f\n", outputa, outputb);
+   printf("FX ASIN(%ld) = %ld\n", x, v);
+   printf("FP ASIN(%f) = %f\n\n", outputa, outputb);
 }
 
 void

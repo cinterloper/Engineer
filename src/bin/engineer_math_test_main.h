@@ -5,6 +5,7 @@
 #include "../lib/Engineer.h"
 
 extern Word cordic_gain_c;
+extern Word cordic_gain_h;
 
 void
 math_mult_test(double a, double b);

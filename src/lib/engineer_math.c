@@ -12,16 +12,16 @@ Word cordic_lut_m[SCALE]; // Hyperbolic Repeat Mask Lookup Table.
 void
 cordic_init()
 {
-   //#ifdef CORDIC_LINEAR
+   #ifdef CORDIC_LINEAR
    cordic_linear_init();
-   //#endif
+   #endif
    cordic_circular_init();
    cordic_hyperbolic_init();
 }
 
 /*** Linear CORDIC ***/
 
-//#ifdef CORDIC_LINEAR
+#ifdef CORDIC_LINEAR
 // This is mostly useless, it's included as a simplified example of a working CORDIC.
 // For educational purposes only.
 Word cordic_lut_l[SCALE]; // Linear Lookup Table.
@@ -80,7 +80,7 @@ cordic_linear_zmode(Word *x0, Word *y0, Word *z0)
    *y0 = y;
    *z0 = z;
 }
-//#endif
+#endif
 
 
 /*** Circular CORDIC ***/
@@ -102,18 +102,14 @@ cordic_circular_init()
    Word y = 0;
    Word z = 0;
    cordic_circular_zmode(&x, &y, &z);
-   printf("FX Circular Pre-Gain %ld\n", x);
-   printf("FP Circular Pre-Gain: %lf\n\n", (double)x / ANGLBASE);
-   Rstr basis = ANGLBASE;
-   Rstr invgain = x;
 
-   cordic_gain_c = (basis << ANGLMAG) / invgain;
+   cordic_gain_c = ANGLDIVD(ANGLBASE, x);
 }
 
 void
 cordic_circular_ymode(Word *x0, Word *y0, Word *z0)
 {
-   Word x  = *x0; // fixedpoint_get(cordic_fx_1K);
+   Word x  = *x0;
    Word y  = *y0;
    Word z  = *z0;
    Word dx = 0;
@@ -136,9 +132,35 @@ cordic_circular_ymode(Word *x0, Word *y0, Word *z0)
 }
 
 void
+cordic_circular_aymode(Word *x0, Word *y0, Word *z0)
+{
+   Word x  = *x0;
+   Word y  = 0;
+   Word z  = *z0;
+   Word ay = *y0;
+   Word dx = 0;
+   Word ds = 0;
+
+   for (uint i = 0; i < SCALE; i++)
+   {
+      ds = (y + ay) >> (SCALE - 1); // Most Significant Bit
+
+      dx = x - (((y >> i)          ^ ds) - ds);
+      y  = y + (((x >> i)          ^ ds) - ds);
+      z  = z - (((cordic_lut_c[i]) ^ ds) - ds);
+
+      x  = dx;
+   }
+
+   *x0 = x;
+   *y0 = y;
+   *z0 = z;
+}
+
+void
 cordic_circular_zmode(Word *x0, Word *y0, Word *z0)
 {
-   Word x  = *x0; // fixedpoint_get(cordic_fx_1K);
+   Word x  = *x0;
    Word y  = *y0;
    Word z  = *z0;
    Word dx = 0;
@@ -269,10 +291,31 @@ cordic_hyperbolic_zmode(long *x0, long *y0, long *z0)
 EngSclr
 engineer_math_mult(EngSclr a, EngSclr b)
 {
-   #ifndef CORDIC_LINEAR
    EngSclr output = a * b;
    output += ((output & (1 << (SCLRMAG - 1)) ) << 1);
    output >>= SCLRMAG;
+
+   return output;
+}
+
+EngSclr
+engineer_math_divd(EngSclr a, EngSclr b)
+{
+   EngSclr output = (a << SCLRMAG)/ b;
+
+   return output;
+}
+
+
+/*** Circular Functions ***/
+
+EngAngl
+engineer_math_angl_mult(EngAngl a, EngAngl b)
+{
+   #ifndef CORDIC_LINEAR
+   EngAngl output = a * b;
+   output += ((output & ((Word)1 << (ANGLMAG - 1)) ) << 1);
+   output >>= ANGLMAG;
 
    return output;
    #else
@@ -285,11 +328,13 @@ engineer_math_mult(EngSclr a, EngSclr b)
    #endif
 }
 
-EngSclr
-engineer_math_divd(EngSclr a, EngSclr b)
+EngAngl
+engineer_math_angl_divd(EngAngl a, EngAngl b)
 {
    #ifndef CORDIC_LINEAR
-   EngSclr output = (a << SCLRMAG)/ b;
+   Rstr abuf = a;
+   Rstr bbuf = b;
+   EngAngl output = (abuf << ANGLMAG)/ bbuf;
 
    return output;
    #else
@@ -302,9 +347,6 @@ engineer_math_divd(EngSclr a, EngSclr b)
    #endif
 }
 
-
-/*** Circular Functions ***/
-
 EngVec2
 engineer_math_sincos(EngAngl a)
 {
@@ -315,8 +357,8 @@ engineer_math_sincos(EngAngl a)
    sin = 0;
    cos = cordic_gain_c;
    cordic_circular_zmode(&cos, &sin, &a);
-   output.x = cos;
-   output.y = sin;
+   output.x = ANGL2SCLR(cos);
+   output.y = ANGL2SCLR(sin);
 
    return output;
 }
@@ -331,11 +373,8 @@ engineer_math_tan(EngAngl a)
    sin = 0;
    cos = cordic_gain_c;
    cordic_circular_zmode(&cos, &sin, &a);
-   Rstr sinout = sin;
-   Rstr cosout = cos;
-
-   output = (sinout << ANGLMAG) / cosout;
-   //output = DIVD(sin, cos);
+   output = ANGLDIVD(sin, cos);
+   output = ANGL2SCLR(output);
 
    return output;
 }
@@ -347,10 +386,10 @@ engineer_math_atan(EngAngl a)
    EngSclr output;
    Word x, z;
 
-   x = (Word)1 << ANGLMAG;
+   x = ANGLBASE;
    z = 0;
    cordic_circular_ymode(&x, &a, &z);
-   output = z;
+   output = ANGL2SCLR(z);
 
    return output;
 }
@@ -360,7 +399,18 @@ engineer_math_asin(EngAngl a)
 {
    // Domain: |a| < 0.98
    // We use the trig identity for this, as there really isnt a good way to vectorize it directly.
-   return ATAN(DIVD(a, SQRT(1 - MULT(a, a))));
+   EngSclr output;
+
+   //output = ANGL2SCLR(ATAN(DIVD(a, SQRT(1 - MULT(a, a)))));
+
+   Word x, z;
+
+   x = cordic_gain_c;
+   z = 0;
+   cordic_circular_aymode(&x, &a, &z);
+   output = ANGL2SCLR(z);
+
+   return output;
 }
 
 
@@ -370,148 +420,151 @@ EngVec2
 engineer_math_sincosh(EngAngl a)
 {
    // Domain: |a| < 1.13 OR |a| <= 1.125, after scaling,
-   EngVec2 ans;
-   Word coshp, y;
+   EngVec2 output;
+   Word cosh, sinh;
 
-   coshp  = cordic_gain_h;
-   y      = 0;
-   cordic_hyperbolic_zmode(&coshp, &y, &a);
-   ans.x = coshp;
-   ans.y = y;
+   sinh  = 0;
+   cosh  = cordic_gain_h;
+   cordic_hyperbolic_zmode(&cosh, &sinh, &a);
+   output.x = cosh;
+   output.y = sinh;
 
-   return ans;
+   return output;
 }
 
 EngSclr
 engineer_math_tanh(EngAngl a)
 {
    // Domain: |a| < 1.13 units.
-   EngSclr ans;
-   Word sinhp, coshp;
+   EngSclr output;
+   Word sinh, cosh;
 
-   coshp = cordic_gain_h;
-   sinhp = 0;
-   cordic_hyperbolic_zmode(&coshp, &sinhp, &a);
-   ans = DIVD(sinhp, coshp);
+   cosh = cordic_gain_h;
+   sinh = 0;
+   cordic_hyperbolic_zmode(&cosh, &sinh, &a);
+   output = ANGLDIVD(sinh, cosh);
 
-   return ans;
+   return output;
 }
 
 EngSclr
 engineer_math_atanh(EngAngl a)
 {
    // Domain: |a| < 1.13 units.
-   EngSclr ans;
+   EngSclr output;
    Word x, z;
 
-   x = (EngAngl)1 << ANGLMAG;
+   x = ANGLBASE;
    z = 0;
    cordic_hyperbolic_ymode(&x, &a, &z);
-   ans = z;
+   output = z;
 
-   return ans;
+   return output;
 }
 
 EngSclr
 engineer_math_exp(EngSclr a)
 {
-   EngSclr ans;
-   Word sinhp, coshp;
+   EngSclr output;
+   Word sinh, cosh;
 
-   coshp = cordic_gain_h;
-   sinhp = 0;
-   cordic_hyperbolic_zmode(&coshp, &sinhp, &a);
-   ans = (sinhp + coshp);
+   cosh = cordic_gain_h;
+   sinh = 0;
+   cordic_hyperbolic_zmode(&cosh, &sinh, &a);
+   output = (sinh + cosh);
 
-   return ans;
+   return output;
 }
 
 EngSclr
 engineer_math_ln(EngSclr a)
 {
    // Domain: 0.1 < a < 9.58 units.
-   EngSclr ans;
+   EngSclr output;
    Word x, y, z;
 
-   x = a + ((Word)1 << SCLRMAG);
-   y = a - ((Word)1 << SCLRMAG);
+   x = a + SCLRBASE;
+   y = a - SCLRBASE;
    z = 0;
    cordic_hyperbolic_ymode(&x, &y, &z);
-   ans =  z << 1;
+   output =  z << 1;
 
-   return ans;
+   return output;
 }
 
 EngSclr
 engineer_math_sqrt(EngSclr a)
 {
    // Domain: 0.03 < a < 2 units.
-   EngSclr ans;
+   EngSclr output;
    Word x, y, z;
 
-   x = a + ((Word)1 << (SCLRMAG - 2));
+   x = a + ((Word)1 << (SCLRMAG - 2)); // 0.25
    y = a - ((Word)1 << (SCLRMAG - 2));
    z = 0;
    cordic_hyperbolic_ymode(&x, &y, &z);
-   ans = MULT(x, cordic_gain_h);
+   output = MULT(x, cordic_gain_h);
 
-   return ans;
+   return output;
+}
+
+EngQuat
+engineer_math_quat_multiply(EngQuat *q1, EngQuat *q2)
+{
+   EngQuat output;
+
+   output.w = MULT(q1->w, q2->w) - MULT(q1->x, q2->x) - MULT(q1->y, q2->y) - MULT(q1->z, q2->z);
+   output.x = MULT(q1->w, q2->x) + MULT(q1->x, q2->w) + MULT(q1->y, q2->z) - MULT(q1->z, q2->y);
+   output.y = MULT(q1->w, q2->y) + MULT(q1->y, q2->w) + MULT(q1->z, q2->x) - MULT(q1->x, q2->z); // x<>z Switched!
+   output.z = MULT(q1->w, q2->z) + MULT(q1->z, q2->w) + MULT(q1->x, q2->y) - MULT(q1->y, q2->x);
+
+   return output;
+}
+
+EngQuat
+engineer_math_quat_normalize(EngQuat *q)
+{
+   EngQuat output;
+   EngSclr square;
+
+   square = MULT(q->x, q->x) + MULT(q->y, q->y) + MULT(q->z, q->z) + MULT(q->w, q->w);
+
+   //detect badness
+   //assert(sq > 0.1f);
+
+   EngSclr inv = DIVD(SCLRBASE, SQRT(square));
+   output.x = MULT(q->x, inv);
+   output.y = MULT(q->y, inv);
+   output.z = MULT(q->z, inv);
+   output.w = MULT(q->w, inv);
+
+   return output;
 }
 /*
-static void
-engineer_math_quat_multiply(const EngQuat& q1, const EngQuat& q2)
-{
-   EngQuat quaternion;
-   quaternion.w = q1.w*q2.w - q1.x*q2.x - q1.y*q2.y - q1.z*q2.z;
-   quaternion.x = q1.w*q2.x + q1.x*q2.w + q1.y*q2.z - q1.z*q2.y;
-   quaternion.y = q1.w*q2.y + q1.y*q2.w + q1.z*q2.x - q1.x*q2.z; // x<>z Switched!
-   quaternion.z = q1.w*q2.z + q1.z*q2.w + q1.x*q2.y - q1.y*q2.x;
-   return quaternion;
-}
-
-static EngQuat
-engineer_math_quat_normalize(const Quat& q)
-{
-   EngQuat quaternion;
-   float sq;
-   sq  = q.x * q.x;
-   sq += q.y * q.y;
-   sq += q.z * q.z;
-   sq += q.w * q.w;
-   //detect badness
-   assert(sq > 0.1f);
-   float inv = 1.0f / SQRT(sq);
-   quaternion.x = q.x * inv;
-   quaternion.y = q.y * inv;
-   quaternion.z = q.z * inv;
-   quaternion.w = q.w * inv;
-   return quaternion;
-}
-
 static EngMtrx
 engineer_math_quat_matrixify(const EngQuat &q)
 {
-   EngMtrx matrix;
+   EngMtrx result;
 
    // Helper quantities, we calculate these up front to avoid redundancies.
-   float xSq  = q.x * q.x,  ySq  = q.y * q.y,  zSq  = q.z * q.z,  wSq = q.w * q.w;
-   float twoX = 2.0f * q.x, twoY = 2.0f * q.y, twoW = 2.0f * q.w;
-   float xy   = twoX * q.y, xz   = twoX * q.z, yz   = twoY * q.z;
-   float wx   = twoW * q.x, wy   = twoW * q.y, wz   = twoW * q.z;
+   EngSclr xSq = MULT(q.x, q.x), ySq = MULT(q.y, q.y), zSq = MULT(q.z, q.z), wSq = MULT(q.w, q.w);
+   EngSclr twoX = MULT(q.x, SCLRBASE << 1), twoY = MULT(q.y, SCLRBASE << 1), twoW = ANGLMULT(q.w, ANGLBASE << 1);
+   EngSclr xy   = MULT(twoX, q.y), xz = MULT(twoX, q.z), yz = MULT(twoY, q.z);
+   EngSclr wx   = MULT(twoW, q.x), wy = MULT(twoW, q.y), wz = MULT(twoW, q.z);
 
    // Fill in the first row.
-   matrix.cell00 = wSq + xSq - ySq - zSq;
-   matrix.cell01 = xy - wz;
-   matrix.cell02 = xz + wy;
+   result.cell00 = wSq + xSq - ySq - zSq;
+   result.cell01 = xy - wz;
+   result.cell02 = xz + wy;
    // Fill in the second row.
-   matrix.cell10 = xy + wz;
-   matrix.cell11 = wSq - xSq + ySq - zSq;
-   matrix.cell12 = yz - wx;
+   result.cell10 = xy + wz;
+   result.cell11 = wSq - xSq + ySq - zSq;
+   result.cell12 = yz - wx;
    // Fill in the third row.
-   matrix.cell20 = xz - wy;
-   matrix.cell21 = yz + wx;
-   matrix.cell22 = wSq - xSq - ySq + zSq;
+   result.cell20 = xz - wy;
+   result.cell21 = yz + wx;
+   result.cell22 = wSq - xSq - ySq + zSq;
 
-   return matrix;
+   return result;
 }
 */

@@ -4,10 +4,10 @@
 #include "Engineer.h"
 #include "engineer_module.h"
 
-#define PI 3.1415926536897932384626
+#define PI (Word)(3.1415926536897932384626 * SCLRBASE)
 
 #define SCALE   64 // This needs to be set to the size of our integer bitwidth.
-#define ANGLMAG 62 // Angle Magnitude, how many places from the left our unit radix is placed.
+#define ANGLMAG 60 // Angle Magnitude, how many places from the left our unit radix is placed.
 #define SCLRMAG 16 // Scalar Magnitude, must ALWAYS be less than Angular Magnitude.
 
 #define ANGLBASE ((Word)1 << ANGLMAG) // These define our Basis Vectors for
@@ -17,8 +17,14 @@
 // Protip: DO NOT DEFINE THIS.  It does NOT output correct vaules.
 //#define CORDIC_LINEAR    1
 
+#define ANGL2SCLR(a)    (a >> (ANGLMAG - SCLRMAG));
+#define SCLR2ANGL(a)    (a << (ANGLMAG - SCLRMAG));
+
 #define MULT(a, b)      engineer_math_mult(a, b)
 #define DIVD(a, b)      engineer_math_divd(a, b)
+
+#define ANGLMULT(a, b)  engineer_math_angl_mult(a, b)
+#define ANGLDIVD(a, b)  engineer_math_angl_divd(a, b)
 
 #define EXP(a)          engineer_math_exp(a)
 #define LOG(a)          engineer_math_ln(a)
@@ -85,27 +91,65 @@ void cordic_linear_zmode();
 
 void cordic_circular_init();
 void cordic_circular_ymode();
+void cordic_circular_aymode();
 void cordic_circular_zmode();
 
 void cordic_hyperbolic_init();
 void cordic_hyperbolic_ymode();
 void cordic_hyperbolic_zmode();
 
-EngSclr engineer_math_mult(EngSclr a, EngSclr b);
-EngSclr engineer_math_divd(EngSclr a, EngSclr b);
 
-EngVec2 engineer_math_sincos(EngAngl a);
-EngSclr engineer_math_tan(EngAngl a);
-EngSclr engineer_math_atan(EngAngl a);
-EngSclr engineer_math_asin(EngAngl a);
+EngSclr
+engineer_math_mult(EngSclr a, EngSclr b);
 
-EngVec2 engineer_math_sincosh(EngAngl a);
-EngSclr engineer_math_tanh(EngAngl a);
-EngSclr engineer_math_atanh(EngAngl a);
+EngSclr
+engineer_math_divd(EngSclr a, EngSclr b);
 
-EngSclr engineer_math_exp(EngSclr a);
-EngSclr engineer_math_ln(EngSclr a);
-EngSclr engineer_math_sqrt(EngSclr a);
+
+EngAngl
+engineer_math_angl_mult(EngAngl a, EngAngl b);
+
+EngAngl
+engineer_math_angl_divd(EngAngl a, EngAngl b);
+
+EngVec2
+engineer_math_sincos(EngAngl a);
+
+EngSclr
+engineer_math_tan(EngAngl a);
+
+EngSclr
+engineer_math_atan(EngAngl a);
+
+EngSclr
+engineer_math_asin(EngAngl a);
+
+
+EngVec2
+engineer_math_sincosh(EngAngl a);
+
+EngSclr
+engineer_math_tanh(EngAngl a);
+
+EngSclr
+engineer_math_atanh(EngAngl a);
+
+
+EngSclr
+engineer_math_exp(EngSclr a);
+
+EngSclr
+engineer_math_ln(EngSclr a);
+
+EngSclr
+engineer_math_sqrt(EngSclr a);
+
+
+EngQuat
+engineer_math_quat_multiply(EngQuat *q1, EngQuat *q2);
+
+EngQuat
+engineer_math_quat_normalize(EngQuat *q);
 
 #endif
 
