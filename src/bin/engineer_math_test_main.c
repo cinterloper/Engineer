@@ -77,12 +77,19 @@ int main()
 
    math_log_test(1.00);
    math_log_test(2.00);
+*/
+   math_abs_test(1.00);
+   math_abs_test(-1.00);
+   math_abs_test(1024.00);
+   math_abs_test(-1024.00);
 
    math_sqrt_test(1.00);
    math_sqrt_test(4.00);
    math_sqrt_test(9.00);
    math_sqrt_test(16.00);
-*/
+   math_sqrt_test(81.00);
+   math_sqrt_test(0.0625);
+
    return 0;
 }
 
@@ -225,6 +232,20 @@ math_atanh_test(double a)
 }
 
 void
+math_abs_test(double a)
+{
+   Word v, x;
+   double outputa, outputb;
+
+   x = (Word)(a * SCLRBASE);
+   v = ABS(x);
+   outputa = (double)x / SCLRBASE;
+   outputb = (double)v / SCLRBASE;
+   printf("FX ABS(%ld) = %ld\n", x, v);
+   printf("FP ABS(%f) = %f\n\n", outputa, outputb);
+}
+
+void
 math_exp_test(double a)
 {
    Word v, x;
@@ -260,6 +281,7 @@ math_sqrt_test(double a)
    v = SQRT(x);
    outputa = (double)x / SCLRBASE;
    outputb = (double)v / SCLRBASE;
-   printf("SQRT(%f) = %f\n", outputa, outputb);
+   printf("FX SQRT(%ld) = %ld\n", x, v);
+   printf("FP SQRT(%f) = %f\n\n", outputa, outputb);
 }
 

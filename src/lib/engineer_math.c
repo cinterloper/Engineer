@@ -463,6 +463,16 @@ engineer_math_atanh(EngAngl a)
 }
 
 EngSclr
+engineer_math_abs(EngSclr a)
+{
+   EngSclr output;
+
+   output = (a ^ (a >> (SCALE - 1))) - (a >> (SCALE - 1));
+
+   return output;
+}
+
+EngSclr
 engineer_math_exp(EngSclr a)
 {
    EngSclr output;
@@ -495,15 +505,25 @@ engineer_math_ln(EngSclr a)
 EngSclr
 engineer_math_sqrt(EngSclr a)
 {
-   // Domain: 0.03 < a < 2 units.
+   // Christophe Meessen's shift-&-add algorithim for approximating square roots
+   //    of fixed point numbers.
+   // Domain: 0 < a units. (All positive numbers)
    EngSclr output;
-   Word x, y, z;
+   Word x, y, z, mask;
 
-   x = a + ((Word)1 << (SCLRMAG - 2)); // 0.25
-   y = a - ((Word)1 << (SCLRMAG - 2));
+   x = ABS(a);
+   y = (Word)1 << (SCLRMAG + SCLRMAG - 2);
    z = 0;
-   cordic_hyperbolic_ymode(&x, &y, &z);
-   output = MULT(x, cordic_gain_h);
+   for (uint i = 0; i < (SCALE - 8); i++)
+   {
+      output = z + y;
+      mask = (x - output) >> (SCALE - 1);
+      x = x - (output & ~mask);
+      z = (z & mask) + ((y + output) & ~mask);
+      x = x << 1;
+      y = y >> 1;
+   }
+   output = z >> 8;
 
    return output;
 }

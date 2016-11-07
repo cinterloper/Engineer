@@ -26,6 +26,7 @@
 #define ANGLMULT(a, b)  engineer_math_angl_mult(a, b)
 #define ANGLDIVD(a, b)  engineer_math_angl_divd(a, b)
 
+#define ABS(a)          engineer_math_abs(a)
 #define EXP(a)          engineer_math_exp(a)
 #define LOG(a)          engineer_math_ln(a)
 #define SQRT(a)         engineer_math_sqrt(a)
@@ -134,6 +135,9 @@ engineer_math_tanh(EngAngl a);
 EngSclr
 engineer_math_atanh(EngAngl a);
 
+
+EngSclr
+engineer_math_abs(EngSclr a);
 
 EngSclr
 engineer_math_exp(EngSclr a);

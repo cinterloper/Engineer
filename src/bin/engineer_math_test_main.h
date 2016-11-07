@@ -35,6 +35,9 @@ void
 math_atanh_test(double a);
 
 void
+math_abs_test(double a);
+
+void
 math_exp_test(double a);
 
 void
