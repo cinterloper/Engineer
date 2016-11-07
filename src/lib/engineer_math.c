@@ -188,7 +188,7 @@ cordic_circular_zmode(Word *x0, Word *y0, Word *z0)
 // Iteration 0 is not performed.
 
 void
-cordic_hyperbolic_init()
+cordic_hyperbolic_init() // Fixme //
 {
    // Compute our Lookup Table for the hyperbolic CORDIC computers.
    Word t = ANGLBASE;
@@ -286,7 +286,7 @@ cordic_hyperbolic_zmode(long *x0, long *y0, long *z0)
 }
 
 
-/*** Linear Functions ***/
+/*** Elementary Scalar Functions ***/
 
 EngSclr
 engineer_math_mult(EngSclr a, EngSclr b)
@@ -306,8 +306,74 @@ engineer_math_divd(EngSclr a, EngSclr b)
    return output;
 }
 
+EngSclr
+engineer_math_abs(EngSclr a)
+{
+   EngSclr output;
 
-/*** Circular Functions ***/
+   output = (a ^ (a >> (SCALE - 1))) - (a >> (SCALE - 1));
+
+   return output;
+}
+
+EngSclr
+engineer_math_exp(EngSclr a) // Fixme //
+{
+   EngSclr output;
+   Word sinh, cosh;
+
+   cosh = cordic_gain_h;
+   sinh = 0;
+   cordic_hyperbolic_zmode(&cosh, &sinh, &a);
+   output = (sinh + cosh);
+
+   return output;
+}
+
+EngSclr
+engineer_math_ln(EngSclr a) // Fixme //
+{
+   // Domain: 0.1 < a < 9.58 units.
+   EngSclr output;
+   Word x, y, z;
+
+   x = a + SCLRBASE;
+   y = a - SCLRBASE;
+   z = 0;
+   cordic_hyperbolic_ymode(&x, &y, &z);
+   output =  z << 1;
+
+   return output;
+}
+
+EngSclr
+engineer_math_sqrt(EngSclr a)
+{
+   // Domain: |a| units.
+   // Christophe Meessen's shift-and-add algorithim for approximating
+   //    square roots of fixed point numbers.
+   EngSclr output;
+   Word x, y, z, mask;
+
+   x = ABS(a);
+   y = (Word)1 << (SCLRMAG + 14);
+   z = 0;
+   for (uint i = 0; i < (SCALE - 8); i++)
+   {
+      output = z + y;
+      mask = (x - output) >> (SCALE - 1);
+      x =  x         - ((    output) & ~mask);
+      z = (z & mask) + ((y + output) & ~mask);
+      x = x << 1;
+      y = y >> 1;
+   }
+   output = z >> 8;
+
+   return output;
+}
+
+
+/*** Elementary Angular Functions ***/
 
 EngAngl
 engineer_math_angl_mult(EngAngl a, EngAngl b)
@@ -346,6 +412,9 @@ engineer_math_angl_divd(EngAngl a, EngAngl b)
    return z;
    #endif
 }
+
+
+/*** Elementary Trigonomic Functions ***/
 
 EngVec2
 engineer_math_sincos(EngAngl a)
@@ -395,7 +464,7 @@ engineer_math_atan(EngAngl a)
 }
 
 EngSclr
-engineer_math_asin(EngAngl a)
+engineer_math_asin(EngAngl a) // Fixme //
 {
    // Domain: |a| < 0.98
    // We use the trig identity for this, as there really isnt a good way to vectorize it directly.
@@ -462,68 +531,66 @@ engineer_math_atanh(EngAngl a)
    return output;
 }
 
+
+/*** Vector Algebra Functions ***/
+
 EngSclr
-engineer_math_abs(EngSclr a)
+engineer_math_vec2_dot(EngVec2 *va, EngVec2 *vb)
 {
    EngSclr output;
 
-   output = (a ^ (a >> (SCALE - 1))) - (a >> (SCALE - 1));
+   output = MULT(va->x, vb->x) + MULT(va->y, vb->y);
+
+   return output;
+}
+
+EngVec2
+engineer_math_vec2_normalize(EngVec2 *v)
+{
+   EngVec2 output;
+   EngSclr square, inverse;
+
+   square   = MULT(v->x, v->x) + MULT(v->y, v->y);
+   inverse  = DIVD(SCLRBASE, SQRT(square));
+   output.x = MULT(v->x, inverse);
+   output.y = MULT(v->y, inverse);
 
    return output;
 }
 
 EngSclr
-engineer_math_exp(EngSclr a)
+engineer_math_vec3_dot(EngVec3 *va, EngVec3 *vb)
 {
    EngSclr output;
-   Word sinh, cosh;
 
-   cosh = cordic_gain_h;
-   sinh = 0;
-   cordic_hyperbolic_zmode(&cosh, &sinh, &a);
-   output = (sinh + cosh);
+   output = MULT(va->x, vb->x) + MULT(va->y, vb->y) + MULT(va->z, vb->z);
 
    return output;
 }
 
-EngSclr
-engineer_math_ln(EngSclr a)
+EngVec3
+engineer_math_vec3_cross(EngVec3 *va, EngVec3 *vb)
 {
-   // Domain: 0.1 < a < 9.58 units.
-   EngSclr output;
-   Word x, y, z;
+   EngVec3 output;
 
-   x = a + SCLRBASE;
-   y = a - SCLRBASE;
-   z = 0;
-   cordic_hyperbolic_ymode(&x, &y, &z);
-   output =  z << 1;
+   output.x = MULT(va->y, vb->z) - MULT(va->z, vb->y);
+   output.y = MULT(va->z, vb->x) - MULT(va->x, vb->z);
+   output.z = MULT(va->x, vb->y) - MULT(va->y, vb->x);
 
    return output;
 }
 
-EngSclr
-engineer_math_sqrt(EngSclr a)
+EngVec3
+engineer_math_vec3_normalize(EngVec3 *v)
 {
-   // Christophe Meessen's shift-&-add algorithim for approximating square roots
-   //    of fixed point numbers.
-   // Domain: 0 < a units. (All positive numbers)
-   EngSclr output;
-   Word x, y, z, mask;
+   EngVec3 output;
+   EngSclr square, inverse;
 
-   x = ABS(a);
-   y = (Word)1 << (SCLRMAG + SCLRMAG - 2);
-   z = 0;
-   for (uint i = 0; i < (SCALE - 8); i++)
-   {
-      output = z + y;
-      mask = (x - output) >> (SCALE - 1);
-      x = x - (output & ~mask);
-      z = (z & mask) + ((y + output) & ~mask);
-      x = x << 1;
-      y = y >> 1;
-   }
-   output = z >> 8;
+   square   = MULT(v->x, v->x) + MULT(v->y, v->y) + MULT(v->z, v->z);
+   inverse  = DIVD(SCLRBASE, SQRT(square));
+   output.x = MULT(v->x, inverse);
+   output.y = MULT(v->y, inverse);
+   output.z = MULT(v->z, inverse);
 
    return output;
 }
@@ -541,50 +608,51 @@ engineer_math_quat_multiply(EngQuat *q1, EngQuat *q2)
    return output;
 }
 
+EngMtrx
+engineer_math_quat_matrixify(EngQuat *q)
+{
+   EngMtrx output;
+
+   // Helper quantities, we calculate these up front to avoid redundancies.
+   EngSclr wSq  = MULT(q->w, q->w);
+   EngSclr xSq  = MULT(q->x, q->x), ySq = MULT(q->y, q->y), zSq = MULT(q->z, q->z);
+   EngSclr twoW = MULT(q->w, SCLRBASE << 1);
+   EngSclr twoX = MULT(q->x, SCLRBASE << 1), twoY = MULT(q->y, SCLRBASE << 1);
+   EngSclr xy   = MULT(twoX, q->y), xz = MULT(twoX, q->z), yz = MULT(twoY, q->z);
+   EngSclr wx   = MULT(twoW, q->x), wy = MULT(twoW, q->y), wz = MULT(twoW, q->z);
+
+   // Fill in the first row.
+   output.cell00 = wSq + xSq - ySq - zSq;
+   output.cell01 = xy  - wz;
+   output.cell02 = xz  + wy;
+   // Fill in the second row.
+   output.cell10 = xy  + wz;
+   output.cell11 = wSq - xSq + ySq - zSq;
+   output.cell12 = yz  - wx;
+   // Fill in the third row.
+   output.cell20 = xz  - wy;
+   output.cell21 = yz  + wx;
+   output.cell22 = wSq - xSq - ySq + zSq;
+
+   return output;
+}
+
 EngQuat
 engineer_math_quat_normalize(EngQuat *q)
 {
    EngQuat output;
-   EngSclr square;
+   EngSclr square, inverse;
 
-   square = MULT(q->x, q->x) + MULT(q->y, q->y) + MULT(q->z, q->z) + MULT(q->w, q->w);
+   square   = MULT(q->x, q->x) + MULT(q->y, q->y) + MULT(q->z, q->z) + MULT(q->w, q->w);
+   inverse  = DIVD(SCLRBASE, SQRT(square));
+   output.x = MULT(q->x, inverse);
+   output.y = MULT(q->y, inverse);
+   output.z = MULT(q->z, inverse);
+   output.w = MULT(q->w, inverse);
 
    //detect badness
-   //assert(sq > 0.1f);
-
-   EngSclr inv = DIVD(SCLRBASE, SQRT(square));
-   output.x = MULT(q->x, inv);
-   output.y = MULT(q->y, inv);
-   output.z = MULT(q->z, inv);
-   output.w = MULT(q->w, inv);
+   //assert(square > 0.1f);
 
    return output;
 }
-/*
-static EngMtrx
-engineer_math_quat_matrixify(const EngQuat &q)
-{
-   EngMtrx result;
 
-   // Helper quantities, we calculate these up front to avoid redundancies.
-   EngSclr xSq = MULT(q.x, q.x), ySq = MULT(q.y, q.y), zSq = MULT(q.z, q.z), wSq = MULT(q.w, q.w);
-   EngSclr twoX = MULT(q.x, SCLRBASE << 1), twoY = MULT(q.y, SCLRBASE << 1), twoW = ANGLMULT(q.w, ANGLBASE << 1);
-   EngSclr xy   = MULT(twoX, q.y), xz = MULT(twoX, q.z), yz = MULT(twoY, q.z);
-   EngSclr wx   = MULT(twoW, q.x), wy = MULT(twoW, q.y), wz = MULT(twoW, q.z);
-
-   // Fill in the first row.
-   result.cell00 = wSq + xSq - ySq - zSq;
-   result.cell01 = xy - wz;
-   result.cell02 = xz + wy;
-   // Fill in the second row.
-   result.cell10 = xy + wz;
-   result.cell11 = wSq - xSq + ySq - zSq;
-   result.cell12 = yz - wx;
-   // Fill in the third row.
-   result.cell20 = xz - wy;
-   result.cell21 = yz + wx;
-   result.cell22 = wSq - xSq - ySq + zSq;
-
-   return result;
-}
-*/
