@@ -51,6 +51,18 @@ int main()
    math_divd_test(1.00, 4.00);
    math_divd_test(1.00, 3.00);
 
+   math_abs_test(1.00);
+   math_abs_test(-1.00);
+   math_abs_test(1024.00);
+   math_abs_test(-1024.00);
+
+   math_sqrt_test(1.00);
+   math_sqrt_test(4.00);
+   math_sqrt_test(9.00);
+   math_sqrt_test(16.00);
+   math_sqrt_test(81.00);
+   math_sqrt_test(0.0625);
+
    math_sincos_test(1.00);
    math_sincos_test(0.50);
 
@@ -78,18 +90,6 @@ int main()
    math_log_test(1.00);
    math_log_test(2.00);
 */
-   math_abs_test(1.00);
-   math_abs_test(-1.00);
-   math_abs_test(1024.00);
-   math_abs_test(-1024.00);
-
-   math_sqrt_test(1.00);
-   math_sqrt_test(4.00);
-   math_sqrt_test(9.00);
-   math_sqrt_test(16.00);
-   math_sqrt_test(81.00);
-   math_sqrt_test(0.0625);
-
    return 0;
 }
 

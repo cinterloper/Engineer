@@ -2,7 +2,6 @@
 #define _ENGINEER_MATH_H_
 
 #include "Engineer.h"
-#include "engineer_module.h"
 
 #define PI (Word)(3.1415926536897932384626 * SCLRBASE)
 
@@ -24,6 +23,7 @@
 #define DIVD(a, b)      engineer_math_divd(a, b)
 
 #define ABS(a)          engineer_math_abs(a)
+#define CLAMP(a, b, c)  engineer_math_clamp(a, b, c)
 #define EXP(a)          engineer_math_exp(a)
 #define LOG(a)          engineer_math_ln(a)
 #define SQRT(a)         engineer_math_sqrt(a)
@@ -107,6 +107,9 @@ engineer_math_divd(EngSclr a, EngSclr b);
 
 EngSclr
 engineer_math_abs(EngSclr a);
+
+EngSclr
+engineer_math_clamp(EngSclr a, EngSclr min, EngSclr max);
 
 EngSclr
 engineer_math_exp(EngSclr a);

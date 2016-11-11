@@ -317,6 +317,19 @@ engineer_math_abs(EngSclr a)
 }
 
 EngSclr
+engineer_math_clamp(EngSclr a, EngSclr min, EngSclr max)
+{
+   EngSclr output;
+
+   min <<= 1;
+   max <<= 1;
+   a      = ((a + min) - ABS(a - min)) >> 1;
+   output = ((a + max) + ABS(a - max)) >> 1;
+
+   return output;
+}
+
+EngSclr
 engineer_math_exp(EngSclr a) // Fixme //
 {
    EngSclr output;

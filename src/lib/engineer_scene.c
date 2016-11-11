@@ -22,7 +22,7 @@ Engineer_Scene_DB_Module;
 
 typedef struct
 {
-   const char   *game;            // Name of the game this scene belongs to. Must also be unique.
+   const char   *game;           // Title of the game this scene belongs to. Must also be unique.
    const char   *name;            // The name of this scene. MUST be unique, the code will check.
 
    unsigned int  entitycount;
@@ -94,37 +94,37 @@ _engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd)
 Efl_Object *
 _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 {
-   char scenefile[PATH_MAX];
-   snprintf(scenefile, sizeof(scenefile), "data/scenes/%s.db", pd->name);
-
    Eina_List *tables = NULL, *list, *next;
    struct { DB *handle; char *name; } *table, buffer;
+   char scenefile[PATH_MAX];
 
    buffer.handle = pd->entitymeta;
-   buffer.name   = "Scene.Entity.Metadata";
+   buffer.name   = "Entity.Metadata";
    tables = eina_list_append(tables, &buffer);
    buffer.handle = pd->entitytable;
-   buffer.name   = "Scene.Entity";
+   buffer.name   = "Entity";
    tables = eina_list_append(tables, &buffer);
    buffer.handle = pd->componentmeta;
-   buffer.name   = "Scene.Component.Metadata";
+   buffer.name   = "Component.Metadata";
    tables = eina_list_append(tables, &buffer);
    buffer.handle = pd->componenttable;
-   buffer.name   = "Scene.Component";
+   buffer.name   = "Component";
    tables = eina_list_append(tables, &buffer);
    buffer.handle = pd->sectortable;
-   buffer.name   = "Scene.Sector";
+   buffer.name   = "Sector";
    tables = eina_list_append(tables, &buffer);
 
    EINA_LIST_FOREACH_SAFE(tables, list, next, table)
    {
+      snprintf(scenefile, sizeof(scenefile), "data/scenes/%s/%s.db", pd->name, table->name);
+
       table->handle = NULL;
       db_create(&table->handle, NULL, 0);
       table->handle->open(
          table->handle,    // DB structure pointer.
          NULL,             // Transaction pointer.
          scenefile,        // On-disk file that holds the database.
-         table->name,      // Optional logical database name.
+         scenefile,        // Optional logical database name.
          DB_QUEUE,         // Database access method.
          DB_CREATE,        // Open flags.
          0);               // File mode (using defaults).

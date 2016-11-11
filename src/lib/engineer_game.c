@@ -3,7 +3,7 @@
 typedef struct
 {
    char         *path;        // Where the Game folder is located relative to the root drive.  Usually /opt/.
-   char         *name;
+   char         *title;
 
    unsigned int  modulecount;
    Eina_Inarray *modulequeue;
@@ -29,9 +29,13 @@ _engineer_game_efl_object_constructor(Eo *obj, Engineer_Game_Data *pd EINA_UNUSE
 EOLIAN static Efl_Object *
 _engineer_game_efl_object_finalize(Eo *obj, Engineer_Game_Data *pd)
 {
+   // Set up our path elements.
+   //if (pd->path == NULL) pd->path = ; // If no path is specified, use current dir.
+   //if (pd->name == NULL) pd->name = "Untitled Game";
+
    // Set up our path var.
    char gamepath[PATH_MAX];
-   snprintf(gamepath, sizeof(gamepath), "%s/%s/", pd->path, pd->name); // Usually /opt/$GAMENAME
+   snprintf(gamepath, sizeof(gamepath), "%s/%s/", pd->path, pd->title); // Usually /opt/$GAMENAME
 
    // Open the database environment.
    pd->database = NULL;
@@ -71,26 +75,29 @@ _engineer_game_file_load(Eo *obj, Engineer_Game_Data *pd)
 
    Eina_List *tables = NULL, *list, *next;
    struct { DB *handle; char *name; } *table, buffer;
+   char tablefile[PATH_MAX];
 
    buffer.handle = pd->nodetable;
-   buffer.name   = "Game.Node";
+   buffer.name   = "Node";
    tables = eina_list_append(tables, &buffer);
    buffer.handle = pd->scenetable;
-   buffer.name   = "Game.Scene";
+   buffer.name   = "Scene";
    tables = eina_list_append(tables, &buffer);
    buffer.handle = pd->moduletable;
-   buffer.name   = "Game.Module";
+   buffer.name   = "Module";
    tables = eina_list_append(tables, &buffer);
 
    EINA_LIST_FOREACH_SAFE(tables, list, next, table)
    {
+      snprintf(tablefile, sizeof(tablefile), "data/game/%s.db", table->name);
+
       table->handle = NULL;
       db_create(&table->handle, NULL, 0);
       table->handle->open(
          table->handle,    // DB structure pointer.
          NULL,             // Transaction pointer.
-         "data/game.db",   // On-disk file that holds the database.
-         table->name,      // Optional logical database name.
+         tablefile,        // On-disk file that holds the database.
+         tablefile,        // Optional logical database name.
          DB_QUEUE,         // Database access method.
          DB_CREATE,        // Open flags.
          0);               // File mode (using defaults).
@@ -157,7 +164,7 @@ _engineer_game_scene_load(Eo *obj, Engineer_Game_Data *pd,
    // Create the scene object and load the data into it.
    Efl_Object *scene;
    scene = efl_add(ENGINEER_SCENE_CLASS, obj,
-              engineer_scene_game_set(efl_added, pd->name),
+              engineer_scene_game_set(efl_added, pd->title),
               engineer_scene_name_set(efl_added, name));
 
    // Add the newly created scene object to the pd->scenes list using it's name as the key.

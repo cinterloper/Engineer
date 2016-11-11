@@ -37,9 +37,9 @@ elm_main(int argc, char **argv)
    textdomain(PACKAGE);
    #endif
 
-   edi_init();
-   engineer_init();
-   engineer_editor_init();
+   //edi_init();
+   //engineer_init();
+   //engineer_editor_init();
 
    args = ecore_getopt_parse(&optdesc, values, argc, argv);
    if (args < 0)
@@ -53,6 +53,10 @@ elm_main(int argc, char **argv)
    }
 
    elm_app_info_set(elm_main, "engineer", "images/engineer.png");
+
+   edi_init();
+   engineer_init();
+   engineer_editor_init();
 
    elm_run();
    //engineer_run();
