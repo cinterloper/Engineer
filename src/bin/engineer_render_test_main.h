@@ -14,6 +14,6 @@
 
 #define COPYRIGHT "Copyright © 2016 Matthew Kolar <mjkolar@charter.net> and various contributors (see AUTHORS)."
 
-extern char *title;
+//extern char *title;
 
 #endif

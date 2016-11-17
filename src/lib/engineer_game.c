@@ -23,6 +23,8 @@ Engineer_Game_Data;
 EOLIAN static Efl_Object *
 _engineer_game_efl_object_constructor(Eo *obj, Engineer_Game_Data *pd EINA_UNUSED)
 {
+   obj = efl_constructor(efl_super(obj, ENGINEER_GAME_CLASS));
+
    return obj;
 }
 
@@ -30,8 +32,10 @@ EOLIAN static Efl_Object *
 _engineer_game_efl_object_finalize(Eo *obj, Engineer_Game_Data *pd)
 {
    // Set up our path elements.
-   //if (pd->path == NULL) pd->path = ; // If no path is specified, use current dir.
-   //if (pd->name == NULL) pd->name = "Untitled Game";
+   if (pd->path  == NULL) getcwd(pd->path, sizeof(PATH_MAX));
+   if (pd->title == NULL) pd->title = "Untitled";
+
+   printf("Finalize Path: %s, Title: %s\n", pd->path, pd->title);
 
    // Set up our path var.
    char gamepath[PATH_MAX];
@@ -41,13 +45,15 @@ _engineer_game_efl_object_finalize(Eo *obj, Engineer_Game_Data *pd)
    pd->database = NULL;
    db_env_create(&pd->database, 0);
    pd->database->open(
-      pd->database,    // DB_ENV ptr.
-      gamepath,        // Environment home directory.
-      DB_CREATE,       // Open flags.
+      pd->database,              // DB_ENV ptr.
+      gamepath,                  // Environment home directory.
+      DB_CREATE | DB_INIT_MPOOL, // Open flags.
       0);
 
-   // Load the file pointed to by the path var.
+   // Load the table files pointed to by the path var.
    engineer_game_file_load(obj);
+
+   printf("Game Module Checkpoint.\n");
 
    // Load any registered modules automatically.
 
@@ -62,6 +68,30 @@ _engineer_game_efl_object_destructor(Eo *obj, Engineer_Game_Data *pd)
    efl_destructor(efl_super(obj, ENGINEER_GAME_CLASS));
 }
 
+EOLIAN static const char *
+_engineer_game_path_get(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd)
+{
+  return pd->path;
+}
+
+EOLIAN static void
+_engineer_game_path_set(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd, const char *path)
+{
+   pd->path = path;
+}
+
+EOLIAN static const char *
+_engineer_game_title_get(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd)
+{
+  return pd->title;
+}
+
+EOLIAN static void
+_engineer_game_title_set(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd, const char *title)
+{
+   pd->title = title;
+}
+
 EOLIAN static void
 _engineer_game_file_load(Eo *obj, Engineer_Game_Data *pd)
 {
@@ -74,25 +104,26 @@ _engineer_game_file_load(Eo *obj, Engineer_Game_Data *pd)
    pd->modules = eina_hash_string_superfast_new(eng_free_cb);
 
    Eina_List *tables = NULL, *list, *next;
-   struct { DB *handle; char *name; } *table, buffer;
+   struct { DB *handle; char *name; } *table, buffer1, buffer2, buffer3;
    char tablefile[PATH_MAX];
 
-   buffer.handle = pd->nodetable;
-   buffer.name   = "Node";
-   tables = eina_list_append(tables, &buffer);
-   buffer.handle = pd->scenetable;
-   buffer.name   = "Scene";
-   tables = eina_list_append(tables, &buffer);
-   buffer.handle = pd->moduletable;
-   buffer.name   = "Module";
-   tables = eina_list_append(tables, &buffer);
+   buffer1.handle = pd->nodetable;
+   buffer1.name   = "Node";
+   tables = eina_list_append(tables, &buffer1);
+   buffer2.handle = pd->scenetable;
+   buffer2.name   = "Scene";
+   tables = eina_list_append(tables, &buffer2);
+   buffer3.handle = pd->moduletable;
+   buffer3.name   = "Module";
+   tables = eina_list_append(tables, &buffer3);
 
    EINA_LIST_FOREACH_SAFE(tables, list, next, table)
    {
       snprintf(tablefile, sizeof(tablefile), "data/game/%s.db", table->name);
+      printf("File Iteration Checkpoint Tablefile: %s\n", tablefile);
 
       table->handle = NULL;
-      db_create(&table->handle, NULL, 0);
+      db_create(&table->handle, pd->database, 0);
       table->handle->open(
          table->handle,    // DB structure pointer.
          NULL,             // Transaction pointer.
@@ -108,7 +139,7 @@ EOLIAN static void
 _engineer_game_file_save(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd)
 {
    //if (pd->nodetable != NULL) pd->nodetable->sync(pd->nodetable, 0);
-   if (pd->scenetable != NULL) pd->scenetable->sync(pd->scenetable, 0);
+   if (pd->scenetable  != NULL) pd->scenetable->sync(pd->scenetable, 0);
    if (pd->moduletable != NULL) pd->moduletable->sync(pd->moduletable, 0);
 }
 
@@ -124,30 +155,35 @@ _engineer_game_file_close(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd)
    if (pd->moduletable != NULL) pd->moduletable->close(pd->moduletable, 0);
 }
 
-EOLIAN static void
-_engineer_game_scene_create(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
+EOLIAN static Efl_Object *
+_engineer_game_scene_create(Eo *obj, Engineer_Game_Data *pd EINA_UNUSED,
         const char *name)
 {
+   //printf("Scene Create Checkpoint 1.\n");
    // Make sure that a scene with this name does not already exist in the scene db.
-   DBT key, data;
+/*   DBT key, data;
    memset(&key, 0, sizeof(DBT));
    memset(&data, 0, sizeof(DBT));
    key.data = name;
    key.size = sizeof(uint);
    key.flags = DB_DBT_USERMEM;
    if (pd->scenetable->get(pd->scenetable, NULL, &key, &data, 0) != DB_NOTFOUND) return;
+*/
+   //printf("Scene Create Checkpoint 2.\n");
 
    // Add an entry to the scene database here.
-   pd->scenetable->put(pd->scenetable, NULL, &key, &data, 0);
+   //pd->scenetable->put(pd->scenetable, NULL, &key, &data, 0);
 
-   engineer_game_scene_load(obj, name);
+   //printf("Scene Create Checkpoint 3.\n");
+
+   return engineer_game_scene_load(obj, name);
 }
 
-EOLIAN static void
+EOLIAN static Efl_Object *
 _engineer_game_scene_load(Eo *obj, Engineer_Game_Data *pd,
         const char *name)
 {
-   // Check to see if an entry for the target scene is present in the game scene database.
+/*   // Check to see if an entry for the target scene is present in the game scene database.
    DBT key, data;
    memset(&key, 0, sizeof(DBT));
    memset(&data, 0, sizeof(DBT));
@@ -155,11 +191,13 @@ _engineer_game_scene_load(Eo *obj, Engineer_Game_Data *pd,
    key.size = sizeof(uint);
    key.flags = DB_DBT_USERMEM;
    if (pd->scenetable->get(pd->scenetable, NULL, &key, &data, 0) == DB_NOTFOUND) return;
+*/
+   printf("Scene Load Checkpoint\n");
 
    // Make sure that the scene file is valid.
-   const char path[PATH_MAX];
-   snprintf(path, sizeof(path), "%s/data/scenes/%s/", pd->path, name); //fixme
-   if (!ecore_file_is_dir(path)) return;
+   //const char path[PATH_MAX];
+   //snprintf(path, sizeof(path), "%s/data/scenes/%s/", pd->path, name); //fixme
+   //if (!ecore_file_is_dir(path)) return;
 
    // Create the scene object and load the data into it.
    Efl_Object *scene;
@@ -168,8 +206,10 @@ _engineer_game_scene_load(Eo *obj, Engineer_Game_Data *pd,
               engineer_scene_name_set(efl_added, name));
 
    // Add the newly created scene object to the pd->scenes list using it's name as the key.
-   if (eina_hash_find(pd->scenes, name)) return;
+   if (eina_hash_find(pd->scenes, name)) return NULL;
    eina_hash_add(pd->scenes, name, scene);
+
+   return scene;
 }
 
 EOLIAN static void

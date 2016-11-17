@@ -50,7 +50,7 @@ elm_main(int argc, char **argv)
    }
    elm_app_info_set(elm_main, "engineer_render_test", "images/engineer_render_test.png");
 
-   printf("Name: %s", argv[0]);
+   printf("Name: %s\n", argv[0]);
 
    engineer_render_test_init();
 
@@ -61,7 +61,23 @@ elm_main(int argc, char **argv)
    evas_object_resize(window, 800, 800);
    evas_object_show(window);
 
-   Eo *game = efl_add(ENGINEER_GAME_CLASS, NULL);
+   Eo *game = efl_add(ENGINEER_GAME_CLASS, NULL,
+                 engineer_game_path_set(efl_added, "/home/brokenshakles/Projects/SoftwareEngines/Engineer"),
+                 engineer_game_title_set(efl_added, "Engineer_Render_Test"));
+
+   Eo *scene = engineer_game_scene_create(game, "engrendertest");
+
+   printf("Scene Create Checkpoint\n");
+
+   uint sector, sectorc, camera, sphere;
+   sector  = engineer_scene_entity_create(scene, 0, "Sector");
+   sectorc = engineer_scene_sector_create(scene, sector);
+
+   //camera = engineer_scene_entity_create(scene, sector, "Camera");
+
+   //sphere = engineer_scene_entity_create(scene, sector, "Sphere");
+
+   //engineer_game_file_save(game);
 
    elm_run();
    //engineer_run();

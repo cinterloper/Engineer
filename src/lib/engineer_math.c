@@ -547,6 +547,17 @@ engineer_math_atanh(EngAngl a)
 
 /*** Vector Algebra Functions ***/
 
+EngVec2
+engineer_math_vec2(EngSclr xinput, EngSclr yinput)
+{
+   EngVec2 output;
+
+   output.x = xinput;
+   output.y = yinput;
+
+   return output;
+}
+
 EngSclr
 engineer_math_vec2_dot(EngVec2 *va, EngVec2 *vb)
 {
@@ -567,6 +578,18 @@ engineer_math_vec2_normalize(EngVec2 *v)
    inverse  = DIVD(SCLRBASE, SQRT(square));
    output.x = MULT(v->x, inverse);
    output.y = MULT(v->y, inverse);
+
+   return output;
+}
+
+EngVec3
+engineer_math_vec3(EngSclr xinput, EngSclr yinput, EngSclr zinput)
+{
+   EngVec3 output;
+
+   output.x = xinput;
+   output.y = yinput;
+   output.z = zinput;
 
    return output;
 }
@@ -604,6 +627,19 @@ engineer_math_vec3_normalize(EngVec3 *v)
    output.x = MULT(v->x, inverse);
    output.y = MULT(v->y, inverse);
    output.z = MULT(v->z, inverse);
+
+   return output;
+}
+
+EngQuat
+engineer_math_quat(EngSclr winput, EngSclr xinput, EngSclr yinput, EngSclr zinput)
+{
+   EngQuat output;
+
+   output.w = winput;
+   output.x = xinput;
+   output.y = yinput;
+   output.z = zinput;
 
    return output;
 }

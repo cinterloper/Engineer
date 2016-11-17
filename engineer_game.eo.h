@@ -50,9 +50,9 @@ EOAPI void engineer_game_file_save(Eo *obj);
 
 EOAPI void engineer_game_file_close(Eo *obj);
 
-EOAPI Efl_Object *engineer_game_scene_create(Eo *obj, const char *name);
+EOAPI void engineer_game_scene_create(Eo *obj, const char *name);
 
-EOAPI Efl_Object *engineer_game_scene_load(Eo *obj, const char *name);
+EOAPI void engineer_game_scene_load(Eo *obj, const char *name);
 
 EOAPI void engineer_game_scene_save(Eo *obj, const char *name);
 

@@ -27,13 +27,13 @@ void _engineer_game_file_close(Eo *obj, Engineer_Game_Data *pd);
 
 EOAPI EFL_VOID_FUNC_BODY(engineer_game_file_close);
 
-Efl_Object * _engineer_game_scene_create(Eo *obj, Engineer_Game_Data *pd, const char *name);
+void _engineer_game_scene_create(Eo *obj, Engineer_Game_Data *pd, const char *name);
 
-EOAPI EFL_FUNC_BODYV(engineer_game_scene_create, Efl_Object *, 0, EFL_FUNC_CALL(name), const char *name);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_game_scene_create, EFL_FUNC_CALL(name), const char *name);
 
-Efl_Object * _engineer_game_scene_load(Eo *obj, Engineer_Game_Data *pd, const char *name);
+void _engineer_game_scene_load(Eo *obj, Engineer_Game_Data *pd, const char *name);
 
-EOAPI EFL_FUNC_BODYV(engineer_game_scene_load, Efl_Object *, 0, EFL_FUNC_CALL(name), const char *name);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_game_scene_load, EFL_FUNC_CALL(name), const char *name);
 
 void _engineer_game_scene_save(Eo *obj, Engineer_Game_Data *pd, const char *name);
 
