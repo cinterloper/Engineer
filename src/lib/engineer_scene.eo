@@ -4,7 +4,7 @@ struct Engineer_Scene_Entity
    sector:         uint;
    status:         uint;
    referencecount: uint;
-   name:           string;
+   name:           stringshare;
 
    parent:         uint;
    siblingnext:    uint;
@@ -19,7 +19,7 @@ struct Engineer_Scene_Component
    type:           uint;
    status:         uint;
    referencecount: uint;
-   name:           string;
+   name:           stringshare;
 
    parent:         uint;
    siblingnext:    uint;
@@ -250,6 +250,7 @@ class Engineer.Scene(Efl.Object)
          params
          {
             @in parent: uint;
+            @in name: string;
          }
          return: uint;
       }

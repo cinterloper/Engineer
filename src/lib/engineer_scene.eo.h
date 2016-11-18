@@ -17,7 +17,7 @@ typedef struct _Engineer_Scene_Entity
   unsigned int sector;
   unsigned int status;
   unsigned int referencecount;
-  const char *name;
+  Eina_Stringshare *name;
   unsigned int parent;
   unsigned int siblingnext;
   unsigned int siblingprev;
@@ -31,7 +31,7 @@ typedef struct _Engineer_Scene_Component
   unsigned int type;
   unsigned int status;
   unsigned int referencecount;
-  const char *name;
+  Eina_Stringshare *name;
   unsigned int parent;
   unsigned int siblingnext;
   unsigned int siblingprev;
@@ -41,7 +41,7 @@ typedef struct _Engineer_Scene_Sector
 {
   void *scene;
   Engineer_Scene_Component *component;
-  Eina_Inarray *cache;
+  Eina_Array *cache;
   Eina_Hash *lookup;
   Efl_Loop_Timer *clock;
   unsigned int rate;
@@ -118,7 +118,7 @@ EOAPI unsigned int engineer_scene_entity_id_use(Eo *obj);
 
 EOAPI void engineer_scene_entity_id_free(Eo *obj, unsigned int target);
 
-EOAPI unsigned int engineer_scene_component_create(Eo *obj, unsigned int parent);
+EOAPI unsigned int engineer_scene_component_create(Eo *obj, unsigned int parent, const char *name);
 
 EOAPI void engineer_scene_component_destroy(Eo *obj, unsigned int target);
 

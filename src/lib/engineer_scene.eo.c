@@ -117,9 +117,9 @@ void _engineer_scene_entity_id_free(Eo *obj, Engineer_Scene_Data *pd, unsigned i
 
 EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_entity_id_free, EFL_FUNC_CALL(target), unsigned int target);
 
-unsigned int _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd, unsigned int parent);
+unsigned int _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd, unsigned int parent, const char *name);
 
-EOAPI EFL_FUNC_BODYV(engineer_scene_component_create, unsigned int, 0, EFL_FUNC_CALL(parent), unsigned int parent);
+EOAPI EFL_FUNC_BODYV(engineer_scene_component_create, unsigned int, 0, EFL_FUNC_CALL(parent, name), unsigned int parent, const char *name);
 
 void _engineer_scene_component_destroy(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
 

@@ -82,6 +82,9 @@ _engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd)
    pd->componentqueue = eina_inarray_new(sizeof(unsigned int), 0);
 
    // Create the in-memory data cache and it's lookup tables.
+   pd->modulecache     = eina_inarray_new(sizeof(Engineer_Game_Module*), 0);
+   pd->modulelookup    = eina_hash_int32_new(eng_free_cb);
+
    pd->entitycache     = eina_inarray_new(sizeof(Engineer_Scene_Entity), 0);
    pd->entitylookup    = eina_hash_int32_new(eng_free_cb);
    pd->componentcache  = eina_inarray_new(sizeof(Engineer_Scene_Component), 0);
@@ -95,6 +98,7 @@ _engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd)
 Efl_Object *
 _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 {
+/*
    Eina_List *tables = NULL, *list, *next;
    struct { DB *handle; char *name; } *table, buffer1, buffer2, buffer3, buffer4, buffer5;
    char scenefile[PATH_MAX];
@@ -133,7 +137,7 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    }
 
    //engineer_scene_file_load(obj);
-
+*/
    // If our database is new, create a root Entity and set it up.
    if (pd->entitycount == 0)
    {
@@ -143,8 +147,7 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
       root.sector = 0;
       root.status = 3;
       root.referencecount = 1;
-      root.name = malloc(sizeof(PATH_MAX));
-      snprintf(root.name, sizeof(PATH_MAX), "Root");
+      root.name = eina_stringshare_add("Root Entity");
 
       root.parent = 0;
       root.siblingnext = 0;
@@ -288,8 +291,8 @@ _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
    entity = &entitydata;
 
    entity->id   = engineer_scene_entity_id_use(obj);
-   entity->name = malloc(sizeof(PATH_MAX));
-   snprintf(entity->name, sizeof(PATH_MAX), "%s", name);
+   entity->name = eina_stringshare_printf("%s", name); //malloc(sizeof(PATH_MAX));
+   //snprintf(entity->name, sizeof(PATH_MAX), "%s", name);
 
    uint cacheindex = eina_inarray_push(pd->entitycache, entity);
    eina_hash_add(pd->entitylookup, &entity->id, &cacheindex);
@@ -615,7 +618,7 @@ _engineer_scene_entity_id_use(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd)
       pd->entitycount += 1;
    }
    uint *result = eina_inarray_pop(pd->entityqueue);
-   //printf("Entity ID use Checkpoint. ID: %d\n", *result);
+
    return *result;
 }
 
@@ -631,12 +634,13 @@ _engineer_scene_entity_id_free(Eo *obj, Engineer_Scene_Data *pd,
 
 EOLIAN static uint
 _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd,
-        uint parent)
+        uint parent, const char *name)
 {
    Engineer_Scene_Component *payload, payloaddata;
    payload = &payloaddata;
 
-   payload->id = engineer_scene_component_id_use(obj);
+   payload->id   = engineer_scene_component_id_use(obj);
+   payload->name = eina_stringshare_printf("%s", name);
 
    uint cacheindex  = eina_inarray_push(pd->componentcache, payload);
    eina_hash_add(pd->componentlookup, &payload->id, &cacheindex);
@@ -951,8 +955,7 @@ _engineer_scene_sector_create(Eo *obj, Engineer_Scene_Data *pd,
    sector = &sectordata;
 
    // Set up our Sector's shell Component, and get it's ID.
-   uint componentid = engineer_scene_component_create(obj, parent); //component.type = 0;
-   printf("Sector Component ID: %d\n", componentid);
+   uint componentid = engineer_scene_component_create(obj, parent, "Sector Component"); //component.type = 0;
 
    // Add a new data entry for our new Sector to the *sectorcache and set up it's *sectorlookup.
    uint index = eina_inarray_push(pd->sectorcache, sector);
@@ -964,8 +967,6 @@ _engineer_scene_sector_create(Eo *obj, Engineer_Scene_Data *pd,
 
    // Pointer to the component metadata.
    sector->component = engineer_scene_component_lookup(obj, componentid);
-   //sector->component->name = malloc(sizeof(PATH_MAX));
-   //snprintf(sector->component->name, sizeof(PATH_MAX), "Sector");
 
    // Create and fill our sector->module array with a new module cache for each loaded module.
    sector->cache = NULL;
@@ -973,13 +974,16 @@ _engineer_scene_sector_create(Eo *obj, Engineer_Scene_Data *pd,
    Engineer_Game_Module *module;
    Efl_Object *cache;
    uint count = eina_inarray_count(pd->modulecache);
-   for (uint current = 0; current < count; current++)
+   if (count != 0)
    {
-      module = eina_inarray_nth(pd->modulecache, current);
-      module_add = module->add;
-      cache = module_add(obj);
-      index = eina_inarray_push(sector->cache, cache);
-      eina_hash_add(sector->lookup, &module->id, &index);
+      for (uint current = 1; current <= count; current++) //for (uint current = 0; current < count; current++)
+      {
+         module = eina_inarray_nth(pd->modulecache, current);
+         module_add = module->add;
+         cache = module_add(obj);
+         index = eina_inarray_push(sector->cache, cache);
+         eina_hash_add(sector->lookup, &module->id, &index);
+      }
    }
 
    // Set up Sector data defaults.
