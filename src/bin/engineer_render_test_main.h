@@ -9,11 +9,14 @@
 # include <libintl.h>
 #endif
 
-#include "gettext.h"
-#include "../lib/Engineer.h"
+//#include "gettext.h"
+#include "../headers/Engineer.h"
 
 #define COPYRIGHT "Copyright © 2016 Matthew Kolar <mjkolar@charter.net> and various contributors (see AUTHORS)."
 
 //extern char *title;
+
+void
+engineer_render_test_init();
 
 #endif

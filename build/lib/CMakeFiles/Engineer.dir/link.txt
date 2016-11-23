@@ -1,0 +1,2 @@
+/usr/bin/ar qc libEngineer.a  CMakeFiles/Engineer.dir/engineer.c.o CMakeFiles/Engineer.dir/engineer_math.c.o CMakeFiles/Engineer.dir/engineer_game.c.o CMakeFiles/Engineer.dir/engineer_scene.c.o
+/usr/bin/ranlib libEngineer.a

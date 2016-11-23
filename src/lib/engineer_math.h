@@ -1,7 +1,7 @@
 #ifndef _ENGINEER_MATH_H_
 #define _ENGINEER_MATH_H_
 
-#include "Engineer.h"
+#include "../headers/Engineer.h"
 
 #define PI (Word)(3.1415926536897932384626 * SCLRBASE)
 

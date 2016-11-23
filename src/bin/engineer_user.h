@@ -7,7 +7,7 @@
 #include <Edi.h>
 
 #include "gettext.h"
-#include "Engineer.h"
+#include "../headers/Engineer.h"
 #include "engineer_tabber.h"
 
 #define PACKAGE_NAME "Engineer"

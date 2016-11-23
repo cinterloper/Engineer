@@ -1,7 +1,7 @@
 #ifndef _ENGINEER_MODULE_H_
 #define _ENGINEER_MODULE_H_
 
-#include "Engineer.h"
+#include "../headers/Engineer.h"
 
 #ifndef NAME
    #define COMPONENT void

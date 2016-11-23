@@ -2,7 +2,7 @@
 #define _ENGINEER_MATH_TEST_MAIN_H_
 
 #include <math.h>
-#include "../lib/Engineer.h"
+#include "../headers/Engineer.h"
 
 extern Word cordic_gain_c;
 extern Word cordic_gain_h;

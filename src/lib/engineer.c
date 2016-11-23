@@ -2,7 +2,7 @@
 # include "config.h"
 #endif
 
-#include "Engineer.h"
+#include "../headers/Engineer.h"
 
 static int _engineer_init = 0;
 int _engineer_lib_log_dom = -1;

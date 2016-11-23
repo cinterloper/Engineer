@@ -23,6 +23,7 @@ Engineer_Game_Data;
 EOLIAN static Efl_Object *
 _engineer_game_efl_object_constructor(Eo *obj, Engineer_Game_Data *pd EINA_UNUSED)
 {
+   printf("Engineer Game EFL Object Constructor Checkpoint.\n");
    obj = efl_constructor(efl_super(obj, ENGINEER_GAME_CLASS));
 
    return obj;
@@ -159,7 +160,7 @@ EOLIAN static Efl_Object *
 _engineer_game_scene_create(Eo *obj, Engineer_Game_Data *pd EINA_UNUSED,
         const char *name)
 {
-   //printf("Scene Create Checkpoint 1.\n");
+   printf("Scene Create Checkpoint\n");
    // Make sure that a scene with this name does not already exist in the scene db.
 /*   DBT key, data;
    memset(&key, 0, sizeof(DBT));
@@ -237,14 +238,16 @@ EOLIAN static void
 _engineer_game_module_load(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd,
        const char *name)
 {
+   printf("Engineer Game Module Load Checkpoint 1.\n");
    Engineer_Game_Module module;
 
-   char file[PATH_MAX];
-   snprintf(file, sizeof(*file), "data/modules/%s.module", name);
-
+   //char file[PATH_MAX];
+   //snprintf(file, sizeof(*file), "data/modules/%s.module", name);
+   Eina_Stringshare *file = eina_stringshare_printf("data/modules/%s.module", name);
+   printf("Engineer Game Module Load Checkpoint 2.\n");
    module.handle  = eina_module_new(file);
    eina_module_load(module.handle);
-
+   printf("Engineer Game Module Load Checkpoint 3.\n");
    module.add    = eina_module_symbol_get(module.handle, "engineer_module_add");
    module.load   = eina_module_symbol_get(module.handle, "engineer_module_component_load");
    module.save   = eina_module_symbol_get(module.handle, "engineer_module_component_save");
@@ -252,8 +255,9 @@ _engineer_game_module_load(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd,
    module.awake  = eina_module_symbol_get(module.handle, "engineer_module_component_awake");
    module.start  = eina_module_symbol_get(module.handle, "engineer_module_component_start");
    module.update = eina_module_symbol_get(module.handle, "engineer_module_component_update");
-
+   printf("Engineer Game Module Load Checkpoint 4.\n");
    eina_hash_add(pd->modules, name, &module);
+   printf("Engineer Game Module Load Checkpoint 5.\n");
 }
 
 EOLIAN static void

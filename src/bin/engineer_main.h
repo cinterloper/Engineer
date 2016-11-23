@@ -9,7 +9,7 @@
 # include <libintl.h>
 #endif
 
-#include "gettext.h"
+//#include "gettext.h"
 #include "engineer_window.h"
 
 #define COPYRIGHT "Copyright © 2016 Matthew Kolar <mjkolar@charter.net> and various contributors (see AUTHORS)."

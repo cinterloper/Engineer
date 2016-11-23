@@ -41,7 +41,7 @@ typedef struct _Engineer_Scene_Sector
 {
   void *scene;
   Engineer_Scene_Component *component;
-  Eina_Array *cache;
+  Eina_Inarray *cache;
   Eina_Hash *lookup;
   Efl_Loop_Timer *clock;
   unsigned int rate;
