@@ -43,9 +43,6 @@ extern "C" {
 #include "../lib/engineer_game.h"
 #include "../lib/engineer_scene.h"
 
-#define UINT_NULL 0xFFFFFFFF
-#define ULONG_NULL 0xFFFFFFFFFFFFFFFF
-
 /// @file
 /// @brief These routines are used for Engineer library interaction.
 

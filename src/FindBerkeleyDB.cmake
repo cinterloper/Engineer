@@ -1,5 +1,3 @@
-# -*- cmake -*-
-
 # - Find BerkeleyDB
 # Find the BerkeleyDB includes and library
 # This module defines

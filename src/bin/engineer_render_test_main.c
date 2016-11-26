@@ -51,6 +51,7 @@ elm_main(int argc, char **argv)
    elm_app_info_set(elm_main, "engineer_render_test", "images/engineer_render_test.png");
 
    printf("Name: %s, Version: %s\n", argv[0], PACKAGE_VERSION);
+   printf("UINT_NULL %d, ULONG_NULL %ld\n", UINT_NULL, ULONG_NULL);
 
    engineer_render_test_init();
 
@@ -70,7 +71,7 @@ elm_main(int argc, char **argv)
    Eo *scene = engineer_game_scene_create(game, "engrendertest");
 
    uint sector, sectorc, camera, sphere;
-   sector  = engineer_scene_entity_create(scene, 0, "Sector");
+   sector  = engineer_scene_entity_create(scene, (uint)0, "Sector");
    sectorc = engineer_scene_sector_create(scene, sector);
 
    //camera = engineer_scene_entity_create(scene, sector, "Camera");

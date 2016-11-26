@@ -52,11 +52,14 @@ Engineer_Scene_Data;
 /*** Constructors ***/
 
 EOLIAN static Efl_Object *
-_engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd)
+_engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED)
 {
-   obj = efl_constructor(efl_super(obj, ENGINEER_SCENE_CLASS));
+   return efl_constructor(efl_super(obj, ENGINEER_SCENE_CLASS));
+}
 
-   printf("Engineer Scene Constructor Checkpoint \n");
+Efl_Object *
+_engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
+{
    // Check to see if null has been passed in the name variable.
    /*if (projectname == NULL)
    {
@@ -91,13 +94,6 @@ _engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd)
    pd->componentlookup = eina_hash_int32_new(eng_free_cb);
    pd->sectorcache     = eina_inarray_new(sizeof(Engineer_Scene_Sector), 0);
    pd->sectorlookup    = eina_hash_int32_new(eng_free_cb);
-
-   return obj;
-}
-
-Efl_Object *
-_engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
-{
 /*
    Eina_List *tables = NULL, *list, *next;
    struct { DB *handle; char *name; } *table, buffer1, buffer2, buffer3, buffer4, buffer5;
@@ -141,24 +137,30 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    // If our database is new, create a root Entity and set it up.
    if (pd->entitycount == 0)
    {
-      Engineer_Scene_Entity root;
+      Engineer_Scene_Entity *root, blank;
+      uint cacheindex;
 
-      root.id     = engineer_scene_entity_id_use(obj);
-      root.sector = 0;
-      root.status = 3;
-      root.referencecount = 1;
-      root.name = eina_stringshare_add("Root Entity");
+      root = &blank;
+      memset(root, 0, sizeof(Engineer_Scene_Entity));
 
-      root.parent = 0;
-      root.siblingnext = 0;
-      root.siblingprev = 0;
-      root.firstcomponent = UINT_NULL;
-      root.firstentity = UINT_NULL;
+      root->name = eina_stringshare_add("Root Entity");
+      root->id   = engineer_scene_entity_id_use(obj);
 
-      uint cacheindex = eina_inarray_push(pd->entitycache, &root);
-      eina_hash_add(pd->entitylookup, &root.id, &cacheindex);
+      cacheindex = eina_inarray_push(pd->entitycache, root);
+      eina_hash_add(pd->entitylookup, &root->id, &cacheindex);
+      root = eina_inarray_nth(pd->entitycache, cacheindex);
 
-      printf("Root Entity Create Checkpoint. ID: %d\n", root.id);
+      root->sector = 0;
+      root->status = 3;
+      root->referencecount = 1;
+
+      root->parent = 0;
+      root->siblingnext = 0;
+      root->siblingprev = 0;
+      root->firstcomponent = UINT_NULL;
+      root->firstentity = UINT_NULL;
+
+      printf("Root Entity Create Checkpoint. ID: %d\n", root->id);
    }
 
    return obj;
@@ -287,18 +289,25 @@ EOLIAN static uint
 _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
         uint parent, const char *name)
 {
-   Engineer_Scene_Entity *entity, entitydata;
-   entity = &entitydata;
+   uint value = 0;
+  // If we comment the following line out, engineer_render_test will not work.
+   uint *magic = eina_hash_find(pd->entitylookup, &value);
 
+   Engineer_Scene_Entity *entity, blank;
+   uint cacheindex;
+
+   entity = &blank;
+   memset(entity, 0, sizeof(Engineer_Scene_Entity));
+
+   entity->name = eina_stringshare_printf("%s", name);
    entity->id   = engineer_scene_entity_id_use(obj);
-   entity->name = eina_stringshare_printf("%s", name); //malloc(sizeof(PATH_MAX));
+
+   cacheindex = eina_inarray_push(pd->entitycache, entity);
+   eina_hash_add(pd->entitylookup, &entity->id, &cacheindex);
+   entity = eina_inarray_nth(pd->entitycache, cacheindex);
 
    entity->firstcomponent = UINT_NULL;
-   entity->firstentity = UINT_NULL;
-
-   uint cacheindex = eina_inarray_push(pd->entitycache, entity);
-   eina_hash_add(pd->entitylookup, &entity->id, &cacheindex);
-   entity = eina_inarray_nth(pd->entitycache, cacheindex); // Not sure if obligatory.
+   entity->firstentity    = UINT_NULL;
 
    engineer_scene_entity_parent_set(obj, entity->id, parent);
 /*
@@ -313,7 +322,7 @@ _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
 
    pd->entitytable->put(pd->entitytable, NULL, &key, &data, 0);
 */
-   printf("Entity Create Checkpoint. ID: %d, Parent: %d, NextSibling: %d, PrevSibling: %d, Name: %s\n",
+   printf("Entity Create Checkpoint. EID: %d, Parent EID: %d, NextSib EID: %d, PrevSib EID: %d, Name: %s\n",
       entity->id, entity->parent, entity->siblingprev, entity->siblingnext, entity->name);
 
    return entity->id;
@@ -421,10 +430,8 @@ EOLIAN Engineer_Scene_Entity *
 _engineer_scene_entity_lookup(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint target)
 {
-   printf("Entity Lookup Checkpoint 1. Target: %d\n", target);
    uint *index = eina_hash_find(pd->entitylookup, &target);
    if (index == NULL) return NULL;
-   printf("Entity Lookup Checkpoint 2.\n");
    Engineer_Scene_Entity *entity = eina_inarray_nth(pd->entitycache, *index);
 
    return entity;
@@ -434,7 +441,6 @@ EOLIAN static void
 _engineer_scene_entity_data_swap(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint targeta, uint targetb)
 {
-
    Engineer_Scene_Entity *payloada, *payloadb, payloadbuffer;
    uint *targetalookup = eina_hash_find(pd->entitylookup, &targeta);
    uint *targetblookup = eina_hash_find(pd->entitylookup, &targetb);
@@ -477,7 +483,7 @@ _engineer_scene_entity_parent_get(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
         uint target)
 {
    Engineer_Scene_Entity *entity = engineer_scene_entity_lookup(obj, target);
-   if (entity == NULL) return 0 ; /*fixme*/
+   if (entity == NULL) return UINT_NULL;
    return entity->parent;
 }
 
@@ -640,34 +646,40 @@ EOLIAN static uint
 _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd,
         uint parent, const char *name)
 {
-   Engineer_Scene_Component *payload, payloaddata;
-   payload = &payloaddata;
+   Engineer_Scene_Component *component, blank;
+   uint cacheindex;
 
-   payload->id   = engineer_scene_component_id_use(obj);
-   payload->name = eina_stringshare_printf("%s", name);
+   component = &blank;
+   memset(component, 0, sizeof(Engineer_Scene_Component));
 
-   uint cacheindex  = eina_inarray_push(pd->componentcache, payload);
-   eina_hash_add(pd->componentlookup, &payload->id, &cacheindex);
-   payload = eina_inarray_nth(pd->componentcache, cacheindex);
+   component->name = eina_stringshare_printf("%s", name);
+   component->id   = engineer_scene_component_id_use(obj);
 
-   engineer_scene_component_parent_set(obj, payload->id, parent);
+   cacheindex  = eina_inarray_push(pd->componentcache, component);
+   eina_hash_add(pd->componentlookup, &component->id, &cacheindex);
+   component = eina_inarray_nth(pd->componentcache, cacheindex);
 
+   engineer_scene_component_parent_set(obj, component->id, parent);
 /*
    // Create a database entry for the Component.
    DBT key, data;
    memset(&key, 0, sizeof(DBT));
    memset(&data, 0, sizeof(DBT));
-   key.data = &payload.id;
+   key.data = &component.id;
    key.size = sizeof(uint);
-   data.data = &payload;
-   data.size = sizeof(payload);
+   data.data = &component;
+   data.size = sizeof(component);
 
    pd->componenttable->put(pd->componenttable, NULL, &key, &data, 0);
 */
-   printf("Component Create Checkpoint. ID: %d, Parent: %d, NextSibling: %d, PrevSibling: %d, Name: %s\n",
-      payload->id, payload->parent, payload->siblingprev, payload->siblingnext, payload->name);
+   printf("Component Create Checkpoint. CID: %d, Parent EID: %d, NextSib CID: %d, PrevSib CID: %d, Name: %s\n",
+      component->id,
+      component->parent,
+      component->siblingprev,
+      component->siblingnext,
+      component->name);
 
-   return payload->id;
+   return component->id;
 }
 
 EOLIAN static void
@@ -801,12 +813,14 @@ EOLIAN static void
 _engineer_scene_component_parent_set(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
         uint target, uint parent)
 {
-   printf("Component Parent Set Checkpoint 1. Target == %d, Parent == %d\n", target, parent);
    Engineer_Scene_Component *component     = engineer_scene_component_lookup(obj, target);
+   if (component == NULL) return;
    Engineer_Scene_Component *componentnext = engineer_scene_component_lookup(obj, component->siblingnext);
    Engineer_Scene_Component *componentprev = engineer_scene_component_lookup(obj, component->siblingprev);
    Engineer_Scene_Entity    *oldparent     = engineer_scene_entity_lookup(obj, component->parent);
    Engineer_Scene_Entity    *newparent     = engineer_scene_entity_lookup(obj, parent);
+
+   if (newparent == NULL) printf("ERROR: newparent == NULL!\n");
 
    if (oldparent != NULL && componentnext != NULL && componentprev != NULL)
    {
@@ -830,19 +844,16 @@ _engineer_scene_component_parent_set(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSE
 
    component->parent = parent; // Set the new parent ComponentID for the target Entity.
 
-   printf("Component Parent Set Checkpoint 2.\n");
-
    // Check to see if new parent has any children. If not, set up the first child properly.
    if (newparent->firstcomponent == UINT_NULL)
    {
-      printf("Component Parent Set Checkpoint 3a.\n");
       newparent->firstcomponent = target;
       component->siblingnext = target;
       component->siblingprev = target;
    }
    else // add the target Component to the back end of the new parent's child list.
    {
-      printf("Component Parent Set Checkpoint 3b.\n");
+
       componentnext = engineer_scene_component_lookup(obj, newparent->firstcomponent);
       componentprev = engineer_scene_component_lookup(obj, componentnext->siblingprev);
 
@@ -962,21 +973,16 @@ EOLIAN static uint
 _engineer_scene_sector_create(Eo *obj, Engineer_Scene_Data *pd,
         uint parent)
 {
-   printf("Sector Create Checkpoint.\n");
    Engineer_Scene_Sector *sector, sectordata;
    sector = &sectordata;
 
    // Set up our Sector's shell Component, and get it's ID.
    uint componentid = engineer_scene_component_create(obj, parent, "Sector Component"); //component.type = 0;
 
-   printf("Sector Create Checkpoint 2.\n");
-
    // Add a new data entry for our new Sector to the *sectorcache and set up it's *sectorlookup.
    uint index = eina_inarray_push(pd->sectorcache, sector);
    eina_hash_add(pd->sectorlookup, &componentid, &index);
    sector = eina_inarray_nth(pd->sectorcache, index);
-
-   printf("Sector Create Checkpoint 3.\n");
 
    // Include a pointer to the parent Scene's private data, we will need it during iteration.
    sector->scene = pd;
@@ -1020,7 +1026,6 @@ _engineer_scene_sector_create(Eo *obj, Engineer_Scene_Data *pd,
    data.flags = DB_DBT_USERMEM;
    pd->sectortable->put(pd->sectortable, NULL, &key, &data, 0);
 */
-   printf("Sector Create Checkpoint 4.\n");
    return componentid;
 }
 

@@ -671,17 +671,17 @@ engineer_math_quat_matrixify(EngQuat *q)
    EngSclr wx   = MULT(twoW, q->x), wy = MULT(twoW, q->y), wz = MULT(twoW, q->z);
 
    // Fill in the first row.
-   output.cell00 = wSq + xSq - ySq - zSq;
-   output.cell01 = xy  - wz;
-   output.cell02 = xz  + wy;
+   output.r0c0 = wSq + xSq - ySq - zSq;
+   output.r0c1 = xy  - wz;
+   output.r0c2 = xz  + wy;
    // Fill in the second row.
-   output.cell10 = xy  + wz;
-   output.cell11 = wSq - xSq + ySq - zSq;
-   output.cell12 = yz  - wx;
+   output.r1c0 = xy  + wz;
+   output.r1c1 = wSq - xSq + ySq - zSq;
+   output.r1c2 = yz  - wx;
    // Fill in the third row.
-   output.cell20 = xz  - wy;
-   output.cell21 = yz  + wx;
-   output.cell22 = wSq - xSq - ySq + zSq;
+   output.r2c0 = xz  - wy;
+   output.r2c1 = yz  + wx;
+   output.r2c2 = wSq - xSq - ySq + zSq;
 
    return output;
 }

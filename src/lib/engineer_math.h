@@ -5,10 +5,15 @@
 
 #define PI (Word)(3.1415926536897932384626 * SCLRBASE)
 
+#define UINT_NULL  ~((uint)0)
+#define ULONG_NULL ~((ulong)0)
+
 #define SCALE   64 // This needs to be set to the size of our integer bitwidth.
+#define RADIX   16 // This sets, from the right, where our radix point will be placed.
 #define ANGLMAG 60 // Angle Magnitude, how many places from the left our unit radix is placed.
 #define SCLRMAG 16 // Scalar Magnitude, must ALWAYS be less than Angular Magnitude.
 
+#define BASIS    ((Word)1 << RADIX)
 #define ANGLBASE ((Word)1 << ANGLMAG) // These define our Basis Vectors for
 #define SCLRBASE ((Word)1 << SCLRMAG) //    fractional conversion.
 
@@ -80,9 +85,9 @@ EngQuat;
 
 typedef struct
 {
-   EngSclr cell00, cell01, cell02;
-   EngSclr cell10, cell11, cell12;
-   EngSclr cell20, cell21, cell22;
+   EngSclr r0c0, r0c1, r0c2;
+   EngSclr r1c0, r1c1, r1c2;
+   EngSclr r2c0, r2c1, r2c2;
 }
 EngMtrx;
 

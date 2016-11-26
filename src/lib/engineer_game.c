@@ -23,7 +23,6 @@ Engineer_Game_Data;
 EOLIAN static Efl_Object *
 _engineer_game_efl_object_constructor(Eo *obj, Engineer_Game_Data *pd EINA_UNUSED)
 {
-   printf("Engineer Game EFL Object Constructor Checkpoint.\n");
    obj = efl_constructor(efl_super(obj, ENGINEER_GAME_CLASS));
 
    return obj;
