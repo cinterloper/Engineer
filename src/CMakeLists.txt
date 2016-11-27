@@ -1,12 +1,11 @@
-#Specify the version being used as well as the language
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.6)
 
-project(Engineer)
+# Remember to update the version number after a significant update!
+set(CURRENT_VERSION 0.1.0)
+project(Engineer VERSION ${CURRENT_VERSION})
 
-add_definitions("-Wall -Wextra -fvisibility=hidden -std=gnu99 -g -Wshadow")
-add_definitions(-DPACKAGE_VERSION="0.1.0")
-
-set (CMAKE_SHARED_LINKER_FLAGS "-lm -ldb")
+# Dependencies
+include(FindBerkeleyDB.cmake)
 
 find_package(Eina REQUIRED)
 find_package(Eo 1.18 REQUIRED)
@@ -23,14 +22,17 @@ find_package(Elementary 1.18.0 REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(Threads REQUIRED)
 
-include(FindBerkeleyDB.cmake)
-
 pkg_check_modules(Mount mount)
 pkg_check_modules(Check REQUIRED check)
 pkg_check_modules(Enlightenment REQUIRED enlightenment)
 pkg_check_modules(Edi REQUIRED edi)
 
+# Compilation Configuration
+add_definitions(-DPACKAGE_VERSION="${CURRENT_VERSION}")
+add_definitions("-g -Wall -Wextra -Wshadow -std=gnu99")
+
 include_directories(
+   ${DB_INLCUDE_DIRS}
    ${EINA_INCLUDE_DIRS}
    ${EVAS_INCLUDE_DIRS}
    ${EFL_INCLUDE_DIRS}
@@ -40,10 +42,7 @@ include_directories(
    ${ECORE_INCLUDE_DIRS}
    ${ELEMENTARY_INCLUDE_DIRS}
    ${Edi_INCLUDE_DIRS}
-   ${DB_INLCUDE_DIR}
-   #../lib/efm
-   #../widgets/
-   ../headers
+   ${CMAKE_SOURCE_DIR}/headers
    )
 
 add_subdirectory(bin)

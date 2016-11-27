@@ -54,12 +54,6 @@ Engineer_Scene_Data;
 EOLIAN static Efl_Object *
 _engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED)
 {
-   return efl_constructor(efl_super(obj, ENGINEER_SCENE_CLASS));
-}
-
-Efl_Object *
-_engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
-{
    // Check to see if null has been passed in the name variable.
    /*if (projectname == NULL)
    {
@@ -78,6 +72,12 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 
    // Check to see if the given names' string matches any other Scene's name string.
 
+   return efl_constructor(efl_super(obj, ENGINEER_SCENE_CLASS));
+}
+
+Efl_Object *
+_engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
+{
    // Set up the free ID queues.
    pd->entitycount    = 0;
    pd->entityqueue    = eina_inarray_new(sizeof(unsigned int), 0);
@@ -138,29 +138,29 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    if (pd->entitycount == 0)
    {
       Engineer_Scene_Entity *root, blank;
-      uint cacheindex;
+      uint buffer;
 
       root = &blank;
       memset(root, 0, sizeof(Engineer_Scene_Entity));
 
-      root->name = eina_stringshare_add("Root Entity");
+      root->name = eina_stringshare_add("Scene Root");
       root->id   = engineer_scene_entity_id_use(obj);
 
-      cacheindex = eina_inarray_push(pd->entitycache, root);
-      eina_hash_add(pd->entitylookup, &root->id, &cacheindex);
-      root = eina_inarray_nth(pd->entitycache, cacheindex);
+      buffer = eina_inarray_push(pd->entitycache, root);
+      root   = eina_inarray_nth(pd->entitycache, buffer);
+      eina_hash_add(pd->entitylookup, &root->id, root);
 
-      root->sector = 0;
-      root->status = 3;
+      root->sector         = 0;
+      root->status         = 3;
       root->referencecount = 1;
 
-      root->parent = 0;
-      root->siblingnext = 0;
-      root->siblingprev = 0;
+      root->parent         = 0;
+      root->siblingnext    = 0;
+      root->siblingprev    = 0;
       root->firstcomponent = UINT_NULL;
-      root->firstentity = UINT_NULL;
+      root->firstentity    = UINT_NULL;
 
-      printf("Root Entity Create Checkpoint. ID: %d\n", root->id);
+      printf("Root Entity Create Checkpoint. EID: %d\n", root->id);
    }
 
    return obj;
@@ -289,12 +289,8 @@ EOLIAN static uint
 _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
         uint parent, const char *name)
 {
-   uint value = 0;
-  // If we comment the following line out, engineer_render_test will not work.
-   uint *magic = eina_hash_find(pd->entitylookup, &value);
-
    Engineer_Scene_Entity *entity, blank;
-   uint cacheindex;
+   uint buffer;
 
    entity = &blank;
    memset(entity, 0, sizeof(Engineer_Scene_Entity));
@@ -302,9 +298,9 @@ _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
    entity->name = eina_stringshare_printf("%s", name);
    entity->id   = engineer_scene_entity_id_use(obj);
 
-   cacheindex = eina_inarray_push(pd->entitycache, entity);
-   eina_hash_add(pd->entitylookup, &entity->id, &cacheindex);
-   entity = eina_inarray_nth(pd->entitycache, cacheindex);
+   buffer = eina_inarray_push(pd->entitycache, entity);
+   entity = eina_inarray_nth(pd->entitycache, buffer);
+   eina_hash_add(pd->entitylookup, &entity->id, entity);
 
    entity->firstcomponent = UINT_NULL;
    entity->firstentity    = UINT_NULL;
@@ -368,7 +364,7 @@ _engineer_scene_entity_load(Eo *obj, Engineer_Scene_Data *pd,
    }
 
    // If this entity does not have a sector component, and has any child entities, load them.
-   if (payload->firstentity != 0 /*fixme*/) // && sector component check
+   if (payload->firstentity != UINT_NULL) // && sector component check
    {
       Engineer_Scene_Entity *current  = engineer_scene_entity_lookup(obj, payload->firstentity);
       Engineer_Scene_Entity *terminus = engineer_scene_entity_lookup(obj, current->siblingprev);
@@ -430,11 +426,7 @@ EOLIAN Engineer_Scene_Entity *
 _engineer_scene_entity_lookup(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint target)
 {
-   uint *index = eina_hash_find(pd->entitylookup, &target);
-   if (index == NULL) return NULL;
-   Engineer_Scene_Entity *entity = eina_inarray_nth(pd->entitycache, *index);
-
-   return entity;
+   return eina_hash_find(pd->entitylookup, &target);
 }
 
 EOLIAN static void
@@ -647,7 +639,7 @@ _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd,
         uint parent, const char *name)
 {
    Engineer_Scene_Component *component, blank;
-   uint cacheindex;
+   uint buffer;
 
    component = &blank;
    memset(component, 0, sizeof(Engineer_Scene_Component));
@@ -655,9 +647,9 @@ _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd,
    component->name = eina_stringshare_printf("%s", name);
    component->id   = engineer_scene_component_id_use(obj);
 
-   cacheindex  = eina_inarray_push(pd->componentcache, component);
-   eina_hash_add(pd->componentlookup, &component->id, &cacheindex);
-   component = eina_inarray_nth(pd->componentcache, cacheindex);
+   buffer    = eina_inarray_push(pd->componentcache, component);
+   component = eina_inarray_nth(pd->componentcache, buffer);
+   eina_hash_add(pd->componentlookup, &component->id, component);
 
    engineer_scene_component_parent_set(obj, component->id, parent);
 /*
@@ -756,11 +748,7 @@ EOLIAN static Engineer_Scene_Component *
 _engineer_scene_component_lookup(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint target)
 {
-   uint *index = eina_hash_find(pd->componentlookup, &target);
-   if (index == NULL) return NULL;
-   Engineer_Scene_Component *component = eina_inarray_nth(pd->componentcache, *index);
-
-   return component;
+   return eina_hash_find(pd->componentlookup, &target);
 }
 
 EOLIAN static void
@@ -974,15 +962,18 @@ _engineer_scene_sector_create(Eo *obj, Engineer_Scene_Data *pd,
         uint parent)
 {
    Engineer_Scene_Sector *sector, sectordata;
+   uint buffer;
+
    sector = &sectordata;
+   memset(sector, 0, sizeof(Engineer_Scene_Sector));
 
    // Set up our Sector's shell Component, and get it's ID.
    uint componentid = engineer_scene_component_create(obj, parent, "Sector Component"); //component.type = 0;
 
    // Add a new data entry for our new Sector to the *sectorcache and set up it's *sectorlookup.
-   uint index = eina_inarray_push(pd->sectorcache, sector);
-   eina_hash_add(pd->sectorlookup, &componentid, &index);
-   sector = eina_inarray_nth(pd->sectorcache, index);
+   buffer = eina_inarray_push(pd->sectorcache, sector);
+   sector = eina_inarray_nth(pd->sectorcache, buffer);
+   eina_hash_add(pd->sectorlookup, &componentid, sector);
 
    // Include a pointer to the parent Scene's private data, we will need it during iteration.
    sector->scene = pd;
@@ -998,13 +989,14 @@ _engineer_scene_sector_create(Eo *obj, Engineer_Scene_Data *pd,
    uint count = eina_inarray_count(pd->modulecache);
    if (count != 0)
    {
+      // fixme
       for (uint current = 1; current <= count; current++) //for (uint current = 0; current < count; current++)
       {
          module = eina_inarray_nth(pd->modulecache, current);
          module_add = module->add;
          cache = module_add(obj);
-         index = eina_inarray_push(sector->cache, cache);
-         eina_hash_add(sector->lookup, &module->id, &index);
+         buffer = eina_inarray_push(sector->cache, cache);
+         eina_hash_add(sector->lookup, &module->id, &buffer);
       }
    }
 
@@ -1073,7 +1065,7 @@ _engineer_scene_sector_load(Eo *obj, Engineer_Scene_Data *pd,
       eina_hash_add(payload.lookup, &module->id, &index);
    }
 
-   // Create and start our Sector's iteration clock.
+   // Create and pause our Sector's iteration clock.
    ecore_timer_add(1/payload.rate, _engineer_scene_sector_iterate_cb, &payload.clock);
    ecore_timer_freeze(payload.clock);
 
@@ -1137,9 +1129,7 @@ EOLIAN static Engineer_Scene_Sector *
 _engineer_scene_sector_lookup(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint target)
 {
-   uint *index = eina_hash_find(pd->sectorlookup, &target);
-   Engineer_Scene_Sector *sector = eina_inarray_nth(pd->sectorcache, *index);
-   return sector;
+   return eina_hash_find(pd->sectorlookup, &target);
 }
 
 EOLIAN static void

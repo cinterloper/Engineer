@@ -1,15 +1,16 @@
 #include "engineer_math_test_main.h"
 
-int main()
+int
+main()
 {
    // Let's test the engineer_math library for accuracy.
    cordic_init();
 
    printf("FX Circular Gain: %ld\n", cordic_gain_c);
-   printf("FP Circular Gain: %lf\n\n", (double)cordic_gain_c / ANGLBASE);
+   printf("FP Circular Gain: %lf\n\n", (double)cordic_gain_c / ANGLBASIS);
 
    printf("FX Hyperbolic Gain: %ld\n", cordic_gain_h);
-   printf("FP Hyperbolic Gain: %lf\n\n", (double)cordic_gain_h / ANGLBASE);
+   printf("FP Hyperbolic Gain: %lf\n\n", (double)cordic_gain_h / ANGLBASIS);
 
    math_mult_test(1.00, 1.00);
    math_mult_test(1.00, -1.00);
@@ -96,15 +97,15 @@ int main()
 void
 math_mult_test(double a, double b)
 {
-   Word v, x, c;
+   Sclr v, x, c;
    double outputa, outputb, outputc;
 
-   x = (Word)(a * SCLRBASE);
-   c = (Word)(b * SCLRBASE);
+   x = (Sclr)(a * BASIS);
+   c = (Sclr)(b * BASIS);
    v = MULT(x, c);
-   outputa = (double)x / SCLRBASE;
-   outputb = (double)c / SCLRBASE;
-   outputc = (double)v / SCLRBASE;
+   outputa = (double)x / BASIS;
+   outputb = (double)c / BASIS;
+   outputc = (double)v / BASIS;
    printf("FX MULT(%ld * %ld) = %ld\n", x, c, v);
    printf("FP MULT(%f * %f) = %f\n\n", outputa, outputb, outputc);
 }
@@ -112,15 +113,15 @@ math_mult_test(double a, double b)
 void
 math_divd_test(double a, double b)
 {
-   Word v, x, c;
+   Sclr v, x, c;
    double outputa, outputb, outputc;
 
-   x = (Word)(a * SCLRBASE);
-   c = (Word)(b * SCLRBASE);
+   x = (Sclr)(a * BASIS);
+   c = (Sclr)(b * BASIS);
    v = DIVD(x, c);
-   outputa = (double)x / SCLRBASE;
-   outputb = (double)c / SCLRBASE;
-   outputc = (double)v / SCLRBASE;
+   outputa = (double)x / BASIS;
+   outputb = (double)c / BASIS;
+   outputc = (double)v / BASIS;
    printf("FX DIVD(%ld / %ld) = %ld\n", x, c, v);
    printf("FP DIVD(%f / %f) = %f\n\n", outputa, outputb, outputc);
 }
@@ -128,19 +129,19 @@ math_divd_test(double a, double b)
 void
 math_sincos_test(double a)
 {
-   Word v, x, c;
-   EngVec2 ans;
+   Sclr v, x, c;
+   Vec2 ans;
    double outputa, outputb;
 
-   x = (Word)(a * ANGLBASE);
+   x = (Sclr)(a * ANGLBASIS);
    ans = SINCOS(x);
    c = ans.x;
    v = ans.y;
-   outputa = (double)x / ANGLBASE;
-   outputb = (double)c / SCLRBASE;
+   outputa = (double)x / ANGLBASIS;
+   outputb = (double)c / BASIS;
    printf("FX COS(%ld) = %ld\n", x, c);
    printf("FP COS(%f) = %f\n\n", outputa, outputb);
-   outputb = (double)v / SCLRBASE;
+   outputb = (double)v / BASIS;
    printf("FX SIN(%ld) = %ld\n", x, v);
    printf("FP SIN(%f) = %f\n\n", outputa, outputb);
 }
@@ -148,13 +149,13 @@ math_sincos_test(double a)
 void
 math_tan_test(double a)
 {
-   Word v, x;
+   Sclr v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ANGLBASE);
+   x = (Sclr)(a * ANGLBASIS);
    v = TAN(x);
-   outputa = (double)x / ANGLBASE;
-   outputb = (double)v / SCLRBASE;
+   outputa = (double)x / ANGLBASIS;
+   outputb = (double)v / BASIS;
    printf("FX TAN(%ld) = %ld\n", x, v);
    printf("FP TAN(%f) = %f\n\n", outputa, outputb);
 }
@@ -162,13 +163,13 @@ math_tan_test(double a)
 void
 math_atan_test(double a)
 {
-   Word v, x;
+   Sclr v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ANGLBASE);
+   x = (Sclr)(a * ANGLBASIS);
    v = ATAN(x);
-   outputa = (double)x / ANGLBASE;
-   outputb = (double)v / SCLRBASE;
+   outputa = (double)x / ANGLBASIS;
+   outputb = (double)v / BASIS;
    printf("FX ATAN(%ld) = %ld\n", x, v);
    printf("FP ATAN(%f) = %f\n\n", outputa, outputb);
 }
@@ -176,13 +177,13 @@ math_atan_test(double a)
 void
 math_asin_test(double a)
 {
-   Word v, x;
+   Sclr v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ANGLBASE);
+   x = (Sclr)(a * ANGLBASIS);
    v = ASIN(x);
-   outputa = (double)x / ANGLBASE;
-   outputb = (double)v / SCLRBASE;
+   outputa = (double)x / ANGLBASIS;
+   outputb = (double)v / BASIS;
    printf("FX ASIN(%ld) = %ld\n", x, v);
    printf("FP ASIN(%f) = %f\n\n", outputa, outputb);
 }
@@ -190,57 +191,57 @@ math_asin_test(double a)
 void
 math_sincosh_test(double a)
 {
-   Word v, x, c;
-   EngVec2 ans;
+   Sclr v, x, c;
+   Vec2 ans;
    double outputa, outputb;
 
-   x = (Word)(a * ANGLBASE);
+   x = (Sclr)(a * ANGLBASIS);
    ans = SINCOSH(x);
    c = ans.x;
    v = ans.y;
-   outputa = (double)x / ANGLBASE;
-   outputb = (double)c / SCLRBASE;
+   outputa = (double)x / ANGLBASIS;
+   outputb = (double)c / BASIS;
    printf("COSH(%f) = %f\n", outputa, outputb);
-   outputb = (double)v / SCLRBASE;
+   outputb = (double)v / BASIS;
    printf("SINH (%f) = %f\n", outputa, outputb);
 }
 
 void
 math_tanh_test(double a)
 {
-   Word v, x;
+   Sclr v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ANGLBASE);
+   x = (Sclr)(a * ANGLBASIS);
    v = TANH(x);
-   outputa = (double)x / ANGLBASE;
-   outputb = (double)v / SCLRBASE;
+   outputa = (double)x / ANGLBASIS;
+   outputb = (double)v / BASIS;
    printf("TANH(%f) = %f\n", outputa, outputb);
 }
 
 void
 math_atanh_test(double a)
 {
-   Word v, x;
+   Sclr v, x;
    double outputa, outputb;
 
-   x = (Word)(a * ANGLBASE);
+   x = (Sclr)(a * ANGLBASIS);
    v = ATANH(x);
-   outputa = (double)x / ANGLBASE;
-   outputb = (double)v / SCLRBASE;
+   outputa = (double)x / ANGLBASIS;
+   outputb = (double)v / BASIS;
    printf("ATANH(%f) = %f\n", outputa, outputb);
 }
 
 void
 math_abs_test(double a)
 {
-   Word v, x;
+   Sclr v, x;
    double outputa, outputb;
 
-   x = (Word)(a * SCLRBASE);
+   x = (Sclr)(a * BASIS);
    v = ABS(x);
-   outputa = (double)x / SCLRBASE;
-   outputb = (double)v / SCLRBASE;
+   outputa = (double)x / BASIS;
+   outputb = (double)v / BASIS;
    printf("FX ABS(%ld) = %ld\n", x, v);
    printf("FP ABS(%f) = %f\n\n", outputa, outputb);
 }
@@ -248,39 +249,39 @@ math_abs_test(double a)
 void
 math_exp_test(double a)
 {
-   Word v, x;
+   Sclr v, x;
    double outputa, outputb;
 
-   x = (Word)(a * SCLRBASE);
+   x = (Sclr)(a * BASIS);
    v = EXP(x);
-   outputa = (double)x / SCLRBASE;
-   outputb = (double)v / SCLRBASE;
+   outputa = (double)x / BASIS;
+   outputb = (double)v / BASIS;
    printf("EXP(%f) = %f\n", outputa, outputb);
 }
 
 void
 math_log_test(double a)
 {
-   Word v, x;
+   Sclr v, x;
    double outputa, outputb;
 
-   x = (Word)(a * SCLRBASE);
+   x = (Sclr)(a * BASIS);
    v = LOG(x);
-   outputa = (double)x / SCLRBASE;
-   outputb = (double)v / SCLRBASE;
+   outputa = (double)x / BASIS;
+   outputb = (double)v / BASIS;
    printf("LOG(%f) = %f\n", outputa, outputb);
 }
 
 void
 math_sqrt_test(double a)
 {
-   Word v, x;
+   Sclr v, x;
    double outputa, outputb;
 
-   x = (Word)(a * SCLRBASE);
+   x = (Sclr)(a * BASIS);
    v = SQRT(x);
-   outputa = (double)x / SCLRBASE;
-   outputb = (double)v / SCLRBASE;
+   outputa = (double)x / BASIS;
+   outputb = (double)v / BASIS;
    printf("FX SQRT(%ld) = %ld\n", x, v);
    printf("FP SQRT(%f) = %f\n\n", outputa, outputb);
 }

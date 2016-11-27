@@ -1,6 +1,8 @@
 #ifndef ENGINEER_H_
 #define ENGINEER_H_
 
+// This library typedefs the following variable types: Sclr, Vec2, Vec3, and Quat.
+
 #ifdef EAPI
 # undef EAPI
 #endif
@@ -71,22 +73,22 @@ extern "C" {
 /// @see engineer_shutdown().
 ///
 /// @ingroup Init
-
+///
 EAPI int engineer_init(void);
-
+///
 /// Shutdown Engineer
 ///
 /// Shutdown Engineer. If init count reaches 0, all the internal structures will
-/// be freed. Any Engineer library call after this point will leads to an error.
+/// be freed. Any Engineer library call after this point will lead to an error.
 ///
 /// @return Engineer's init counter value.
 ///
 /// @see engineer_init().
 ///
 /// @ingroup Init
-
+///
 EAPI int engineer_shutdown(void);
-
+///
 /// @}
 
 /// @brief Main group API that wont do anything
@@ -96,9 +98,9 @@ EAPI int engineer_shutdown(void);
 ///
 /// @brief A function that doesn't do any good nor any bad
 /// @ingroup Main
-
+///
 EAPI void engineer_run(void);
-
+///
 /// @}
 
 EAPI Efl_Object *

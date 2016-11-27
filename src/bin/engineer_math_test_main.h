@@ -1,11 +1,10 @@
 #ifndef _ENGINEER_MATH_TEST_MAIN_H_
 #define _ENGINEER_MATH_TEST_MAIN_H_
 
-#include <math.h>
 #include "../headers/Engineer.h"
 
-extern Word cordic_gain_c;
-extern Word cordic_gain_h;
+extern Sclr cordic_gain_c;
+extern Sclr cordic_gain_h;
 
 void
 math_mult_test(double a, double b);

@@ -1,40 +1,46 @@
 #ifndef _ENGINEER_MATH_H_
 #define _ENGINEER_MATH_H_
 
-#include "../headers/Engineer.h"
+#include <math.h>
 
-#define PI (Word)(3.1415926536897932384626 * SCLRBASE)
+// This sets the (signed) Scalar type/bitwidth used by the Engineer.so library.
+typedef long Sclr;
+typedef Sclr Angl;
+
+#define SCALE (sizeof(Sclr) * 8)
+
+// This sets, from the right, where our radix point will be placed in our Word.
+#define RADIX 16
+#define BASIS ((Sclr)1 << RADIX)
+
+#define ANGLRADIX 31
+#define ANGLBASIS ((Sclr)1 << ANGLRADIX)
+
+#define ANGL2SCLR(a) (a >> (ANGLRADIX - RADIX));
+#define SCLR2ANGL(a) (a << (ANGLRADIX - RADIX));
 
 #define UINT_NULL  ~((uint)0)
 #define ULONG_NULL ~((ulong)0)
 
-#define SCALE   64 // This needs to be set to the size of our integer bitwidth.
-#define RADIX   16 // This sets, from the right, where our radix point will be placed.
-#define ANGLMAG 60 // Angle Magnitude, how many places from the left our unit radix is placed.
-#define SCLRMAG 16 // Scalar Magnitude, must ALWAYS be less than Angular Magnitude.
-
-#define BASIS    ((Word)1 << RADIX)
-#define ANGLBASE ((Word)1 << ANGLMAG) // These define our Basis Vectors for
-#define SCLRBASE ((Word)1 << SCLRMAG) //    fractional conversion.
-
-// Define this to perform all multiplications and divisions with the linear CORDIC method.
-// Protip: DO NOT DEFINE THIS.  It does NOT output correct vaules.
-//#define CORDIC_LINEAR    1
-
-#define ANGL2SCLR(a)     (a >> (ANGLMAG - SCLRMAG));
-#define SCLR2ANGL(a)     (a << (ANGLMAG - SCLRMAG));
+#define PI (Sclr)(3.1415926536897932384626 * BASIS)
 
 #define MULT(a, b)       engineer_math_mult(a, b)
 #define DIVD(a, b)       engineer_math_divd(a, b)
+
+#define MULTANGL(a, b)   engineer_math_mult_angl(a, b)
+#define DIVDANGL(a, b)   engineer_math_divd_angl(a, b)
+
+#define MULTSBYA(s, a)
+#define DIVDSBYA(s, a)
+
+#define MULTABYS(a, s)
+#define DIVDABYS(a, s)
 
 #define ABS(a)           engineer_math_abs(a)
 #define CLAMP(a, b, c)   engineer_math_clamp(a, b, c)
 #define EXP(a)           engineer_math_exp(a)
 #define LOG(a)           engineer_math_ln(a)
 #define SQRT(a)          engineer_math_sqrt(a)
-
-#define ANGLMULT(a, b)   engineer_math_angl_mult(a, b)
-#define ANGLDIVD(a, b)   engineer_math_angl_divd(a, b)
 
 #define SINCOS(a)        engineer_math_sincos(a)
 #define TAN(a)           engineer_math_tan(a)
@@ -59,140 +65,92 @@
 #define QUATMTRX(a)      engineer_math_quat_matrixify(a)
 #define QUATNORM(a)      engineer_math_quat_normalize(a)
 
-typedef long     Word;    // This sets the word size used by the Engineer.so library.
-typedef __int128 Rstr;    // This needs to be a data type twice the size of the Word.
-typedef          Word EngSclr; // Both our Scalar and Angular values should have a word
-typedef          Word EngAngl; //    size equal to our library word size.
+// Define this to perform all multiplications and divisions with the linear CORDIC method.
+// Protip: DO NOT DEFINE THIS.  It does NOT output correct vaules.
+//#define CORDIC_LINEAR    1
+
 
 typedef struct
 {
-   EngSclr x, y;
+   Sclr x, y;
 }
-EngVec2;
+Vec2;
 
 typedef struct
 {
-   EngSclr x, y, z;
+   Sclr x, y, z;
 }
-EngVec3;
+Vec3;
 
 typedef struct
 {
-   EngAngl w;
-   EngSclr x, y, z;
+   Angl w;
+   Sclr x, y, z;
 }
-EngQuat;
+Quat;
 
 typedef struct
 {
-   EngSclr r0c0, r0c1, r0c2;
-   EngSclr r1c0, r1c1, r1c2;
-   EngSclr r2c0, r2c1, r2c2;
+   Sclr r0c0, r0c1, r0c2;
+   Sclr r1c0, r1c1, r1c2;
+   Sclr r2c0, r2c1, r2c2;
 }
-EngMtrx;
+Mtrx;
+
 
 void cordic_init();
 
 void cordic_linear_init();
-void cordic_linear_ymode();
-void cordic_linear_zmode();
+void cordic_linear_ymode(Sclr *x0, Sclr *y0, Sclr *z0);
+void cordic_linear_zmode(Sclr *x0, Sclr *y0, Sclr *z0);
 
 void cordic_circular_init();
-void cordic_circular_ymode();
-void cordic_circular_aymode();
-void cordic_circular_zmode();
+void cordic_circular_ymode(Sclr *x0, Sclr *y0, Sclr *z0);
+void cordic_circular_aymode(Sclr *x0, Sclr *y0, Sclr *z0);
+void cordic_circular_zmode(Sclr *x0, Sclr *y0, Sclr *z0);
 
 void cordic_hyperbolic_init();
-void cordic_hyperbolic_ymode();
-void cordic_hyperbolic_zmode();
+void cordic_hyperbolic_ymode(Sclr *x0, Sclr *y0, Sclr *z0);
+void cordic_hyperbolic_zmode(Sclr *x0, Sclr *y0, Sclr *z0);
 
 
-EngSclr
-engineer_math_mult(EngSclr a, EngSclr b);
+Sclr engineer_math_mult(Sclr a, Sclr b);
+Sclr engineer_math_divd(Sclr a, Sclr b);
 
-EngSclr
-engineer_math_divd(EngSclr a, EngSclr b);
+Angl engineer_math_mult_angl(Angl a, Angl b);
+Angl engineer_math_divd_angl(Angl a, Angl b);
 
-EngSclr
-engineer_math_abs(EngSclr a);
+Sclr engineer_math_abs(Sclr a);
+Sclr engineer_math_clamp(Sclr a, Sclr min, Sclr max);
 
-EngSclr
-engineer_math_clamp(EngSclr a, EngSclr min, EngSclr max);
-
-EngSclr
-engineer_math_exp(EngSclr a);
-
-EngSclr
-engineer_math_ln(EngSclr a);
-
-EngSclr
-engineer_math_sqrt(EngSclr a);
+Sclr engineer_math_exp(Sclr a);
+Sclr engineer_math_ln(Sclr a);
+Sclr engineer_math_sqrt(Sclr a);
 
 
-EngAngl
-engineer_math_angl_mult(EngAngl a, EngAngl b);
+Vec2 engineer_math_sincos(Angl a);
+Sclr engineer_math_tan(Angl a);
+Sclr engineer_math_atan(Angl a);
+Sclr engineer_math_asin(Angl a);
 
-EngAngl
-engineer_math_angl_divd(EngAngl a, EngAngl b);
-
-
-EngVec2
-engineer_math_sincos(EngAngl a);
-
-EngSclr
-engineer_math_tan(EngAngl a);
-
-EngSclr
-engineer_math_atan(EngAngl a);
-
-EngSclr
-engineer_math_asin(EngAngl a);
+Vec2 engineer_math_sincosh(Angl a);
+Sclr engineer_math_tanh(Angl a);
+Sclr engineer_math_atanh(Angl a);
 
 
-EngVec2
-engineer_math_sincosh(EngAngl a);
+Vec2 engineer_math_vec2(Sclr xinput, Sclr yinput);
+Sclr engineer_math_vec2_dot(Vec2 *va, Vec2 *vb);
+Vec2 engineer_math_vec2_normalize(Vec2 *v);
 
-EngSclr
-engineer_math_tanh(EngAngl a);
+Vec3 engineer_math_vec3(Sclr xinput, Sclr yinput, Sclr zinput);
+Sclr engineer_math_vec3_dot(Vec3 *va, Vec3 *vb);
+Vec3 engineer_math_vec3_cross(Vec3 *va, Vec3 *vb);
+Vec3 engineer_math_vec3_normalize(Vec3 *v);
 
-EngSclr
-engineer_math_atanh(EngAngl a);
-
-
-EngVec2
-engineer_math_vec2(EngSclr xinput, EngSclr yinput);
-
-EngSclr
-engineer_math_vec2_dot(EngVec2 *va, EngVec2 *vb);
-
-EngVec2
-engineer_math_vec2_normalize(EngVec2 *v);
-
-
-EngVec3
-engineer_math_vec3(EngSclr xinput, EngSclr yinput, EngSclr zinput);
-
-EngSclr
-engineer_math_vec3_dot(EngVec3 *va, EngVec3 *vb);
-
-EngVec3
-engineer_math_vec3_cross(EngVec3 *va, EngVec3 *vb);
-
-EngVec3
-engineer_math_vec3_normalize(EngVec3 *v);
-
-
-EngQuat
-engineer_math_quat(EngSclr winput, EngSclr xinput, EngSclr yinput, EngSclr zinput);
-
-EngQuat
-engineer_math_quat_multiply(EngQuat *q1, EngQuat *q2);
-
-EngMtrx
-engineer_math_quat_matrixify(EngQuat *q);
-
-EngQuat
-engineer_math_quat_normalize(EngQuat *q);
+Quat engineer_math_quat(Sclr winput, Sclr xinput, Sclr yinput, Sclr zinput);
+Quat engineer_math_quat_multiply(Quat *q1, Quat *q2);
+Mtrx engineer_math_quat_matrixify(Quat *q);
+Quat engineer_math_quat_normalize(Quat *q);
 
 #endif
 

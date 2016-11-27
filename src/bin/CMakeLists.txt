@@ -1,3 +1,4 @@
+# Add binary: engineer
 add_executable(engineer
    engineer_main.c
    engineer_tabber.c
@@ -7,62 +8,24 @@ add_executable(engineer
    )
 
 target_link_libraries(engineer
-   ${EINA_LIBRARIES}
-   ${EVAS_LIBRARIES}
-   ${EFL_LIBRARIES}
-   ${EIO_LIBRARIES}
-   ${EO_LIBRARIES}
-   ${EFREET_LIBRARIES}
-   ${EFREET_TRASH_LIBRARIES}
-   ${ECORE_LIBRARIES}
-   ${ECORE_FILE_LIBRARIES}
-   ${EET_LIBRARIES}
-   ${ELEMENTARY_LIBRARIES}
-   ${Edi_LIBRARIES}
-   ${DB_LIBRARIES}
-   #elm_ext
-   #efm
    Engineer
+   ${Edi_LIBRARIES}
    )
 
+# Add binary: engineer_math_test
 add_executable(engineer_math_test
    engineer_math_test_main.c
    )
 
 target_link_libraries(engineer_math_test
-   ${EINA_LIBRARIES}
-   ${EVAS_LIBRARIES}
-   ${EFL_LIBRARIES}
-   ${EIO_LIBRARIES}
-   ${EO_LIBRARIES}
-   ${EFREET_LIBRARIES}
-   ${EFREET_TRASH_LIBRARIES}
-   ${ECORE_LIBRARIES}
-   ${ECORE_FILE_LIBRARIES}
-   ${EET_LIBRARIES}
-   ${ELEMENTARY_LIBRARIES}
-   ${Edi_LIBRARIES}
    Engineer
    )
 
+# Add binary: engineer_render_test
 add_executable(engineer_render_test
    engineer_render_test_main.c
-   ../lib/engineer_game.c
-   ../lib/engineer_scene.c
    )
 
 target_link_libraries(engineer_render_test
-   ${EINA_LIBRARIES}
-   ${EVAS_LIBRARIES}
-   ${EFL_LIBRARIES}
-   ${EIO_LIBRARIES}
-   ${EO_LIBRARIES}
-   ${EFREET_LIBRARIES}
-   ${EFREET_TRASH_LIBRARIES}
-   ${ECORE_LIBRARIES}
-   ${ECORE_FILE_LIBRARIES}
-   ${EET_LIBRARIES}
-   ${ELEMENTARY_LIBRARIES}
-   ${DB_LIBRARIES}
    Engineer
    )
