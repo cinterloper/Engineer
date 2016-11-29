@@ -102,8 +102,8 @@ cordic_circular_init()
    Sclr y = 0;
    Sclr z = 0;
    cordic_circular_zmode(&x, &y, &z);
-
-   cordic_gain_c = DIVDANGL(ANGLBASIS, x);
+   y = ANGLBASIS;
+   cordic_gain_c = DIVDANGL(&y, &x);
 }
 
 void
@@ -220,7 +220,8 @@ cordic_hyperbolic_init() // Fixme //
    Sclr y = 0;
    Sclr z = 0;
    cordic_hyperbolic_zmode(&x, &y, &z);
-   cordic_gain_h = DIVD(ANGLBASIS, x);// (ANGLBASE << ANGLMAG)/ x
+   y = ANGLBASIS;
+   cordic_gain_h = DIVD(&y, &x);// (ANGLBASE << ANGLMAG)/ x
 }
 
 void
@@ -288,104 +289,106 @@ cordic_hyperbolic_zmode(Sclr *x0, Sclr *y0, Sclr *z0)
 
 /*** Elementary Arithmatic Functions ***/
 
-Sclr
-engineer_math_mult(Sclr a, Sclr b)
+SclrData
+engineer_math_mult(Sclr *a, Sclr *b)
 {
-   Sclr output = a * b;
+   SclrData output = *a * *b;
    output += ((output & (1 << (RADIX - 1)) ) << 1);
    output >>= RADIX;
 
    return output;
 }
 
-Sclr
-engineer_math_divd(Sclr a, Sclr b)
+SclrData
+engineer_math_divd(Sclr *a, Sclr *b)
 {
-   Sclr output = (a << RADIX)/ b;
+   Sclr output = (*a << RADIX)/ *b;
 
    return output;
 }
 
-Angl
-engineer_math_mult_angl(Angl a, Angl b)
+AnglData
+engineer_math_mult_angl(Angl *a, Angl *b)
 {
    #ifndef CORDIC_LINEAR
-   Angl output = a * b;
+   AnglData output = *a * *b;
    output += ((output & ((Angl)1 << (ANGLRADIX - 1)) ) << 1);
    output >>= ANGLRADIX;
 
    return output;
    #else
-   Sclr x = a;
-   Sclr y = 0;
-   Sclr z = b;
+   Sclr x = *a;
+   Sclr y =  0;
+   Sclr z = *b;
    cordic_linear_zmode(&x, &y, &z);
 
    return y;
    #endif
 }
 
-Angl
-engineer_math_divd_angl(Angl a, Angl b)
+AnglData
+engineer_math_divd_angl(Angl *a, Angl *b)
 {
    #ifndef CORDIC_LINEAR
-   Angl output = (a << ANGLRADIX)/ b;
+   AnglData output = (*a << ANGLRADIX)/ *b;
 
    return output;
    #else
-   Sclr x = b;
-   Sclr y = a;
-   Sclr z = 0;
+   Sclr x = *b;
+   Sclr y = *a;
+   Sclr z =  0;
    cordic_linear_ymode(&x, &y, &z);
 
    return z;
    #endif
 }
 
-Sclr
-engineer_math_abs(Sclr a)
+SclrData
+engineer_math_abs(Sclr *a)
 {
-   Sclr output;
+   SclrData output;
 
-   output = (a ^ (a >> (SCALE - 1))) - (a >> (SCALE - 1));
+   output = (*a ^ (*a >> (SCALE - 1))) - (*a >> (SCALE - 1));
 
    return output;
 }
 
-Sclr
-engineer_math_clamp(Sclr a, Sclr min, Sclr max)
+SclrData
+engineer_math_clamp(Sclr *a, Sclr *min, Sclr *max)
 {
-   Sclr output;
+   SclrData input, output;
 
-   min <<= 1;
-   max <<= 1;
-   a      = ((a + min) - ABS(a - min)) >> 1;
-   output = ((a + max) + ABS(a - max)) >> 1;
+   *min <<= 1;
+   *max <<= 1;
+   input  = *a - *min;
+   *a     = ((*a + *min) - ABS(&input)) >> 1;
+   input  = *a - *max;
+   output = ((*a + *max) + ABS(&input)) >> 1;
 
    return output;
 }
 
-Sclr
-engineer_math_exp(Sclr a) // Fixme //
+SclrData
+engineer_math_exp(Sclr *a) // Fixme //
 {
-   Sclr output, sinh, cosh;
+   SclrData output, sinh, cosh;
 
    cosh = cordic_gain_h;
    sinh = 0;
-   cordic_hyperbolic_zmode(&cosh, &sinh, &a);
+   cordic_hyperbolic_zmode(&cosh, &sinh, a);
    output = (sinh + cosh);
 
    return output;
 }
 
-Sclr
-engineer_math_ln(Sclr a) // Fixme //
+SclrData
+engineer_math_ln(Sclr *a) // Fixme //
 {
    // Domain: 0.1 < a < 9.58 units.
-   Sclr output, x, y, z;
+   SclrData output, x, y, z;
 
-   x = a + BASIS;
-   y = a - BASIS;
+   x = *a + BASIS;
+   y = *a - BASIS;
    z = 0;
    cordic_hyperbolic_ymode(&x, &y, &z);
    output =  z << 1;
@@ -393,13 +396,13 @@ engineer_math_ln(Sclr a) // Fixme //
    return output;
 }
 
-Sclr
-engineer_math_sqrt(Sclr a)
+SclrData
+engineer_math_sqrt(Sclr *a)
 {
    // Domain: |a| units.
    // Christophe Meessen's shift-and-add algorithim for approximating
    //    square roots of fixed point numbers.
-   Sclr output, x, y, z, mask;
+   SclrData output, x, y, z, mask;
 
    x = ABS(a);
    y = (Sclr)1 << (RADIX + 14);
@@ -420,65 +423,65 @@ engineer_math_sqrt(Sclr a)
 
 /*** Elementary Trigonomic Functions ***/
 
-Vec2
-engineer_math_sincos(Angl a)
+Vec2Data
+engineer_math_sincos(Angl *a)
 {
    // Domain: |a| < 1.74
-   Vec2 output;
-   Sclr sin, cos;
+   Vec2Data output;
+   SclrData sin, cos;
 
    sin = 0;
    cos = cordic_gain_c;
-   cordic_circular_zmode(&cos, &sin, &a);
+   cordic_circular_zmode(&cos, &sin, a);
    output.x = ANGL2SCLR(cos);
    output.y = ANGL2SCLR(sin);
 
    return output;
 }
 
-Sclr
-engineer_math_tan(Angl a)
+SclrData
+engineer_math_tan(Angl *a)
 {
    // Domain: |a| < 1.74
-   Sclr output, sin, cos;
+   SclrData output, sin, cos;
 
    sin = 0;
    cos = cordic_gain_c;
-   cordic_circular_zmode(&cos, &sin, &a);
-   output = DIVDANGL(sin, cos);
+   cordic_circular_zmode(&cos, &sin, a);
+   output = DIVDANGL(&sin, &cos);
    output = ANGL2SCLR(output);
 
    return output;
 }
 
-Sclr
-engineer_math_atan(Angl a)
+SclrData
+engineer_math_atan(Angl *a)
 {
    // Domain: all a
-   Sclr output, x, z;
+   SclrData output, x, z;
 
    x = ANGLBASIS;
    z = 0;
-   cordic_circular_ymode(&x, &a, &z);
+   cordic_circular_ymode(&x, a, &z);
    output = ANGL2SCLR(z);
 
    return output;
 }
 
-Sclr
-engineer_math_asin(Angl a) // Fixme //
+SclrData
+engineer_math_asin(Angl *a) // Fixme //
 {
    // Domain: |a| < 0.98
    // We use the trig identity for this, as there really isnt a good way to vectorize it directly.
-   Sclr output;
+   SclrData output;
 
    //output = ANGL2SCLR(ATAN(DIVD(a, SQRT(1 - MULT(a, a)))));
 
-   Sclr x, z;
+   SclrData x, z;
 
    x = cordic_gain_c;
    z = 0;
-   cordic_circular_aymode(&x, &a, &z);
+   cordic_circular_aymode(&x, a, &z);
    output = ANGL2SCLR(z);
 
    return output;
@@ -487,45 +490,45 @@ engineer_math_asin(Angl a) // Fixme //
 
 /*** Hyperbolic Functions ***/
 
-Vec2
-engineer_math_sincosh(Angl a)
+Vec2Data
+engineer_math_sincosh(Angl *a)
 {
    // Domain: |a| < 1.13 OR |a| <= 1.125, after scaling,
-   Vec2 output;
-   Sclr cosh, sinh;
+   Vec2Data output;
+   SclrData cosh, sinh;
 
    sinh  = 0;
    cosh  = cordic_gain_h;
-   cordic_hyperbolic_zmode(&cosh, &sinh, &a);
+   cordic_hyperbolic_zmode(&cosh, &sinh, a);
    output.x = cosh;
    output.y = sinh;
 
    return output;
 }
 
-Sclr
-engineer_math_tanh(Angl a)
+SclrData
+engineer_math_tanh(Angl *a)
 {
    // Domain: |a| < 1.13 units.
-   Sclr output, sinh, cosh;
+   SclrData output, sinh, cosh;
 
    cosh = cordic_gain_h;
    sinh = 0;
-   cordic_hyperbolic_zmode(&cosh, &sinh, &a);
-   output = DIVDANGL(sinh, cosh);
+   cordic_hyperbolic_zmode(&cosh, &sinh, a);
+   output = DIVDANGL(&sinh, &cosh);
 
    return output;
 }
 
-Sclr
-engineer_math_atanh(Angl a)
+SclrData
+engineer_math_atanh(Angl *a)
 {
    // Domain: |a| < 1.13 units.
-   Sclr output, x, z;
+   SclrData output, x, z;
 
    x = ANGLBASIS;
    z = 0;
-   cordic_hyperbolic_ymode(&x, &a, &z);
+   cordic_hyperbolic_ymode(&x, a, &z);
    output = z;
 
    return output;
@@ -534,10 +537,10 @@ engineer_math_atanh(Angl a)
 
 /*** Vector Algebra Functions ***/
 
-Vec2
+Vec2Data
 engineer_math_vec2(Sclr xinput, Sclr yinput)
 {
-   Vec2 output;
+   Vec2Data output;
 
    output.x = xinput;
    output.y = yinput;
@@ -545,34 +548,36 @@ engineer_math_vec2(Sclr xinput, Sclr yinput)
    return output;
 }
 
-Sclr
+SclrData
 engineer_math_vec2_dot(Vec2 *va, Vec2 *vb)
 {
-   Sclr output;
+   SclrData output;
 
    output = MULT(va->x, vb->x) + MULT(va->y, vb->y);
 
    return output;
 }
 
-Vec2
+Vec2Data
 engineer_math_vec2_normalize(Vec2 *v)
 {
-   Vec2 output;
-   Sclr square, inverse;
+   Vec2Data output;
+   SclrData basis, square, sqrt, inverse;
 
+   basis    = BASIS;
    square   = MULT(v->x, v->x) + MULT(v->y, v->y);
-   inverse  = DIVD(BASIS, SQRT(square));
-   output.x = MULT(v->x, inverse);
-   output.y = MULT(v->y, inverse);
+   sqrt     = SQRT(&square);
+   inverse  = DIVD(&basis, &sqrt);
+   output.x = MULT(v->x, &inverse);
+   output.y = MULT(v->y, &inverse);
 
    return output;
 }
 
-Vec3
+Vec3Data
 engineer_math_vec3(Sclr xinput, Sclr yinput, Sclr zinput)
 {
-   Vec3 output;
+   Vec3Data output;
 
    output.x = xinput;
    output.y = yinput;
@@ -581,20 +586,20 @@ engineer_math_vec3(Sclr xinput, Sclr yinput, Sclr zinput)
    return output;
 }
 
-Sclr
+SclrData
 engineer_math_vec3_dot(Vec3 *va, Vec3 *vb)
 {
-   Sclr output;
+   SclrData output;
 
    output = MULT(va->x, vb->x) + MULT(va->y, vb->y) + MULT(va->z, vb->z);
 
    return output;
 }
 
-Vec3
+Vec3Data
 engineer_math_vec3_cross(Vec3 *va, Vec3 *vb)
 {
-   Vec3 output;
+   Vec3Data output;
 
    output.x = MULT(va->y, vb->z) - MULT(va->z, vb->y);
    output.y = MULT(va->z, vb->x) - MULT(va->x, vb->z);
@@ -603,25 +608,27 @@ engineer_math_vec3_cross(Vec3 *va, Vec3 *vb)
    return output;
 }
 
-Vec3
+Vec3Data
 engineer_math_vec3_normalize(Vec3 *v)
 {
-   Vec3 output;
-   Sclr square, inverse;
+   Vec3Data output;
+   SclrData basis, square, sqrt, inverse;
 
+   basis    = BASIS;
    square   = MULT(v->x, v->x) + MULT(v->y, v->y) + MULT(v->z, v->z);
-   inverse  = DIVD(BASIS, SQRT(square));
-   output.x = MULT(v->x, inverse);
-   output.y = MULT(v->y, inverse);
-   output.z = MULT(v->z, inverse);
+   sqrt     = SQRT(&square);
+   inverse  = DIVD(&basis, &sqrt);
+   output.x = MULT(v->x, &inverse);
+   output.y = MULT(v->y, &inverse);
+   output.z = MULT(v->z, &inverse);
 
    return output;
 }
 
-Quat
+QuatData
 engineer_math_quat(Sclr winput, Sclr xinput, Sclr yinput, Sclr zinput)
 {
-   Quat output;
+   QuatData output;
 
    output.w = winput;
    output.x = xinput;
@@ -631,10 +638,10 @@ engineer_math_quat(Sclr winput, Sclr xinput, Sclr yinput, Sclr zinput)
    return output;
 }
 
-Quat
+QuatData
 engineer_math_quat_multiply(Quat *q1, Quat *q2)
 {
-   Quat output;
+   QuatData output;
 
    output.w = MULT(q1->w, q2->w) - MULT(q1->x, q2->x) - MULT(q1->y, q2->y) - MULT(q1->z, q2->z);
    output.x = MULT(q1->w, q2->x) + MULT(q1->x, q2->w) + MULT(q1->y, q2->z) - MULT(q1->z, q2->y);
@@ -644,18 +651,29 @@ engineer_math_quat_multiply(Quat *q1, Quat *q2)
    return output;
 }
 
-Mtrx
+MtrxData
 engineer_math_quat_matrixify(Quat *q)
 {
-   Mtrx output;
+   MtrxData output;
+   SclrData factor, twoW, twoX, twoY;
+   SclrData wSq, xSq, ySq, zSq;
+   SclrData xy, xz, yz, wx, wy, wz;
 
    // Helper quantities, we calculate these up front to avoid redundancies.
-   Sclr wSq  = MULT(q->w, q->w);
-   Sclr xSq  = MULT(q->x, q->x), ySq = MULT(q->y, q->y), zSq = MULT(q->z, q->z);
-   Sclr twoW = MULT(q->w, BASIS << 1);
-   Sclr twoX = MULT(q->x, BASIS << 1), twoY = MULT(q->y, BASIS << 1);
-   Sclr xy   = MULT(twoX, q->y), xz = MULT(twoX, q->z), yz = MULT(twoY, q->z);
-   Sclr wx   = MULT(twoW, q->x), wy = MULT(twoW, q->y), wz = MULT(twoW, q->z);
+   factor = BASIS << 1;
+   twoW = MULT(q->w, &factor);
+   twoX = MULT(q->x, &factor);
+   twoY = MULT(q->y, &factor);
+   wSq  = MULT(q->w, q->w);
+   xSq  = MULT(q->x, q->x);
+   ySq  = MULT(q->y, q->y);
+   zSq  = MULT(q->z, q->z);
+   xy   = MULT(&twoX, q->y);
+   xz   = MULT(&twoX, q->z);
+   yz   = MULT(&twoY, q->z);
+   wx   = MULT(&twoW, q->x);
+   wy   = MULT(&twoW, q->y);
+   wz   = MULT(&twoW, q->z);
 
    // Fill in the first row.
    output.r0c0 = wSq + xSq - ySq - zSq;
@@ -673,18 +691,20 @@ engineer_math_quat_matrixify(Quat *q)
    return output;
 }
 
-Quat
+QuatData
 engineer_math_quat_normalize(Quat *q)
 {
-   Quat output;
-   Sclr square, inverse;
+   QuatData output;
+   SclrData basis, square, sqrt, inverse;
 
+   basis    = BASIS;
    square   = MULT(q->x, q->x) + MULT(q->y, q->y) + MULT(q->z, q->z) + MULT(q->w, q->w);
-   inverse  = DIVD(BASIS, SQRT(square));
-   output.x = MULT(q->x, inverse);
-   output.y = MULT(q->y, inverse);
-   output.z = MULT(q->z, inverse);
-   output.w = MULT(q->w, inverse);
+   sqrt     = SQRT(&square);
+   inverse  = DIVD(&basis, &sqrt);
+   output.x = MULT(q->x, &inverse);
+   output.y = MULT(q->y, &inverse);
+   output.z = MULT(q->z, &inverse);
+   output.w = MULT(q->w, &inverse);
 
    //detect badness
    //assert(square > 0.1f);

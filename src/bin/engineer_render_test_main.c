@@ -56,7 +56,7 @@ elm_main(int argc, char **argv)
    engineer_render_test_init();
 
    Evas_Object *window = elm_win_util_standard_add("main", "Engineer Render Test");
-   if (!window) return NULL;
+   if (!window) return -1;
    elm_win_focus_highlight_enabled_set(window, EINA_TRUE);
    //evas_object_smart_callback_add(window, "delete,request", _eng_window_del, window);
    evas_object_resize(window, 800, 800);

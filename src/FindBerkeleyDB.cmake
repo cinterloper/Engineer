@@ -1,7 +1,7 @@
 # - Find BerkeleyDB
 # Find the BerkeleyDB includes and library
 # This module defines
-#  DB_INCLUDE_DIR, where to find db.h, etc.
+#  DB_INCLUDE_DIRS, where to find db.h, etc.
 #  DB_LIBRARIES, the libraries needed to use BerkeleyDB.
 #  DB_FOUND, If false, do not try to use BerkeleyDB.
 # also defined, but not for general use are
@@ -17,7 +17,7 @@ FIND_PATH(DB_INCLUDE_DIRS db.h
 SET(DB_NAMES ${DB_NAMES} db)
 FIND_LIBRARY(DB_LIBRARY
   NAMES ${DB_NAMES}
-  PATHS /usr/lib /usr/local/lib
+  PATHS /usr/local/lib /usr/lib
   )
 
 IF (DB_LIBRARY AND DB_INCLUDE_DIRS)
@@ -26,7 +26,6 @@ IF (DB_LIBRARY AND DB_INCLUDE_DIRS)
 ELSE (DB_LIBRARY AND DB_INCLUDE_DIRS)
   SET(DB_FOUND "NO")
 ENDIF (DB_LIBRARY AND DB_INCLUDE_DIRS)
-
 
 IF (DB_FOUND)
   IF (NOT DB_FIND_QUIETLY)

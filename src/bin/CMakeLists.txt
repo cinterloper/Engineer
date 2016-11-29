@@ -9,7 +9,7 @@ add_executable(engineer
 
 target_link_libraries(engineer
    Engineer
-   ${Edi_LIBRARIES}
+   ${EDI_LIBRARIES}
    )
 
 # Add binary: engineer_math_test

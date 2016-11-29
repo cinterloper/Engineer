@@ -1,4 +1,4 @@
-# Engineer.so
+# Add library: Engineer.so
 add_library(Engineer SHARED
    engineer.c
    engineer_math.c

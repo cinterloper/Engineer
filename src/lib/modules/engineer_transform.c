@@ -21,13 +21,13 @@ start(const COMPONENT *com, const ulong dt)
 EOLIAN static void
 update(const COMPONENT *com, const ulong dt)
 {
-   *com->velocityx += *com->accelerationx * dt;
-   *com->velocityy += *com->accelerationy * dt;
-   *com->velocityz += *com->accelerationz * dt;
+   *com->velocity->x += MULT(com->acceleration->x, &dt);
+   *com->velocity->y += MULT(com->acceleration->y, &dt);
+   *com->velocity->z += MULT(com->acceleration->z, &dt);
 
-   *com->positionx += *com->velocityx * dt;
-   *com->positiony += *com->velocityy * dt;
-   *com->positionz += *com->velocityz * dt;
+   *com->position->x += MULT(com->velocity->x, &dt);
+   *com->position->y += MULT(com->velocity->y, &dt);
+   *com->position->z += MULT(com->velocity->z, &dt);
 }
 
 #include "engineer_transform.eo.c"

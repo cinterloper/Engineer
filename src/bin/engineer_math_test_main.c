@@ -97,12 +97,12 @@ main()
 void
 math_mult_test(double a, double b)
 {
-   Sclr v, x, c;
+   SclrData v, x, c;
    double outputa, outputb, outputc;
 
-   x = (Sclr)(a * BASIS);
-   c = (Sclr)(b * BASIS);
-   v = MULT(x, c);
+   x = (SclrData)(a * BASIS);
+   c = (SclrData)(b * BASIS);
+   v = MULT(&x, &c);
    outputa = (double)x / BASIS;
    outputb = (double)c / BASIS;
    outputc = (double)v / BASIS;
@@ -113,12 +113,12 @@ math_mult_test(double a, double b)
 void
 math_divd_test(double a, double b)
 {
-   Sclr v, x, c;
+   SclrData v, x, c;
    double outputa, outputb, outputc;
 
-   x = (Sclr)(a * BASIS);
-   c = (Sclr)(b * BASIS);
-   v = DIVD(x, c);
+   x = (SclrData)(a * BASIS);
+   c = (SclrData)(b * BASIS);
+   v = DIVD(&x, &c);
    outputa = (double)x / BASIS;
    outputb = (double)c / BASIS;
    outputc = (double)v / BASIS;
@@ -129,12 +129,12 @@ math_divd_test(double a, double b)
 void
 math_sincos_test(double a)
 {
-   Sclr v, x, c;
-   Vec2 ans;
+   SclrData v, x, c;
+   Vec2Data ans;
    double outputa, outputb;
 
-   x = (Sclr)(a * ANGLBASIS);
-   ans = SINCOS(x);
+   x = (SclrData)(a * ANGLBASIS);
+   ans = SINCOS(&x);
    c = ans.x;
    v = ans.y;
    outputa = (double)x / ANGLBASIS;
@@ -149,11 +149,11 @@ math_sincos_test(double a)
 void
 math_tan_test(double a)
 {
-   Sclr v, x;
+   SclrData v, x;
    double outputa, outputb;
 
-   x = (Sclr)(a * ANGLBASIS);
-   v = TAN(x);
+   x = (SclrData)(a * ANGLBASIS);
+   v = TAN(&x);
    outputa = (double)x / ANGLBASIS;
    outputb = (double)v / BASIS;
    printf("FX TAN(%ld) = %ld\n", x, v);
@@ -163,11 +163,11 @@ math_tan_test(double a)
 void
 math_atan_test(double a)
 {
-   Sclr v, x;
+   SclrData v, x;
    double outputa, outputb;
 
-   x = (Sclr)(a * ANGLBASIS);
-   v = ATAN(x);
+   x = (SclrData)(a * ANGLBASIS);
+   v = ATAN(&x);
    outputa = (double)x / ANGLBASIS;
    outputb = (double)v / BASIS;
    printf("FX ATAN(%ld) = %ld\n", x, v);
@@ -177,11 +177,11 @@ math_atan_test(double a)
 void
 math_asin_test(double a)
 {
-   Sclr v, x;
+   SclrData v, x;
    double outputa, outputb;
 
-   x = (Sclr)(a * ANGLBASIS);
-   v = ASIN(x);
+   x = (SclrData)(a * ANGLBASIS);
+   v = ASIN(&x);
    outputa = (double)x / ANGLBASIS;
    outputb = (double)v / BASIS;
    printf("FX ASIN(%ld) = %ld\n", x, v);
@@ -191,12 +191,12 @@ math_asin_test(double a)
 void
 math_sincosh_test(double a)
 {
-   Sclr v, x, c;
-   Vec2 ans;
+   SclrData v, x, c;
+   Vec2Data ans;
    double outputa, outputb;
 
-   x = (Sclr)(a * ANGLBASIS);
-   ans = SINCOSH(x);
+   x = (SclrData)(a * ANGLBASIS);
+   ans = SINCOSH(&x);
    c = ans.x;
    v = ans.y;
    outputa = (double)x / ANGLBASIS;
@@ -209,11 +209,11 @@ math_sincosh_test(double a)
 void
 math_tanh_test(double a)
 {
-   Sclr v, x;
+   SclrData v, x;
    double outputa, outputb;
 
-   x = (Sclr)(a * ANGLBASIS);
-   v = TANH(x);
+   x = (SclrData)(a * ANGLBASIS);
+   v = TANH(&x);
    outputa = (double)x / ANGLBASIS;
    outputb = (double)v / BASIS;
    printf("TANH(%f) = %f\n", outputa, outputb);
@@ -222,11 +222,11 @@ math_tanh_test(double a)
 void
 math_atanh_test(double a)
 {
-   Sclr v, x;
+   SclrData v, x;
    double outputa, outputb;
 
-   x = (Sclr)(a * ANGLBASIS);
-   v = ATANH(x);
+   x = (SclrData)(a * ANGLBASIS);
+   v = ATANH(&x);
    outputa = (double)x / ANGLBASIS;
    outputb = (double)v / BASIS;
    printf("ATANH(%f) = %f\n", outputa, outputb);
@@ -235,11 +235,11 @@ math_atanh_test(double a)
 void
 math_abs_test(double a)
 {
-   Sclr v, x;
+   SclrData v, x;
    double outputa, outputb;
 
-   x = (Sclr)(a * BASIS);
-   v = ABS(x);
+   x = (SclrData)(a * BASIS);
+   v = ABS(&x);
    outputa = (double)x / BASIS;
    outputb = (double)v / BASIS;
    printf("FX ABS(%ld) = %ld\n", x, v);
@@ -249,11 +249,11 @@ math_abs_test(double a)
 void
 math_exp_test(double a)
 {
-   Sclr v, x;
+   SclrData v, x;
    double outputa, outputb;
 
-   x = (Sclr)(a * BASIS);
-   v = EXP(x);
+   x = (SclrData)(a * BASIS);
+   v = EXP(&x);
    outputa = (double)x / BASIS;
    outputb = (double)v / BASIS;
    printf("EXP(%f) = %f\n", outputa, outputb);
@@ -262,11 +262,11 @@ math_exp_test(double a)
 void
 math_log_test(double a)
 {
-   Sclr v, x;
+   SclrData v, x;
    double outputa, outputb;
 
-   x = (Sclr)(a * BASIS);
-   v = LOG(x);
+   x = (SclrData)(a * BASIS);
+   v = LOG(&x);
    outputa = (double)x / BASIS;
    outputb = (double)v / BASIS;
    printf("LOG(%f) = %f\n", outputa, outputb);
@@ -275,11 +275,11 @@ math_log_test(double a)
 void
 math_sqrt_test(double a)
 {
-   Sclr v, x;
+   SclrData v, x;
    double outputa, outputb;
 
-   x = (Sclr)(a * BASIS);
-   v = SQRT(x);
+   x = (SclrData)(a * BASIS);
+   v = SQRT(&x);
    outputa = (double)x / BASIS;
    outputb = (double)v / BASIS;
    printf("FX SQRT(%ld) = %ld\n", x, v);

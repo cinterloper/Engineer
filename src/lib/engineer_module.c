@@ -10,7 +10,7 @@
 
 typedef struct
 {
-   Engineer_Scene_Data *scene;         // Stores the pointer of the parent Scene data.
+ //  Engineer_Scene_Data *scene;         // Stores the pointer of the parent Scene data.
    uint  offsetactive;
    uint  offsetpassive;
 
@@ -26,30 +26,30 @@ Engineer_Module_Data; // Is really for Engineer_Module_Sector.
 EOLIAN static Efl_Object *
 _engineer_module_efl_object_constructor(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd)
 {
-   char scene[PATH_MAX];
-   snprintf(scene, sizeof(scene), "%s.db", scene->name);
+ //  char scene[PATH_MAX];
+ //  snprintf(scene, sizeof(scene), "%s.db", pd->scene->name);
 
    pd->offsetactive  = 0;
    pd->offsetpassive = 0;
 
    pd->lookup = eina_hash_int32_new(eng_free_cb);
    #define VAR(TYPE, KEY) \
-     pd->data->KEY = eina_inarray_new(sizeof(TYPE), 0);
+      pd->cache->KEY = engineer_type_TYPE_soa_new();
    DATA
    #undef VAR
-
+/*
    pd->table->handle = NULL;
    db_create(&pd->table->handle, NULL, 0);
    pd->table->handle->open(
-      pd->table->handle,    /* DB structure pointer */
-      NULL,                 /* Transaction pointer */
-      scene,                /* On-disk file that holds the database. */
-      "Module.NAME",        /* Optional logical database name */
-      DB_QUEUE,             /* Database access method */
-      DB_CREATE,            /* Open flags */
-      0);                   /* File mode (using defaults) */
-
-   return obj;
+      pd->table->handle,    // DB structure pointer
+      NULL,                 // Transaction pointer
+      scene,                // On-disk file that holds the database.
+      "Module.NAME",        // Optional logical database name
+      DB_QUEUE,             // Database access method
+      DB_CREATE,            // Open flags
+      0);                   // File mode (using defaults)
+*/
+   return efl_constructor(efl_super(obj, ENGINEER_MODULE_CLASS));
 }
 
 EOLIAN static void
@@ -121,28 +121,29 @@ _engineer_module_component_save(Eo *obj, Engineer_Module_Data *pd,
    eina_inarray_pop(pd->cache);
 }
 
-EOLIAN static COMPONENT
+EOLIAN static COMPONENT *
 _engineer_module_component_lookup(EINA_UNUSED Eo *obj, Engineer_Module_Data *pd,
         uint componentid)
 {
    uint *cacheid = eina_hash_find(pd->lookup, &componentid);
-   if (cacheid == NULL) return NULL;
-   COMPONENT *data = engineer_module_data_get(obj, *cacheid);
-   return data;
+   cacheid -= 1;
+   if ((ulong)cacheid == ULONG_NULL) return NULL;
+
+   return engineer_module_data_get(obj, *cacheid);
 }
 
-EOLIAN static COMPONENT
-_engineer_module_entity_lookup(EINA_UNUSED Eo *obj, Engineer_Module_Data *pd,
-        uint entityid)
+EOLIAN static void
+_engineer_module_entity_lookup(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        uint entityid EINA_UNUSED)
 {
 }
 
 EOLIAN static void *
-_engineer_module_data_get(EINA_UNUSED Eo *obj, Engineer_Module_Data *pd,
+_engineer_module_data_get(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
         uint cacheid)
 {
    COMPONENT *component = malloc(sizeof(COMPONENT));
-   component->component = pd->data->component;
+   component->component = eina_inarray_nth(pd->cache->component, cacheid);
 
    #define VAR(TYPE, KEY) \
       component->KEY = eina_inarray_nth(pd->data->KEY, cacheid);
@@ -166,6 +167,7 @@ _engineer_module_data_swap(EINA_UNUSED Eo *obj, Engineer_Module_Data *pd,
 
    // Swap the data for componenta with the data of componentb in all defined VARs.
    void *bufferv;
+   bufferv = NULL;
    #define VAR(TYPE, KEY) \
       bufferv = eina_inarray_nth(pd->data->KEY, componenta); \
       TYPE KEYbuffer = *bufferv; \

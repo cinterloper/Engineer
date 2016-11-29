@@ -4,6 +4,18 @@
 #include "../headers/Engineer.h"
 
 #ifndef NAME
+   #define NAME
+#endif
+
+#ifndef DATA
+   #define DATA
+#endif
+
+#define COMPONENT NAME_Component
+#define DATACACHE COMPONENT_Cache
+#define OVERRIDE  _NAME_engineer_module
+/*
+#ifndef NAME
    #define COMPONENT void
    #define DATACACHE void
    #define OVERRIDE  _engineer_module
@@ -12,7 +24,7 @@
    #define DATACACHE COMPONENT_Cache
    #define OVERRIDE  _NAME_engineer_module
 #endif
-
+*/
 #if defined(NAME) && defined(DATA)
 
    typedef struct
@@ -32,9 +44,14 @@
       #define VAR(TYPE, KEY) Eina_Inarray *KEY;
       DATA
       #undef VAR
+
+      /* Experimental new command macros
+      #define VAR(TYPE, KEY) pd->cache->KEY = engineer_type_TYPE_soa_new();
+      DATA
+      #undef VAR
+      */
    }
    DATACACHE;
-
 #endif
 
 #define add    OVERRIDE_add
