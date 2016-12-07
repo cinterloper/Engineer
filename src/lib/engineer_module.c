@@ -1,7 +1,6 @@
 #include "engineer_module.h"
 
 // All Modules are actually classes that inherit from the Engineer_Module class.
-//
 // All actual Component data is held in a simple struct of linear arrays.
 //
 // Our data index space is divided into 3 contiguous regions as follows: |  Legend:
@@ -14,12 +13,11 @@ typedef struct
    uint  offsetactive;
    uint  offsetpassive;
 
-   DATACACHE *cache;
+   COMPONENT *cache;
    Eina_Hash *lookup;   // (ComponentID) -> (DataIndex) Reference.
    DB        *table;
 }
-Engineer_Module_Data; // Is really for Engineer_Module_Sector.
-
+Engineer_Module_Data;
 
 /*** Constructors ***/
 
@@ -57,18 +55,113 @@ _engineer_module_efl_object_destructor(Eo *obj EINA_UNUSED, Engineer_Module_Data
 {
 }
 
-
-/*** Module Methods ***/
+/*** Module Iterator ***/
 
 EOLIAN static void
 _engineer_module_iterate(Eo *obj, Engineer_Module_Data *pd)
 {
+   // Set up our iteration data buffer on the stack.
+   COMPONENT *current, buffer;
+   COMPODATA  payload EINA_UNUSED;
+   current = &buffer;
+
+   #define VAR(TYPE, KEY) \
+      target->KEY = &payload.KEY
+   DATA
+   #undef VAR
+
+   // For each component stored in this object, do the module update() func.
    for (uint cacheid = 0; cacheid <= pd->offsetactive; cacheid += 1)
    {
-      COMPONENT *component = engineer_module_component_get(obj, cacheid);
-      engineer_module_component_update(component, 32);
-      free(component);
+      engineer_module_data_get(obj, cacheid, current);
+      engineer_module_component_update(obj, current, 32);
+      engineer_module_data_set(obj, cacheid, current);
    }
+}
+
+/*** Internal Data Methods ***/
+
+EOLIAN static void
+_engineer_module_data_add(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        uint componentid, COMPODATA *data EINA_UNUSED)
+{
+   uint cacheindex;
+
+   // Push a new Component data entry into the cache inarrays.
+   #define VAR(TYPE, KEY) \
+      cacheindex = engineer_type_TYPE_soa_push(pd->cache->KEY, data->KEY);
+   DATA
+   #undef VAR
+
+   // Set up our lookup table entry for this Component.
+   eina_hash_add(pd->lookup, &componentid, &cacheindex);
+}
+
+EOLIAN static void
+_engineer_module_data_set(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        uint cacheid EINA_UNUSED, void *target)
+{
+   COMPODATA *component EINA_UNUSED = target;
+
+   #define VAR(TYPE, KEY) \
+      engineer_type_TYPE_soa_replace_at(pd->cache->KEY, cacheid, component->KEY);
+   DATA
+   #undef VAR
+}
+
+EOLIAN static void
+_engineer_module_data_get(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
+        uint cacheid, void *target)
+{
+   COMPODATA *component = target;
+   component->component = eina_inarray_nth((Eina_Inarray*)pd->cache->component, cacheid);
+
+   #define VAR(TYPE, KEY) \
+      engineer_type_TYPE_soa_nth(pd->cache->KEY, cacheid, component->KEY);
+   DATA
+   #undef VAR
+}
+
+EOLIAN static void
+_engineer_module_data_swap(EINA_UNUSED Eo *obj, Engineer_Module_Data *pd,
+        uint componenta, uint componentb)
+{
+   uint *indexa = eina_hash_find(pd->lookup, &componenta);
+   uint *indexb = eina_hash_find(pd->lookup, &componentb);
+
+   // Swap the Component pointer data.
+   void *bufferc = eina_inarray_nth((Eina_Inarray*)pd->cache->component, *indexa);
+   eina_inarray_replace_at((Eina_Inarray*)pd->cache->component, *indexa, &indexb);
+   eina_inarray_replace_at((Eina_Inarray*)pd->cache->component, *indexb, &bufferc);
+
+   // Swap the data for componenta with the data of componentb in all defined VARs.
+   #define VAR(TYPE, KEY) \
+      TYPEData KEYbuffer; \
+      engineer_type_TYPE_soa_nth(pd->cache->KEY, *indexa, &KEYbuffer); \
+      engineer_type_TYPE_soa_replace_at(pd->cache->KEY, *indexa,  indexb); \
+      engineer_type_TYPE_soa_replace_at(pd->cache->KEY, *indexb, &KEYbuffer);
+   DATA
+   #undef VAR
+
+   // Switch the ID lookup hashtable entries.
+   uint bufferl = *indexa;
+   eina_hash_modify(pd->lookup, &componenta, indexb);
+   eina_hash_modify(pd->lookup, &componentb, &bufferl);
+}
+
+/*** Component Methods ***/
+
+// I think engineer_scene.c calls these as part of it's component management routines.
+EOLIAN static uint
+_engineer_module_component_create(EINA_UNUSED Eo *obj, Engineer_Module_Data *pd,
+        uint parent)
+{
+   uint componentid = engineer_scene_component_create(pd->scene, parent);
+   SclrData zero = 0;
+
+   engineer_module_data_add(obj, componentid, &zero);
+
+   return componentid;
 }
 
 EOLIAN static void
@@ -121,89 +214,6 @@ _engineer_module_component_save(Eo *obj, Engineer_Module_Data *pd,
    eina_inarray_pop(pd->cache);
 }
 
-EOLIAN static COMPONENT *
-_engineer_module_component_lookup(EINA_UNUSED Eo *obj, Engineer_Module_Data *pd,
-        uint componentid)
-{
-   uint *cacheid = eina_hash_find(pd->lookup, &componentid);
-   cacheid -= 1;
-   if ((ulong)cacheid == ULONG_NULL) return NULL;
-
-   return engineer_module_data_get(obj, *cacheid);
-}
-
-EOLIAN static void
-_engineer_module_entity_lookup(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        uint entityid EINA_UNUSED)
-{
-}
-
-EOLIAN static void *
-_engineer_module_data_get(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
-        uint cacheid)
-{
-   COMPONENT *component = malloc(sizeof(COMPONENT));
-   component->component = eina_inarray_nth(pd->cache->component, cacheid);
-
-   #define VAR(TYPE, KEY) \
-      component->KEY = eina_inarray_nth(pd->data->KEY, cacheid);
-   DATA
-   #undef VAR
-   return component;
-}
-
-EOLIAN static void
-_engineer_module_data_swap(EINA_UNUSED Eo *obj, Engineer_Module_Data *pd,
-        uint componenta, uint componentb)
-{
-   uint *targetalookup = eina_hash_find(pd->lookup, &componenta);
-   uint *targetblookup = eina_hash_find(pd->lookup, &componentb);
-
-   // Swap the Component pointer data.
-   void *bufferc;
-   bufferc = eina_inarray_nth(pd->cache->component, componenta);
-   eina_inarray_replace_at(pd->cache->component, componenta, &componentb);
-   eina_inarray_replace_at(pd->cache->component, componentb, &bufferc);
-
-   // Swap the data for componenta with the data of componentb in all defined VARs.
-   void *bufferv;
-   bufferv = NULL;
-   #define VAR(TYPE, KEY) \
-      bufferv = eina_inarray_nth(pd->data->KEY, componenta); \
-      TYPE KEYbuffer = *bufferv; \
-      eina_inarray_replace_at(pd->data->KEY, componenta, &componentb); \
-      eina_inarray_replace_at(pd->data->KEY, componentb, &KEYbuffer);
-   DATA
-   #undef VAR
-
-   // Switch the ID lookup hashtable entries.
-   uint bufferl = *targetalookup;
-   eina_hash_modify(pd->lookup, &componenta, targetblookup);
-   eina_hash_modify(pd->lookup, &componentb, &bufferl);
-}
-
-
-/*** Component Methods ***/
-
-EOLIAN static uint
-_engineer_module_component_create(EINA_UNUSED Eo *obj, Engineer_Module_Data *pd,
-        uint parent)
-{
-   uint componentid = engineer_scene_component_create(pd->scene, parent);
-   uint cacheindex;
-
-   // Push a new Component data entry into the cache inarrays.
-   #define VAR(TYPE, KEY) \
-      cacheindex = eina_inarray_push(pd->data->KEY, 0);
-   DATA
-   #undef VAR
-
-   // Set up our lookup table entry for this Component.
-   eina_hash_add(pd->lookup, &componentid, &cacheindex);
-
-   return componentid;
-}
-
 EOLIAN static void
 _engineer_module_component_destroy(Eo *obj, Engineer_Module_Data *pd,
         uint targetid)
@@ -217,6 +227,17 @@ EOLIAN static void
 _engineer_module_component_dispose(Eo *obj, Engineer_Module_Data *pd,
         uint target)
 {
+}
+
+EOLIAN static COMPONENT *
+_engineer_module_component_lookup(EINA_UNUSED Eo *obj, Engineer_Module_Data *pd,
+        uint componentid)
+{
+   uint *cacheid = eina_hash_find(pd->lookup, &componentid);
+   cacheid -= 1;
+   if ((ulong)cacheid == ULONG_NULL) return NULL;
+
+   return engineer_module_data_get(obj, *cacheid);
 }
 
 #include "engineer_module.eo.c"

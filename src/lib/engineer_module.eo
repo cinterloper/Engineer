@@ -25,12 +25,30 @@ abstract Engineer.Module(Efl.Object)
       {
       }
 
-      @property data
+      data_add
       {
-         get { return: void*; }
-         keys
+         params
          {
-            cacheid: uint;
+            @in componentid: uint;
+            @in data:        void_ptr;
+         }
+      }
+
+      data_set
+      {
+         params
+         {
+            @in cacheid: uint;
+            @in target:  void_ptr;
+         }
+      }
+
+      data_get
+      {
+         params
+         {
+            @in cacheid: uint;
+            @in target:  void_ptr;
          }
       }
 
@@ -85,7 +103,8 @@ abstract Engineer.Module(Efl.Object)
       {
           params
          {
-            @in dt: ulong;
+            @in com: void_ptr;
+            @in dt:  ulong;
          }
       }
 
@@ -93,7 +112,8 @@ abstract Engineer.Module(Efl.Object)
       {
          params
          {
-            @in dt: ulong;
+            @in com: void_ptr;
+            @in dt:  ulong;
          }
       }
 

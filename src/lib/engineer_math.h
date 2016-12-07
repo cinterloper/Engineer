@@ -51,16 +51,13 @@
 #define TANH(a)          engineer_math_tanh(a)
 #define ATANH(a)         engineer_math_atanh(a)
 
-#define VEC2(a, b)       engineer_math_vec2(a, b)
 #define VEC2DOT(a, b)    engineer_math_vec2_dot(a, b)
 #define VEC2NORM(a)      engineer_math_vec2_normalize(a)
 
-#define VEC3(a, b, c)    engineer_math_vec3(a, b, c)
 #define VEC3DOT(a, b)    engineer_math_vec3_dot(a, b)
 #define VEC3CROSS(a, b)  engineer_math_vec3_cross(a, b)
 #define VEC3NORM(a, b)   engineer_math_vec3_normalize(a)
 
-#define QUAT(a, b, c, d) engineer_math_quat(a, b, c, d)
 #define QUATMULT(a, b)   engineer_math_quat_multiply(a, b)
 #define QUATMTRX(a)      engineer_math_quat_matrixify(a)
 #define QUATNORM(a)      engineer_math_quat_normalize(a)
@@ -68,7 +65,6 @@
 // Define this to perform all multiplications and divisions with the linear CORDIC method.
 // Protip: DO NOT DEFINE THIS.  It does NOT output correct vaules.
 //#define CORDIC_LINEAR    1
-
 
 void cordic_init();
 
@@ -85,7 +81,6 @@ void cordic_hyperbolic_init();
 void cordic_hyperbolic_ymode(Sclr *x0, Sclr *y0, Sclr *z0);
 void cordic_hyperbolic_zmode(Sclr *x0, Sclr *y0, Sclr *z0);
 
-
 SclrData engineer_math_mult(Sclr *a, Sclr *b);
 SclrData engineer_math_divd(Sclr *a, Sclr *b);
 
@@ -99,7 +94,6 @@ SclrData engineer_math_exp(Sclr *a);
 SclrData engineer_math_ln(Sclr *a);
 SclrData engineer_math_sqrt(Sclr *a);
 
-
 Vec2Data engineer_math_sincos(Angl *a);
 SclrData engineer_math_tan(Angl *a);
 SclrData engineer_math_atan(Angl *a);
@@ -109,17 +103,13 @@ Vec2Data engineer_math_sincosh(Angl *a);
 SclrData engineer_math_tanh(Angl *a);
 SclrData engineer_math_atanh(Angl *a);
 
-
-Vec2Data engineer_math_vec2(Sclr xinput, Sclr yinput);
 SclrData engineer_math_vec2_dot(Vec2 *va, Vec2 *vb);
 Vec2Data engineer_math_vec2_normalize(Vec2 *v);
 
-Vec3Data engineer_math_vec3(Sclr xinput, Sclr yinput, Sclr zinput);
 SclrData engineer_math_vec3_dot(Vec3 *va, Vec3 *vb);
 Vec3Data engineer_math_vec3_cross(Vec3 *va, Vec3 *vb);
 Vec3Data engineer_math_vec3_normalize(Vec3 *v);
 
-QuatData engineer_math_quat(Sclr winput, Sclr xinput, Sclr yinput, Sclr zinput);
 QuatData engineer_math_quat_multiply(Quat *q1, Quat *q2);
 MtrxData engineer_math_quat_matrixify(Quat *q);
 QuatData engineer_math_quat_normalize(Quat *q);

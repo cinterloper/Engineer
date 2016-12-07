@@ -537,17 +537,6 @@ engineer_math_atanh(Angl *a)
 
 /*** Vector Algebra Functions ***/
 
-Vec2Data
-engineer_math_vec2(Sclr xinput, Sclr yinput)
-{
-   Vec2Data output;
-
-   output.x = xinput;
-   output.y = yinput;
-
-   return output;
-}
-
 SclrData
 engineer_math_vec2_dot(Vec2 *va, Vec2 *vb)
 {
@@ -570,18 +559,6 @@ engineer_math_vec2_normalize(Vec2 *v)
    inverse  = DIVD(&basis, &sqrt);
    output.x = MULT(v->x, &inverse);
    output.y = MULT(v->y, &inverse);
-
-   return output;
-}
-
-Vec3Data
-engineer_math_vec3(Sclr xinput, Sclr yinput, Sclr zinput)
-{
-   Vec3Data output;
-
-   output.x = xinput;
-   output.y = yinput;
-   output.z = zinput;
 
    return output;
 }
@@ -621,19 +598,6 @@ engineer_math_vec3_normalize(Vec3 *v)
    output.x = MULT(v->x, &inverse);
    output.y = MULT(v->y, &inverse);
    output.z = MULT(v->z, &inverse);
-
-   return output;
-}
-
-QuatData
-engineer_math_quat(Sclr winput, Sclr xinput, Sclr yinput, Sclr zinput)
-{
-   QuatData output;
-
-   output.w = winput;
-   output.x = xinput;
-   output.y = yinput;
-   output.z = zinput;
 
    return output;
 }

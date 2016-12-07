@@ -4,7 +4,7 @@
 #include "../headers/Engineer.h"
 
 #ifndef NAME
-   #define NAME
+   #define NAME default
 #endif
 
 #ifndef DATA
@@ -12,52 +12,35 @@
 #endif
 
 #define COMPONENT NAME_Component
-#define DATACACHE COMPONENT_Cache
-#define OVERRIDE  _NAME_engineer_module
-/*
-#ifndef NAME
-   #define COMPONENT void
-   #define DATACACHE void
-   #define OVERRIDE  _engineer_module
-#else
-   #define COMPONENT NAME_Component
-   #define DATACACHE COMPONENT_Cache
-   #define OVERRIDE  _NAME_engineer_module
-#endif
-*/
-#if defined(NAME) && defined(DATA)
+#define COMPODATA COMPONENT_Cache
+#define OVERRIDE  NAME_engineer_module
 
-   typedef struct
-   {
-      Engineer_Scene_Component *component;
+typedef struct
+{
+   Engineer_Scene_Component *component;
 
-      #define VAR(TYPE, KEY) TYPE *KEY;
-      DATA
-      #undef VAR
-   }
-   COMPONENT;
+   #define VAR(TYPE, KEY) \
+      TYPE *KEY;
+   DATA
+   #undef VAR
+}
+COMPONENT;
 
-   typedef struct
-   {
-      Eina_Inarray *component;
+typedef struct
+{
+   Engineer_Scene_Component *component;
 
-      #define VAR(TYPE, KEY) Eina_Inarray *KEY;
-      DATA
-      #undef VAR
+   #define VAR(TYPE, KEY) \
+      TYPEData KEY;
+   DATA
+   #undef VAR
+}
+COMPODATA;
 
-      /* Experimental new command macros
-      #define VAR(TYPE, KEY) pd->cache->KEY = engineer_type_TYPE_soa_new();
-      DATA
-      #undef VAR
-      */
-   }
-   DATACACHE;
-#endif
-
-#define add    OVERRIDE_add
-#define awake  OVERRIDE_component_awake
-#define start  OVERRIDE_component_start
-#define update OVERRIDE_component_update
+#define add          _OVERRIDE_add
+#define awake(a, b)  _OVERRIDE_component_awake(Eo *obj EINA_UNUSED, a, b)
+#define start(a, b)  _OVERRIDE_component_start(Eo *obj EINA_UNUSED, a, b)
+#define update(a, b) _OVERRIDE_component_update(Eo *obj EINA_UNUSED, a, b)
 
 #include "engineer_module.eo.h"
 

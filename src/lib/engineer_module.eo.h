@@ -17,13 +17,17 @@ typedef Eo Engineer_Module;
 
 EWAPI const Efl_Class *engineer_module_class_get(void);
 
-EOAPI void *engineer_module_data_get(const Eo *obj, unsigned int cacheid);
-
 EOAPI Efl_Object *engineer_module_efl_object_constructor(Eo *obj);
 
 EOAPI void engineer_module_efl_object_destructor(Eo *obj);
 
 EOAPI void engineer_module_iterate(Eo *obj);
+
+EOAPI void engineer_module_data_add(Eo *obj, unsigned int componentid, void *data);
+
+EOAPI void engineer_module_data_set(Eo *obj, unsigned int cacheid, void *target);
+
+EOAPI void engineer_module_data_get(Eo *obj, unsigned int cacheid, void *target);
 
 EOAPI void engineer_module_data_swap(Eo *obj, unsigned int componenta, unsigned int componentb);
 
@@ -39,9 +43,8 @@ EOAPI Efl_Object *engineer_module_add(const Eo *obj);
 
 EOAPI void engineer_module_component_awake(const Eo *obj, unsigned long dt);
 
-EOAPI void engineer_module_component_start(const Eo *obj, unsigned long dt);
+EOAPI void engineer_module_component_start(const Eo *obj, void *com, unsigned long dt);
 
-EOAPI void engineer_module_component_update(const Eo *obj, unsigned long dt);
-
+EOAPI void engineer_module_component_update(const Eo *obj, void *com, unsigned long dt);
 
 #endif

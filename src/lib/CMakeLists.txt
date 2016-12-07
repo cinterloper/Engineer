@@ -1,6 +1,7 @@
 # Add library: Engineer.so
 add_library(Engineer SHARED
    engineer.c
+   engineer_type.c
    engineer_math.c
    engineer_game.c
    engineer_scene.c
