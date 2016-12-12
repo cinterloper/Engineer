@@ -1,5 +1,5 @@
-#ifndef _ENGINEER_GAME_EO_H_
-#define _ENGINEER_GAME_EO_H_
+#ifndef _ENGINEER_GAME_EO_H_H_
+#define _ENGINEER_GAME_EO_H_H_
 
 #ifndef _ENGINEER_GAME_EO_CLASS_TYPE
 #define _ENGINEER_GAME_EO_CLASS_TYPE
@@ -21,7 +21,7 @@ typedef struct _Engineer_Game_Module
 {
   unsigned int id;
   void *handle;
-  void *add;
+  void *new;
   void *load;
   void *save;
   void *del;
@@ -66,11 +66,10 @@ EOAPI void engineer_game_module_unload(Eo *obj, Efl_Object *target);
 
 EOAPI void engineer_game_module_unregister(Eo *obj, const char *name);
 
-EOAPI char *engineer_game_module_lookup(Eo *obj, unsigned int target);
+EOAPI const char *engineer_game_module_lookup(Eo *obj, unsigned int target);
 
 EOAPI unsigned int engineer_game_module_id_use(Eo *obj);
 
 EOAPI void engineer_game_module_id_free(Eo *obj, unsigned int target);
-
 
 #endif

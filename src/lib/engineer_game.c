@@ -10,8 +10,8 @@ typedef struct
 
    Eina_Hash    *nodes;        // A list of connected client and server hosts, also called "nodes" Not used yet.
    Eina_Hash    *scenes;       // A list of pointers to our active scene objects, referenced by thier proper names.
-   Eina_Hash    *modules;      // This is a collection of Engineer_Game_Module structs, referenced by thier proper names.
-   Eina_Hash    *modulelookup; // Finds the module name for a given module id.
+   Eina_Inarray *modules;      // This is a collection of Engineer_Game_Module structs, referenced by their ID's.
+   Eina_Hash    *modulelookup; // Finds the module, referenced by it's name string.
 
    DB_ENV       *database;     // The handle pointer for our game database file/environment.
    DB           *nodetable;
@@ -34,6 +34,11 @@ _engineer_game_efl_object_finalize(Eo *obj, Engineer_Game_Data *pd)
    // Set up our path elements.
    if (pd->path  == NULL) getcwd(pd->path, sizeof(PATH_MAX));
    if (pd->title == NULL) pd->title = "Untitled";
+
+ //pd->nodes        = eina_hash_string_superfast_new(eng_free_cb);
+   pd->scenes       = eina_hash_string_superfast_new(eng_free_cb);
+   pd->modules      = eina_inarray_new(sizeof(Engineer_Game_Module), 0);
+   pd->modulelookup = eina_hash_string_superfast_new(eng_free_cb);
 
    printf("Finalize Path: %s, Title: %s\n", pd->path, pd->title);
 
@@ -77,7 +82,7 @@ _engineer_game_path_get(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd)
 EOLIAN static void
 _engineer_game_path_set(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd, const char *path)
 {
-   pd->path = path;
+   pd->path = (char*)path;
 }
 
 EOLIAN static const char *
@@ -89,7 +94,7 @@ _engineer_game_title_get(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd)
 EOLIAN static void
 _engineer_game_title_set(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd, const char *title)
 {
-   pd->title = title;
+   pd->title = (char*)title;
 }
 
 EOLIAN static void
@@ -98,10 +103,6 @@ _engineer_game_file_load(Eo *obj, Engineer_Game_Data *pd)
    if (pd->nodes     != NULL || pd->scenes     != NULL || pd->modules     != NULL ||
        pd->nodetable != NULL || pd->scenetable != NULL || pd->moduletable != NULL)
       engineer_game_file_close(obj);
-
-   //pd->nodes   = eina_hash_string_superfast_new(eng_free_cb);
-   pd->scenes  = eina_hash_string_superfast_new(eng_free_cb);
-   pd->modules = eina_hash_string_superfast_new(eng_free_cb);
 
    Eina_List *tables = NULL, *list, *next;
    struct { DB *handle; char *name; } *table, buffer1, buffer2, buffer3;
@@ -148,7 +149,7 @@ _engineer_game_file_close(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd)
 {
    //if (pd->nodes != NULL) eina_hash_free_buckets(pd->nodes);
    if (pd->scenes != NULL) eina_hash_free_buckets(pd->scenes);
-   if (pd->modules != NULL) eina_hash_free_buckets(pd->modules);
+   //if (pd->modules != NULL) eina_hash_free_buckets(pd->modules);
 
    //if (pd->nodetable != NULL) pd->nodetable->close(pd->nodetable, 0);
    if (pd->scenetable != NULL) pd->scenetable->close(pd->scenetable, 0);
@@ -226,37 +227,59 @@ _engineer_game_scene_unload(Eo *obj, Engineer_Game_Data *pd EINA_UNUSED,
 }
 
 EOLIAN static void
-_engineer_game_module_register(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd EINA_UNUSED,
+_engineer_game_module_register(Eo *obj, Engineer_Game_Data *pd EINA_UNUSED,
         const char *name)
 {
-   char file[PATH_MAX];
-   snprintf(file, sizeof(*file), "data/modules/%s.module", name);
+   uint moduleid;
+
+   Eina_Stringshare *file = eina_stringshare_printf("data/modules/%s.module", name);
+
+   // Check to see if already registered.
+
+   moduleid = engineer_game_module_id_use(obj);
+
 }
 
 EOLIAN static void
 _engineer_game_module_load(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd,
        const char *name)
 {
-   printf("Engineer Game Module Load Checkpoint 1.\n");
-   Engineer_Game_Module module;
+   Engineer_Game_Module *module, blank;
+   module = &blank;
 
-   //char file[PATH_MAX];
-   //snprintf(file, sizeof(*file), "data/modules/%s.module", name);
    Eina_Stringshare *file = eina_stringshare_printf("data/modules/%s.module", name);
-   printf("Engineer Game Module Load Checkpoint 2.\n");
-   module.handle  = eina_module_new(file);
-   eina_module_load(module.handle);
-   printf("Engineer Game Module Load Checkpoint 3.\n");
-   module.add    = eina_module_symbol_get(module.handle, "engineer_module_add");
-   module.load   = eina_module_symbol_get(module.handle, "engineer_module_component_load");
-   module.save   = eina_module_symbol_get(module.handle, "engineer_module_component_save");
 
-   module.awake  = eina_module_symbol_get(module.handle, "engineer_module_component_awake");
-   module.start  = eina_module_symbol_get(module.handle, "engineer_module_component_start");
-   module.update = eina_module_symbol_get(module.handle, "engineer_module_component_update");
+   printf("Engineer Game Module Load Checkpoint 1.\n");
+
+   module->handle  = eina_module_new(file);
+   if (module->handle == NULL) {eina_stringshare_del(file); return;}
+   eina_module_load(module->handle);
+
+   printf("Engineer Game Module Load Checkpoint 2.\n");
+
+   #define RETURN {eina_module_free(module->handle); eina_stringshare_del(file); return;}
+
+   module->new  = eina_module_symbol_get(module->handle, "engineer_module_new");
+   if (module->new  == NULL) RETURN;
+   module->load = eina_module_symbol_get(module->handle, "engineer_module_component_load");
+   if (module->load == NULL) RETURN;
+   module->save = eina_module_symbol_get(module->handle, "engineer_module_component_save");
+   if (module->save == NULL) RETURN;
+
+   module->awake  = eina_module_symbol_get(module->handle, "engineer_module_component_awake");
+   if (module->awake  == NULL) RETURN;
+   module->start  = eina_module_symbol_get(module->handle, "engineer_module_component_start");
+   if (module->start  == NULL) RETURN;
+   module->update = eina_module_symbol_get(module->handle, "engineer_module_component_update");
+   if (module->update == NULL) RETURN;
+
+   #undef RETURN
+
+   printf("Engineer Game Module Load Checkpoint 3.\n");
+
+   eina_inarray_push(pd->modules, module);
+
    printf("Engineer Game Module Load Checkpoint 4.\n");
-   eina_hash_add(pd->modules, name, &module);
-   printf("Engineer Game Module Load Checkpoint 5.\n");
 }
 
 EOLIAN static void
@@ -286,7 +309,11 @@ _engineer_game_module_id_use(Eo *obj EINA_UNUSED, Engineer_Game_Data *pd)
 {
    if (eina_inarray_count(pd->modulequeue) == 0)
    {
-      eina_inarray_insert_at(pd->modulequeue, 0, &pd->modulecount);
+      Engineer_Game_Module blank;
+      memset(&blank, 0, sizeof(Engineer_Game_Module));
+      eina_inarray_push(pd->modules, &blank);
+
+      eina_inarray_push(pd->modulequeue, &pd->modulecount);
       pd->modulecount += 1;
    }
    uint *newid = eina_inarray_pop(pd->modulequeue);

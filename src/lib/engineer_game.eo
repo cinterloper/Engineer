@@ -9,7 +9,7 @@ struct Engineer_Game_Module
    id:     uint;
    handle: void_ptr;
 
-   add:    void_ptr;
+   new:    void_ptr;
    load:   void_ptr;
    save:   void_ptr;
    del:    void_ptr;
@@ -146,7 +146,7 @@ class Engineer.Game(Efl.Object)
          {
             @in target: uint;
          }
-         return: char*;
+         return: string;
       }
 
       module_id_use

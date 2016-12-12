@@ -983,7 +983,7 @@ _engineer_scene_sector_create(Eo *obj, Engineer_Scene_Data *pd,
 
    // Create and fill our sector->module array with a new module cache for each loaded module.
    sector->cache = NULL;
-   Eo *(*module_add)(Eo *obj);
+   Eo *(*module_new)(Eo *obj);
    Engineer_Game_Module *module;
    Efl_Object *cache;
    uint count = eina_inarray_count(pd->modulecache);
@@ -993,8 +993,8 @@ _engineer_scene_sector_create(Eo *obj, Engineer_Scene_Data *pd,
       for (uint current = 1; current <= count; current++) //for (uint current = 0; current < count; current++)
       {
          module = eina_inarray_nth(pd->modulecache, current);
-         module_add = module->add;
-         cache = module_add(obj);
+         module_new = module->new;
+         cache = module_new(obj);
          buffer = eina_inarray_push(sector->cache, cache);
          eina_hash_add(sector->lookup, &module->id, &buffer);
       }
@@ -1052,15 +1052,15 @@ _engineer_scene_sector_load(Eo *obj, Engineer_Scene_Data *pd,
 
    // Create and fill our sector.module array with a new module cache for each loaded module.
    payload.cache = NULL;
-   Eo *(*module_add)(Eo  *obj);
+   Eo *(*module_new)(Eo  *obj);
    Engineer_Game_Module  *module;
    Efl_Object            *cache;
    uint index, count = eina_inarray_count(pd->modulecache);
    for (uint current = 0; current < count; current++)
    {
       module = eina_inarray_nth(pd->modulecache, current);
-      module_add = module->add;
-      cache = module_add(obj);
+      module_new = module->new;
+      cache = module_new(obj);
       index = eina_inarray_push(payload.cache, cache);
       eina_hash_add(payload.lookup, &module->id, &index);
    }
