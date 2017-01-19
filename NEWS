@@ -1,0 +1,10 @@
+
+<brokenshakles> god why doesnt the Eo have a parent pointer passed with it by default?
+<raster> ?
+<raster> efl_parent_get() happily gets the parent obj?
+<brokenshakles> oh?
+<brokenshakles> is there an efl_pd_get() as well to get the pd from that?
+<raster> efl_scope_data_get() ?
+<raster> from the parent obj?
+<raster> give it the class u want?
+<brokenshakles> Ah.

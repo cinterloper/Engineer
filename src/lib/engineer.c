@@ -1,7 +1,3 @@
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-
 #include "../headers/Engineer.h"
 
 static int _engineer_init = 0;
@@ -58,9 +54,8 @@ engineer_shutdown(void)
 EAPI void
 engineer_run(void)
 {
-   Eo *scene = eng_scene_new("My Scene");
-   uint entityid = eng_entity_create(scene, 0, "Sector1");
-   eng_sector_create(scene, entityid);
+   //Eo *scene = eng_scene_new("My Scene");
+   //uint entityid = eng_entity_create(scene, 0, "Sector1");
 }
 
 EAPI Efl_Object *
@@ -69,24 +64,6 @@ eng_scene_new(char *name) // add a pointer to the game.
    return efl_add(ENGINEER_SCENE_CLASS, NULL,
              //engineer_scene_path_set(efl_added, path)),
              engineer_scene_name_set(efl_added, name)); // need to set up project pathing.
-}
-/*
-EAPI void
-eng_module_load(Eo *obj, char *path)
-{
-   //engineer_scene_module_load(obj, path);
-}
-*/
-EAPI uint
-eng_entity_create(Eo *obj, uint parent, const char *name)
-{
-   return engineer_scene_entity_create(obj, parent, name);
-}
-
-EAPI uint
-eng_sector_create(Eo *obj, uint parent)
-{
-   return engineer_scene_sector_create(obj, parent);
 }
 
 EAPI void

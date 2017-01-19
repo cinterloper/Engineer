@@ -1,10 +1,10 @@
 struct Engineer_Scene_Entity
 {
+   name:           stringshare;
+
    id:             uint;
-   sector:         uint;
    status:         uint;
    referencecount: uint;
-   name:           stringshare;
 
    parent:         uint;
    siblingnext:    uint;
@@ -15,32 +15,17 @@ struct Engineer_Scene_Entity
 
 struct Engineer_Scene_Component
 {
-   id:             uint;
+   name:           stringshare;
    type:           uint;
+
+   id:             uint;
    status:         uint;
    referencecount: uint;
-   name:           stringshare;
+
 
    parent:         uint;
    siblingnext:    uint;
    siblingprev:    uint;
-}
-
-struct Engineer_Scene_Sector
-{
-   scene:     void_ptr;
-   component: Engineer_Scene_Component*;
-   cache:     array<Efl_Object>;
-   lookup:    hash<uint, uint>;
-   clock:     Efl.Loop.Timer;
-   rate:      uint;
-   size:      uint;
-}
-
-struct Engineer_Scene_Sector_Entry
-{
-   rate:      uint;
-   size:      uint;
 }
 
 class Engineer.Scene(Efl.Object)
@@ -96,15 +81,40 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
-      file_load
+      iterate
+      {
+         return: bool;
+      }
+
+      iterate_entity
+      {
+         params
+         {
+            @in key: void_ptr;
+            @in data: void_ptr;
+         }
+         return: bool;
+      }
+
+      iterate_component
+      {
+         params
+         {
+            @in key: void_ptr;
+            @in data: void_ptr;
+         }
+         return: bool;
+      }
+
+      timeline_adjust
       {
       }
 
-      file_save
+      timeline_push
       {
       }
 
-      file_sync
+      timeline_pop
       {
       }
 
@@ -116,7 +126,6 @@ class Engineer.Scene(Efl.Object)
             @in name: string;
          }
          return: uint;
-
       }
 
       entity_destroy
@@ -155,49 +164,53 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            target: uint;
+            @in target: uint;
          }
-         return: Engineer_Scene_Entity*;
+         return: ptr(Engineer_Scene_Entity);
       }
 
       entity_data_swap
       {
          params
          {
-            targeta: uint;
-            targetb: uint;
+            @in targeta: uint;
+            @in targetb: uint;
          }
       }
 
-      @property entity_status
+      entity_status_get
       {
-         get { return: uint; }
-         set
+         params
          {
-            values
-            {
-               mode: char;
-            }
+            @in target: uint;
          }
-         keys
+         return: uint;
+      }
+
+      entity_status_set
+      {
+         params
          {
-            target: uint;
+            @in target: uint;
+            @in mode:   char;
          }
       }
 
-      @property entity_parent
+      entity_parent_get
       {
-         get { return: uint; }
-         set
+         params
          {
-            values
-            {
-               parent: uint;
-            }
+            @in target: uint;
          }
-         keys
+         return: uint;
+      }
+
+      entity_parent_set
+      {
+         params
          {
-            target: uint;
+            @in target: uint;
+            @in parent: uint;
          }
       }
 
@@ -210,23 +223,22 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
-      @property entity_children
+      entity_children_get
       {
-         get { return: Eina.Inarray*; }
-         keys
+         params
          {
-            target: uint;
+            @in target: uint;
          }
-
+         return: ptr(Eina.Inarray);
       }
 
-      @property entity_components
+      entity_components_get
       {
-         get { return: Eina.Inarray*; }
-         keys
+         params
          {
-            target: uint;
+            @in target: uint;
          }
+         return: ptr(Eina.Inarray);
       }
 
       entity_id_use
@@ -250,7 +262,7 @@ class Engineer.Scene(Efl.Object)
          params
          {
             @in parent: uint;
-            @in name: string;
+            @in type: string;
          }
          return: uint;
       }
@@ -291,49 +303,53 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            target: uint;
+            @in target: uint;
          }
-         return: Engineer_Scene_Component*;
+         return: ptr(Engineer_Scene_Component);
       }
 
       component_data_swap
       {
          params
          {
-            targeta: uint;
-            targetb: uint;
+            @in targeta: uint;
+            @in targetb: uint;
          }
       }
 
-      @property component_status
+      component_status_get
       {
-         get { return: uint; }
-         set
+         params
          {
-            values
-            {
-               mode: char;
-            }
+            @in target: uint;
          }
-         keys
+         return: uint;
+      }
+
+      component_status_set
+      {
+         params
          {
-            target: uint;
+            @in target: uint;
+            @in mode:   char;
          }
       }
 
-      @property component_parent
+      component_parent_get
       {
-         get { return: uint; }
-         set
+         params
          {
-            values
-            {
-               parent: uint;
-            }
+            @in target: uint;
          }
-         keys
+         return: uint;
+      }
+
+      component_parent_set
+      {
+         params
          {
-            target: uint;
+            @in target: uint;
+            @in parent: uint;
          }
       }
 
@@ -362,65 +378,6 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
-      sector_create
-      {
-         params
-         {
-            @in parent: uint;
-         }
-         return: uint;
-
-      }
-
-      sector_destroy
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      sector_dispose
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      sector_load
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      sector_save
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      sector_lookup
-      {
-         params
-         {
-            target: uint;
-         }
-         return: Engineer_Scene_Sector*;
-      }
-
-      sector_data_swap
-      {
-         params
-         {
-            targeta: uint;
-            targetb: uint;
-         }
-      }
    }
 
 }

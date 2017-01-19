@@ -1,0 +1,178 @@
+struct Engineer_Node_Peer
+{
+   ipaddress: void_ptr;
+   mode: string;
+}
+
+struct Engineer_Node_Module
+{
+   id:     uint;
+   handle: void_ptr;
+
+   add:    void_ptr;
+   create: void_ptr;
+   load:   void_ptr;
+   save:   void_ptr;
+   del:    void_ptr;
+   free:   void_ptr;
+   lookup: void_ptr;
+
+   awake:  void_ptr;
+   start:  void_ptr;
+   update: void_ptr;
+}
+
+class Engineer.Node(Efl.Object)
+{
+   implements
+   {
+      Efl.Object.constructor;
+      Efl.Object.finalize;
+      Efl.Object.destructor;
+   }
+
+   constructors
+   {
+   }
+
+   events
+   {
+   }
+
+   methods
+   {
+      @property path
+      {
+         get { return: string; }
+         set
+         {
+            values
+            {
+               path: string;
+            }
+         }
+      }
+
+      @property title
+      {
+         get { return: string; }
+         set
+         {
+            values
+            {
+               title: string;
+            }
+         }
+      }
+
+      file_load
+      {
+      }
+
+      file_save
+      {
+      }
+
+      file_close
+      {
+      }
+
+      scene_create
+      {
+         params
+         {
+            @in name: string;
+         }
+         return: Efl.Object;
+      }
+
+      scene_load
+      {
+         params
+         {
+            @in name: string;
+         }
+         return: Efl.Object;
+      }
+
+      scene_save
+      {
+         params
+         {
+            @in name: string;
+         }
+      }
+
+      scene_unload
+      {
+         params
+         {
+            @in name: string;
+         }
+      }
+
+      module_register
+      {
+         params
+         {
+            @in name: string;
+         }
+       return: uint;
+      }
+
+      module_load
+      {
+         params
+         {
+            @in file: string;
+         }
+      }
+
+      module_unload
+      {
+         params
+         {
+            @in target: Efl.Object;
+         }
+      }
+
+      module_unregister
+      {
+         params
+         {
+            @in name: string;
+         }
+      }
+
+      module_lookup
+      {
+         params
+         {
+            @in target: uint;
+         }
+         return: ptr(Engineer_Node_Module);
+      }
+
+      module_lookup_by_type
+      {
+         params
+         {
+            @in target: string;
+         }
+         return: ptr(Engineer_Node_Module);
+      }
+
+      module_id_use
+      {
+         return: uint;
+      }
+
+      module_id_free
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+   }
+}

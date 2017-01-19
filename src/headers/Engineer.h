@@ -33,17 +33,11 @@
 extern "C" {
 #endif
 
-#define EFL_BETA_API_SUPPORT
+#include "../lib/global/index.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <db.h>
-#include <Ecore_Getopt.h>
-#include <Elementary.h>
-
-#include "../lib/engineer_math.h"
-#include "../lib/engineer_game.h"
+#include "../lib/engineer_node.h"
 #include "../lib/engineer_scene.h"
+#include "../lib/engineer_viewport.h"
 
 /// @file
 /// @brief These routines are used for Engineer library interaction.
@@ -111,9 +105,6 @@ eng_module_load(Eo *obj, char *path);
 
 EAPI uint
 eng_entity_create(Eo *obj, uint parent, const char *name);
-
-EAPI uint
-eng_sector_create(Eo *obj, uint parent);
 
 void
 eng_free_cb(void *data);

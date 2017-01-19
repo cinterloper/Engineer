@@ -1,0 +1,197 @@
+struct @extern HANDLE {}
+struct @extern Engineer_Module_Frame {}
+
+abstract Engineer.Module(Efl.Object)
+{
+   implements
+   {
+      Efl.Object.constructor;
+      Efl.Object.finalize;
+      Efl.Object.destructor;
+   }
+
+   events
+   {
+   }
+
+   methods
+   {
+      efl_object_constructor
+      {
+         return: Efl.Object;
+      }
+
+      efl_object_destructor
+      {
+      }
+
+      factory @class @pure_virtual
+      {
+         return: Efl.Object;
+      }
+
+      iterate
+      {
+      }
+
+      timeline_adjust
+      {
+      }
+
+      timeline_push
+      {
+      }
+
+      timeline_pop
+      {
+      }
+
+      timeline_copy
+      {
+         params
+         {
+            @in cacheid:     uint;
+            @in origin:      ptr(Engineer_Module_Frame);
+            @in destination: ptr(Engineer_Module_Frame);
+         }
+      }
+
+      buffer_alloc
+      {
+      }
+
+      buffer_free
+      {
+      }
+
+      cache_add
+      {
+         params
+         {
+            @in componentid: uint;
+            @in data:        ptr(HANDLE);
+         }
+      }
+
+      cache_set
+      {
+         params
+         {
+            @in frame:     ptr(Engineer_Module_Frame);
+            @in cacheid:   uint;
+            @in component: ptr(HANDLE);
+         }
+      }
+
+      cache_lookup
+      {
+         params
+         {
+            @in frame:     ptr(Engineer_Module_Frame);
+            @in cacheid:   uint;
+            @in component: ptr(HANDLE);
+         }
+      }
+
+      cache_swap
+      {
+         params
+         {
+            @in componenta: uint;
+            @in componentb: uint;
+         }
+      }
+
+      handle_alloc
+      {
+         return: ptr(HANDLE);
+      }
+
+      handle_free
+      {
+         params
+         {
+            @in target: ptr(HANDLE);
+         }
+      }
+
+      component_create
+      {
+         params
+         {
+            @in parent: uint;
+         }
+         return: uint;
+      }
+
+      component_load
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      component_save
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      component_destroy
+      {
+         params
+         {
+            @in targetid: uint;
+         }
+      }
+
+      component_dispose
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      component_lookup
+      {
+         params
+         {
+            @in timeoffset:  uint;
+            @in componentid: uint;
+            @in target: ptr(HANDLE);
+         }
+      }
+
+      component_awake @class @pure_virtual
+      {
+         params
+         {
+            @in dt: ulong;
+         }
+      }
+
+      component_start @class @pure_virtual
+      {
+         params
+         {
+            @in next: ptr(HANDLE);
+            @in dt:   ulong;
+         }
+      }
+
+      component_update @class @pure_virtual
+      {
+         params
+         {
+            @in last: ptr(HANDLE);
+            @in next: ptr(HANDLE);
+            @in dt:   ulong;
+         }
+      }
+
+   }
+}

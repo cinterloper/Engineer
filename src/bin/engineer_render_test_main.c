@@ -62,23 +62,22 @@ elm_main(int argc, char **argv)
    evas_object_resize(window, 800, 800);
    evas_object_show(window);
 
-   Eo *game = efl_add(ENGINEER_GAME_CLASS, NULL,
-                 engineer_game_path_set(efl_added, "/home/brokenshakles/Projects/SoftwareEngines/Engineer/build"),
-                 engineer_game_title_set(efl_added, "Engineer_Render_Test"));
+   Eo *node = efl_add(ENGINEER_NODE_CLASS, NULL,
+                 engineer_node_path_set(efl_added, "/home/brokenshakles/Projects/SoftwareEngines/Engineer/build"),
+                 engineer_node_title_set(efl_added, "Engineer_Render_Test"));
 
    // Load our component modules here.
 
-   Eo *scene = engineer_game_scene_create(game, "engrendertest");
+   Eo *scene = engineer_node_scene_create(node, "engrendertest");
 
-   uint sector, sectorc, camera, sphere;
-   sector  = engineer_scene_entity_create(scene, (uint)0, "Sector");
-   sectorc = engineer_scene_sector_create(scene, sector);
+   uint root, camera, sphere;
+   root = engineer_scene_entity_create(scene, (uint)0, "Root");
 
-   //camera = engineer_scene_entity_create(scene, sector, "Camera");
+   //camera = engineer_scene_entity_create(scene, root, "Camera");
 
-   //sphere = engineer_scene_entity_create(scene, sector, "Sphere");
+   //sphere = engineer_scene_entity_create(scene, root, "Sphere");
 
-   //engineer_game_file_save(game);
+   //engineer_node_file_save(node);
 
    elm_run();
    //engineer_run();

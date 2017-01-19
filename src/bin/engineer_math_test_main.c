@@ -97,11 +97,11 @@ main()
 void
 math_mult_test(double a, double b)
 {
-   SclrData v, x, c;
+   SclrBuffer v, x, c;
    double outputa, outputb, outputc;
 
-   x = (SclrData)(a * BASIS);
-   c = (SclrData)(b * BASIS);
+   x = (SclrBuffer)(a * BASIS);
+   c = (SclrBuffer)(b * BASIS);
    v = MULT(&x, &c);
    outputa = (double)x / BASIS;
    outputb = (double)c / BASIS;
@@ -113,11 +113,11 @@ math_mult_test(double a, double b)
 void
 math_divd_test(double a, double b)
 {
-   SclrData v, x, c;
+   SclrBuffer v, x, c;
    double outputa, outputb, outputc;
 
-   x = (SclrData)(a * BASIS);
-   c = (SclrData)(b * BASIS);
+   x = (SclrBuffer)(a * BASIS);
+   c = (SclrBuffer)(b * BASIS);
    v = DIVD(&x, &c);
    outputa = (double)x / BASIS;
    outputb = (double)c / BASIS;
@@ -129,11 +129,11 @@ math_divd_test(double a, double b)
 void
 math_sincos_test(double a)
 {
-   SclrData v, x, c;
-   Vec2Data ans;
+   SclrBuffer v, x, c;
+   Vec2Buffer ans;
    double outputa, outputb;
 
-   x = (SclrData)(a * ANGLBASIS);
+   x = (SclrBuffer)(a * ANGLBASIS);
    ans = SINCOS(&x);
    c = ans.x;
    v = ans.y;
@@ -149,10 +149,10 @@ math_sincos_test(double a)
 void
 math_tan_test(double a)
 {
-   SclrData v, x;
+   SclrBuffer v, x;
    double outputa, outputb;
 
-   x = (SclrData)(a * ANGLBASIS);
+   x = (SclrBuffer)(a * ANGLBASIS);
    v = TAN(&x);
    outputa = (double)x / ANGLBASIS;
    outputb = (double)v / BASIS;
@@ -163,10 +163,10 @@ math_tan_test(double a)
 void
 math_atan_test(double a)
 {
-   SclrData v, x;
+   SclrBuffer v, x;
    double outputa, outputb;
 
-   x = (SclrData)(a * ANGLBASIS);
+   x = (SclrBuffer)(a * ANGLBASIS);
    v = ATAN(&x);
    outputa = (double)x / ANGLBASIS;
    outputb = (double)v / BASIS;
@@ -177,10 +177,10 @@ math_atan_test(double a)
 void
 math_asin_test(double a)
 {
-   SclrData v, x;
+   SclrBuffer v, x;
    double outputa, outputb;
 
-   x = (SclrData)(a * ANGLBASIS);
+   x = (SclrBuffer)(a * ANGLBASIS);
    v = ASIN(&x);
    outputa = (double)x / ANGLBASIS;
    outputb = (double)v / BASIS;
@@ -191,11 +191,11 @@ math_asin_test(double a)
 void
 math_sincosh_test(double a)
 {
-   SclrData v, x, c;
-   Vec2Data ans;
+   SclrBuffer v, x, c;
+   Vec2Buffer ans;
    double outputa, outputb;
 
-   x = (SclrData)(a * ANGLBASIS);
+   x = (SclrBuffer)(a * ANGLBASIS);
    ans = SINCOSH(&x);
    c = ans.x;
    v = ans.y;
@@ -209,10 +209,10 @@ math_sincosh_test(double a)
 void
 math_tanh_test(double a)
 {
-   SclrData v, x;
+   SclrBuffer v, x;
    double outputa, outputb;
 
-   x = (SclrData)(a * ANGLBASIS);
+   x = (SclrBuffer)(a * ANGLBASIS);
    v = TANH(&x);
    outputa = (double)x / ANGLBASIS;
    outputb = (double)v / BASIS;
@@ -222,10 +222,10 @@ math_tanh_test(double a)
 void
 math_atanh_test(double a)
 {
-   SclrData v, x;
+   SclrBuffer v, x;
    double outputa, outputb;
 
-   x = (SclrData)(a * ANGLBASIS);
+   x = (SclrBuffer)(a * ANGLBASIS);
    v = ATANH(&x);
    outputa = (double)x / ANGLBASIS;
    outputb = (double)v / BASIS;
@@ -235,10 +235,10 @@ math_atanh_test(double a)
 void
 math_abs_test(double a)
 {
-   SclrData v, x;
+   SclrBuffer v, x;
    double outputa, outputb;
 
-   x = (SclrData)(a * BASIS);
+   x = (SclrBuffer)(a * BASIS);
    v = ABS(&x);
    outputa = (double)x / BASIS;
    outputb = (double)v / BASIS;
@@ -249,10 +249,10 @@ math_abs_test(double a)
 void
 math_exp_test(double a)
 {
-   SclrData v, x;
+   SclrBuffer v, x;
    double outputa, outputb;
 
-   x = (SclrData)(a * BASIS);
+   x = (SclrBuffer)(a * BASIS);
    v = EXP(&x);
    outputa = (double)x / BASIS;
    outputb = (double)v / BASIS;
@@ -262,10 +262,10 @@ math_exp_test(double a)
 void
 math_log_test(double a)
 {
-   SclrData v, x;
+   SclrBuffer v, x;
    double outputa, outputb;
 
-   x = (SclrData)(a * BASIS);
+   x = (SclrBuffer)(a * BASIS);
    v = LOG(&x);
    outputa = (double)x / BASIS;
    outputb = (double)v / BASIS;
@@ -275,10 +275,10 @@ math_log_test(double a)
 void
 math_sqrt_test(double a)
 {
-   SclrData v, x;
+   SclrBuffer v, x;
    double outputa, outputb;
 
-   x = (SclrData)(a * BASIS);
+   x = (SclrBuffer)(a * BASIS);
    v = SQRT(&x);
    outputa = (double)x / BASIS;
    outputb = (double)v / BASIS;
