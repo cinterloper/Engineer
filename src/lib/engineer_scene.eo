@@ -1,10 +1,7 @@
 struct Engineer_Scene_Entity
 {
-   name:           stringshare;
-
    id:             uint;
-   status:         uint;
-   referencecount: uint;
+   name:           stringshare;
 
    parent:         uint;
    siblingnext:    uint;
@@ -15,13 +12,10 @@ struct Engineer_Scene_Entity
 
 struct Engineer_Scene_Component
 {
-   name:           stringshare;
-   type:           uint;
-
    id:             uint;
-   status:         uint;
-   referencecount: uint;
+   name:           stringshare;
 
+   type:           uint;
 
    parent:         uint;
    siblingnext:    uint;
@@ -57,18 +51,6 @@ class Engineer.Scene(Efl.Object)
       {
       }
 
-      @property game
-      {
-         get { return: string; }
-         set
-         {
-            values
-            {
-               path: string;
-            }
-         }
-      }
-
       @property name
       {
          get { return: string; }
@@ -83,6 +65,15 @@ class Engineer.Scene(Efl.Object)
 
       iterate
       {
+         return: bool;
+      }
+
+      iterate_module
+      {
+         params
+         {
+            @in key: ptr(uint);
+         }
          return: bool;
       }
 
@@ -178,24 +169,6 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
-      entity_status_get
-      {
-         params
-         {
-            @in target: uint;
-         }
-         return: uint;
-      }
-
-      entity_status_set
-      {
-         params
-         {
-            @in target: uint;
-            @in mode:   char;
-         }
-      }
-
       entity_parent_get
       {
          params
@@ -241,28 +214,12 @@ class Engineer.Scene(Efl.Object)
          return: ptr(Eina.Inarray);
       }
 
-      entity_id_use
-      {
-         params
-         {
-         }
-         return: uint;
-      }
-
-      entity_id_free
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
       component_create
       {
          params
          {
+            @in type: stringshare;
             @in parent: uint;
-            @in type: string;
          }
          return: uint;
       }
@@ -317,24 +274,6 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
-      component_status_get
-      {
-         params
-         {
-            @in target: uint;
-         }
-         return: uint;
-      }
-
-      component_status_set
-      {
-         params
-         {
-            @in target: uint;
-            @in mode:   char;
-         }
-      }
-
       component_parent_get
       {
          params
@@ -359,22 +298,6 @@ class Engineer.Scene(Efl.Object)
          {
             @in siblinga: uint;
             @in siblingb: uint;
-         }
-      }
-
-      component_id_use
-      {
-         params
-         {
-         }
-         return: uint;
-      }
-
-      component_id_free
-      {
-         params
-         {
-            @in target: uint;
          }
       }
 

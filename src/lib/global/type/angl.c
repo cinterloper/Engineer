@@ -23,7 +23,7 @@ engineer_type_Angl_soa_push(Angl *target, Angl *input)
 }
 
 void
-engineer_type_Angl_soa_nth(Angl *target, uint index, Angl *output)
+engineer_type_Angl_soa_nth(Angl *target, uint index, Angl *output EINA_UNUSED)
 {
    output = eina_inarray_nth((Inarray*)target, index);
 }

@@ -3,6 +3,15 @@
 // eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl` -I . -g h engineer_scene.eo
 // eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl` -I . -g c engineer_scene.eo
 
+EOLIAN Eo *
+engineer_scene_add(Eo *parent, const char *name)
+{
+   Eo *scene = efl_add(ENGINEER_SCENE_CLASS, parent,
+      engineer_scene_name_set(efl_added, name));
+
+   return scene;
+}
+
 /*** Constructors ***/
 
 EOLIAN static Efl_Object *
@@ -32,12 +41,9 @@ _engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd EINA_UNU
 Efl_Object *
 _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 {
-   // Set up the free ID queues.
-   pd->entitycount    = 0;
-   pd->entityqueue    = eina_inarray_new(sizeof(unsigned int), 0);
-
-   pd->componentcount = 0;
-   pd->componentqueue = eina_inarray_new(sizeof(unsigned int), 0);
+   Eo *node = efl_super(obj, ENGINEER_SCENE_CLASS);
+   obj = efl_finalize(node);
+   pd->node = node;
 
    // The Scene size is in units of (2^x)/(2^16) meters where x is the setting. Max: bitwidth--.
    pd->size = 63;
@@ -53,6 +59,10 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    engineer_scene_timeline_push(obj);
    engineer_scene_timeline_push(obj);
 
+   uint count = eina_inarray_count(pd->timeline);
+
+   printf("Scene Finalize Checkpoint 1. Number of Frames: %d\n", count);
+
    // We need to set up our timeline pointers for the first time here.
    // Note that past and present point to the same dataset for the initial frame to prevent
    //    interpolation bugs and saves us from having to duplicate the initial dataset.
@@ -60,32 +70,38 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    pd->present = eina_inarray_nth(pd->timeline, 1);
    pd->future  = eina_inarray_nth(pd->timeline, 0);
 
-   // Create the in-memory data cache and it's lookup tables.
-   pd->scenecache  = eina_inarray_new(sizeof(Engineer_Node_Module*), 0);
-   pd->scenelookup = eina_hash_int32_new(eng_free_cb);
+   printf("Scene Finalize Checkpoint 2.\n");
+
+   // Create the in-memory data cache.
+   pd->datacache = eina_hash_pointer_new(eng_free_cb);
+
+   printf("Scene Finalize Checkpoint 3.\n");
 
    // Create and fill our pd->scenecache array with a new Eo instance for each registered module.
-   uint count = eina_inarray_count(pd->scenecache); // Needs to be the game module cache.
+   count = eina_hash_population(pd->datacache); // Needs to be the node module cache.
    if (count != 0)
    {
       Engineer_Node_Module *module;
-      Eo *(*module_add)(Eo *obj);
-      Efl_Object *cache;
-      uint current, buffer;
+      Eo *(*module_factory)(Eo *obj);
+      uint current;
 
       for (current = 0; current < count; current++)
       {
-         module = eina_inarray_nth(pd->scenecache, current);
-         module_add = module->add;
-         cache = module_add(obj);
-         buffer = eina_inarray_push(pd->scenecache, cache);
-         eina_hash_add(pd->scenelookup, &module->id, &buffer);
+         module = eina_hash_find(pd->datacache, &current);
+         module_factory = module->factory;
+         eina_hash_add(pd->datacache, &module->id, module_factory(obj));
       }
    }
 
-   // Create and pause our Sector's iteration clock on Frame 0.
-   pd->iterator = ecore_timer_add(1/pd->clockrate, _engineer_scene_iterate_cb, pd);
-   ecore_timer_freeze(pd->iterator);
+   printf("Scene Finalize Checkpoint 4.\n");
+
+   // Enqueue the creation of our scene iteration clock to run in the threadpool.
+   ecore_thread_run(
+      _engineer_scene_iterate_init_task,
+      _engineer_scene_iterate_init_done,
+      _engineer_scene_iterate_init_cancel,
+      obj);
+
 /*
    Eina_List *tables = NULL, *list, *next;
    struct { DB *handle; char *name; } *table, buffer1, buffer2, buffer3, buffer4, buffer5;
@@ -126,6 +142,8 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 
    //engineer_scene_file_load(obj);
 */
+   printf("Scene Finalize Checkpoint 5.\n");
+
    // If our Scene is new, create a root Entity and set it up.
    if (pd->entitycount == 0)
    {
@@ -136,14 +154,16 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
       memset(root, 0, sizeof(Engineer_Scene_Entity));
 
       root->name = eina_stringshare_add("Scene Root");
-      root->id   = engineer_scene_entity_id_use(obj);
+      printf("before\n");
+      root->id   = engineer_node_entity_id_use(obj);
+      printf("after\n");
 
       buffer = eina_inarray_push(pd->present->entitycache, root);
       root   = eina_inarray_nth(pd->present->entitycache, buffer);
       eina_hash_add(pd->present->entitylookup, &root->id, root);
 
-      root->status         = 3;
-      root->referencecount = 1;
+      //root->status         = 3; // Fixme: needs to refer to node data.
+      //root->referencecount = 1; // This one too.
 
       root->parent         = 0;
       root->siblingnext    = 0;
@@ -153,6 +173,8 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 
       printf("Root Entity Create Checkpoint. EID: %d\n", root->id);
    }
+
+   printf("Scene Finalize Checkpoint 6.\n");
 
    return obj;
 }
@@ -168,18 +190,6 @@ _engineer_scene_efl_object_destructor(Eo *obj EINA_UNUSED, Engineer_Scene_Data *
 /*** Scene Efl Object property getter/setters. ***/
 
 EOLIAN static const char *
-_engineer_scene_game_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd)
-{
-  return pd->game;
-}
-
-EOLIAN static void
-_engineer_scene_game_set(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd, const char *path)
-{
-   pd->game = path;
-}
-
-EOLIAN static const char *
 _engineer_scene_name_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd)
 {
   return pd->name;
@@ -188,29 +198,61 @@ _engineer_scene_name_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd)
 EOLIAN static void
 _engineer_scene_name_set(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd, const char *name)
 {
-   pd->name = name;
+   pd->name = eina_stringshare_add(name);
 }
 
-/*** Iteration Methods, these are what make everything happen. ***/
+/*** Iteration Methods. These are what make everything happen. ***/
+
+static void
+_engineer_scene_iterate_init_task(void *data, Ecore_Thread *thread EINA_UNUSED)
+{
+   printf("Engineer Scene Iterate Init Checkpoint.\n");
+
+   Eo *obj = data;
+   Engineer_Scene_Data *pd = efl_data_scope_get(obj, ENGINEER_SCENE_CLASS);
+
+   // Create and pause our Sector's iteration clock on Frame 0.
+   pd->iterator = ecore_timer_add(1/pd->clockrate, _engineer_scene_iterate_cb, obj);
+   ecore_timer_freeze(pd->iterator);
+}
+
+static void
+_engineer_scene_iterate_init_done(void *data EINA_UNUSED, Ecore_Thread *thread EINA_UNUSED)
+{
+   printf("Engineer Scene Iterate Init Done Checkpoint.\n");
+}
+
+static void
+_engineer_scene_iterate_init_cancel(void *data EINA_UNUSED, Ecore_Thread *thread EINA_UNUSED)
+{
+   printf("Engineer Scene Iterate Init Cancel Checkpoint.\n");
+}
+
 EOLIAN static Eina_Bool
 _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
 {
-   uint *target, count, index;
+   uint  count;
    float timestamp;
 
    // Store the timestamp for when this Sector's clock tick begins.
    timestamp = ecore_time_get();
+
+   printf("Scene Iterate Checkpoint 1.\n");
 
    // Check to see if our timeline Frame count is currently equal to our retention value.
    //    If not, modify the size of the timeline by one Frame in the correct direction.
    count = eina_inarray_count(pd->timeline);
    if (count != pd->retention) engineer_scene_timeline_adjust(obj);
 
+   printf("Scene Iterate Checkpoint 2.\n");
+
    // Cycle the timeline to get to our next frame. This also resets our pointers in case they
    //    were nuked by an eina_inarray_push.
    pd->future  = eina_inarray_nth(pd->timeline, (pd->future->index-1 + count) % count);
    pd->present = eina_inarray_nth(pd->timeline,  pd->future->index++ % count);
    pd->past    = eina_inarray_nth(pd->timeline,  pd->future->index+2 % count);
+
+   printf("Scene Iterate Checkpoint 3.\n");
 
    // Wipe clean the allocated space reserved for our next Frame's Entity and Component metadata.
    eina_hash_free_buckets(pd->future->entitylookup);
@@ -225,16 +267,7 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
    eina_hash_foreach(pd->present->componentlookup, _engineer_scene_iterate_component_cb, obj);
 
    // Iterate thru each module's component code active in the scene.
-   Engineer_Node_Module  *module;
-   Eo *(*module_update)(Eo *obj);
-   count = eina_inarray_count(pd->scenecache);
-   for (index = 0; index < count; index++)
-   {
-      module = eina_inarray_nth(pd->scenecache, index);
-      module_update = module->update;
-      target = eina_hash_find(pd->scenelookup, &module->id);
-      module_update(eina_inarray_nth(pd->scenecache, *target));
-   }
+   eina_hash_foreach(pd->datacache, _engineer_scene_iterate_module_cb, obj);
 
    timestamp -= ecore_time_get();
 
@@ -258,6 +291,28 @@ EOLIAN static Eina_Bool
 _engineer_scene_iterate_cb(void *data)
 {
    return engineer_scene_iterate(data);
+}
+
+EOLIAN static Eina_Bool
+_engineer_scene_iterate_module(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        uint *key)
+{
+   Engineer_Node_Module *module;
+   Eo *(*module_update)(Eo *obj);
+
+   // Get the correct update() function pointer and invoke it targeting the right datacache member.
+   module = engineer_node_module_lookup(pd->node, *key);
+   module_update = module->update;
+   module_update(eina_hash_find(pd->datacache, key));
+
+   return 1;
+}
+
+EOLIAN static Eina_Bool
+_engineer_scene_iterate_module_cb(const Eina_Hash *hash EINA_UNUSED, const void *key,
+        void *data EINA_UNUSED, void *fdata)
+{
+   return engineer_scene_iterate_module(fdata, (uint*)key);
 }
 
 EOLIAN static Eina_Bool
@@ -388,7 +443,7 @@ _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
    memset(entity, 0, sizeof(Engineer_Scene_Entity));
 
    entity->name = eina_stringshare_printf("%s", name);
-   entity->id   = engineer_scene_entity_id_use(obj);
+   entity->id   = engineer_node_entity_id_use(pd->node);
 
    buffer = eina_inarray_push(pd->future->entitycache, entity);
    entity = eina_inarray_nth(pd->future->entitycache, buffer);
@@ -493,10 +548,10 @@ _engineer_scene_entity_save(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UN
 }
 
 EOLIAN static void
-_engineer_scene_entity_destroy(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
+_engineer_scene_entity_destroy(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint target)
 {
-  engineer_scene_entity_status_set(obj, target, 1);
+  engineer_node_entity_status_set(pd->node, target, 1);
 }
 
 EOLIAN static void
@@ -530,27 +585,6 @@ _engineer_scene_entity_data_swap(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
 
    eina_hash_modify(pd->future->entitylookup, &targeta, targetblookup);
    eina_hash_modify(pd->future->entitylookup, &targetb, &lookupbuffer);
-}
-
-EOLIAN static uint
-_engineer_scene_entity_status_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
-        uint target)
-{
-   Engineer_Scene_Entity *entity = eina_hash_find(pd->present->entitylookup, &target);
-   if (entity == NULL) return 0;
-   return entity->status;
-}
-
-EOLIAN static void
-_engineer_scene_entity_status_set(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
-        uint target, char mode)
-{
-   if (mode < 4) // Make sure that our mode is either zero, one, two, or three.
-   {
-      Engineer_Scene_Entity *entity = eina_hash_find(pd->future->entitylookup, &target);
-      if (entity == NULL) return;
-      entity->status = mode;
-   }
 }
 
 EOLIAN static uint
@@ -694,54 +728,32 @@ _engineer_scene_entity_components_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *
    return results;
 }
 
-EOLIAN uint
-_engineer_scene_entity_id_use(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd)
-{
-   if (eina_inarray_count(pd->entityqueue) == 0)
-   {
-      eina_inarray_push(pd->entityqueue, &pd->entitycount);
-      pd->entitycount += 1;
-   }
-   uint *result = eina_inarray_pop(pd->entityqueue);
-
-   return *result;
-}
-
-EOLIAN void
-_engineer_scene_entity_id_free(Eo *obj, Engineer_Scene_Data *pd,
-        uint target)
-{
-   engineer_scene_entity_status_set(obj, target, 0);
-   eina_inarray_insert_at(pd->entityqueue, 0, &target);
-}
-
 /*** Component Methods ***/
 
 EOLIAN static uint
 _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd,
-        uint parent, const char *type)
+        Eina_Stringshare *type, uint parent)
 {
    uint buffer;
-   Eo *game = obj; // FIXME (needs to be parent of obj)
-   Engineer_Node_Module *module;
    Engineer_Scene_Component *component, blank;
    component = &blank;
    memset(component, 0, sizeof(Engineer_Scene_Component));
 
    // Register this Component's identifying information.
    component->name = eina_stringshare_printf("%s", type);
-   component->id   = engineer_scene_component_id_use(obj);
+   component->id   = engineer_node_component_id_use(pd->node);
 
    // Set up our Component cache data and lookup reference.
    buffer    = eina_inarray_push(pd->future->componentcache, component);
    component = eina_inarray_nth(pd->future->componentcache, buffer);
    eina_hash_add(pd->future->componentlookup, &component->id, component);
 
-   // Order the relevant module to create an appropriate Component type payload in it's cache.
-   module = engineer_node_module_lookup_by_type(game, type);
+   // Order the relevant module to create an appropriate Component data payload in it's cache.
+   Engineer_Node_Module *module = engineer_node_module_lookup_by_type(pd->node, type);
+   Eo *cache = eina_hash_find(pd->datacache, &module->id);
    Eo *(*module_component_create)(Eo*, uint);
    module_component_create = module->create;
-   module_component_create(obj, component->id); // FIXME obj needs to be module object instance.
+   module_component_create(cache, component->id);
 
    engineer_scene_component_parent_set(obj, component->id, parent);
 /*
@@ -790,7 +802,7 @@ _engineer_scene_component_load(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA
    // We need to call engineer_module_component_load() on each of this Entities' component data,
    // in this Entities' Sector cache.
    Eo *(*component_load)(Eo *obj, uint target);
-   Engineer_Scene_Sector *sector = engineer_scene_sector_lookup(obj, payload->sector); // FIXME Type is deprecated.
+   Engineer_Scene_Sector *sector = engineer_scene_sector_lookup(obj, payload->sector); // Fixme Type is deprecated.
    Engineer_Game_Module  *module;
    uint index, count = eina_inarray_count(pd->modulecache);
    for (uint current = 0; current < count; current++)
@@ -835,10 +847,10 @@ _engineer_scene_component_save(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA
 }
 
 EOLIAN static void
-_engineer_scene_component_destroy(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
+_engineer_scene_component_destroy(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint target)
 {
-   engineer_scene_component_status_set(obj, target, 1);
+   engineer_node_component_status_set(pd->node, target, 1);
 }
 
 EOLIAN static void
@@ -880,25 +892,6 @@ _engineer_scene_component_data_swap(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd
 
    eina_hash_modify(pd->future->componentlookup, &targeta, targetblookup);
    eina_hash_modify(pd->future->componentlookup, &targetb, &lookupbuffer);
-}
-
-EOLIAN static uint
-_engineer_scene_component_status_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
-        uint target)
-{
-   Engineer_Scene_Component *component = eina_hash_find(pd->present->componentlookup, &target); // engineer_scene_component_lookup(obj, target);
-   return component->status;
-}
-
-EOLIAN static void
-_engineer_scene_component_status_set(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
-        uint target, char mode)
-{
-   if (mode < 4) // Make sure that our mode is either zero, one, two, or three.
-   {
-      Engineer_Scene_Component *component = eina_hash_find(pd->future->componentlookup, &target); // engineer_scene_component_lookup(obj, target);
-      component->status = mode;
-   }
 }
 
 EOLIAN static uint
@@ -1006,26 +999,6 @@ _engineer_scene_component_sibling_swap(Eo *obj EINA_UNUSED, Engineer_Scene_Data 
       componentbnext->siblingprev = buffernextbacklink;
       componentbprev->siblingnext = bufferprevbacklink;
    }
-}
-
-EOLIAN static uint
-_engineer_scene_component_id_use(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd)
-{
-   if (eina_inarray_count(pd->componentqueue) == 0)
-   {
-      eina_inarray_insert_at(pd->componentqueue, 0, &pd->componentcount);
-      pd->componentcount += 1;
-   }
-   uint *newid = eina_inarray_pop(pd->componentqueue);
-   return *newid;
-}
-
-EOLIAN static void
-_engineer_scene_component_id_free(Eo *obj, Engineer_Scene_Data *pd,
-        uint target)
-{
-   engineer_scene_component_status_set(obj, target, 0);
-   eina_inarray_insert_at(pd->componentqueue, 0, &target);
 }
 
 /*** Sector Callbacks ***/

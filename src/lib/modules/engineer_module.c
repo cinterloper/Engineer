@@ -71,13 +71,13 @@ _engineer_module_iterate(Eo *obj, Engineer_Module_Data *pd)
    last = engineer_module_handle_alloc(obj);
    next = engineer_module_handle_alloc(obj);
 
-   // For each component stored in this object, do the engineer_module_component_update() method.
+   // For each component stored in this object, do the engineer_module_update() method.
    for (uint cacheid = 0; cacheid <= pd->future->offsetactive; cacheid += 1)
    {
       engineer_module_cache_lookup(obj, pd->present, cacheid, last);
       engineer_module_cache_lookup(obj, pd->future,  cacheid, next);
 
-      engineer_module_component_update(obj, last, next, 32);
+      engineer_module_update(obj, last, next, 32);
    }
 
    engineer_module_handle_free(obj, next);
@@ -233,11 +233,11 @@ _engineer_module_handle_free(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_
 /*** Frame Cache Methods ***/
 
 EOLIAN static void
-_engineer_module_cache_add(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
+_engineer_module_cache_push(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
         uint componentid, HANDLE *data EINA_UNUSED) // Fixme COMPODATA->COMPONENT
 {
    void      *lookup            = pd->future->lookup;
-   HANDLE *cache EINA_UNUSED = pd->future->cache;
+   HANDLE    *cache EINA_UNUSED = pd->future->cache;
    uint       cacheindex;
 
    // Push a new Component data entry into the cache inarrays.
@@ -251,15 +251,9 @@ _engineer_module_cache_add(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
 }
 
 EOLIAN static void
-_engineer_module_cache_set(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        Engineer_Module_Frame *frame, uint cacheid EINA_UNUSED, HANDLE *component EINA_UNUSED)
+_engineer_module_cache_pop(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        uint target EINA_UNUSED)
 {
-   HANDLE EINA_UNUSED *cache = frame->cache;
-
-   #define VAR(TYPE, KEY) \
-      engineer_type_TYPE_soa_replace_at(cache->KEY, cacheid, component->KEY);
-   DATA
-   #undef VAR
 }
 
 // This method takes a COMPONENT reference tree and populates it with references to the
@@ -273,6 +267,18 @@ _engineer_module_cache_lookup(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA
 
    #define VAR(TYPE, KEY) \
       engineer_type_TYPE_soa_nth(cache->KEY, cacheid, component->KEY);
+   DATA
+   #undef VAR
+}
+
+EOLIAN static void
+_engineer_module_cache_copy(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        Engineer_Module_Frame *frame, uint cacheid EINA_UNUSED, HANDLE *component EINA_UNUSED)
+{
+   HANDLE EINA_UNUSED *cache = frame->cache;
+
+   #define VAR(TYPE, KEY) \
+      engineer_type_TYPE_soa_replace_at(cache->KEY, cacheid, component->KEY);
    DATA
    #undef VAR
 }
@@ -316,7 +322,7 @@ _engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
    HANDLE data;
    memset(&data, 0, sizeof(HANDLE));
 
-   engineer_module_cache_add(obj, componentid, &data);
+   engineer_module_cache_push(obj, componentid, &data);
 
    return componentid;
 }
@@ -382,12 +388,6 @@ _engineer_module_component_destroy(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd
 }
 
 EOLIAN static void
-_engineer_module_component_dispose(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        uint target EINA_UNUSED)
-{
-}
-
-EOLIAN static void
 _engineer_module_component_lookup(Eo *obj, Engineer_Module_Data *pd,
         uint timeoffset, uint componentid, HANDLE *component)
 {
@@ -403,5 +403,12 @@ _engineer_module_component_lookup(Eo *obj, Engineer_Module_Data *pd,
 
    engineer_module_cache_lookup(obj, frame, *cacheid, component);
 }
+/*
+#undef NAME
+#undef DATA
 
+#undef BUFFER
+#undef HANDLE
+#undef SYMBOL
+*/
 #include "engineer_module.eo.c"

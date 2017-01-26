@@ -7,18 +7,6 @@
 
 typedef struct
 {
-   uint         id;         // This is a unique id on a per-scene basis.
-   Eina_Module *module;
-   DB          *components; // Pointer to the db file handle.
-
-   //void        *data;
-   void        *add,   *load,  *save;
-   void        *awake, *start, *update;
-}
-Engineer_Scene_DB_Module;
-
-typedef struct
-{
    uint  index;
    uint  timestamp;
 
@@ -32,7 +20,9 @@ Engineer_Scene_Frame;
 
 typedef struct
 {
-   const char   *game;            // Title of the game this scene belongs to. Must also be unique.
+   Eo *node;                      // Pointer to the Parent Node Eo.
+   // void *nodepd;
+
    const char   *name;            // The name of this scene. MUST be unique, the code will check.
    uint          size;
 
@@ -47,8 +37,7 @@ typedef struct
    Engineer_Scene_Frame *present; // Points to the current frame data.
    Engineer_Scene_Frame *future;  // Points to the frame currently receiving the iterator update.
 
-   Eina_Inarray *scenecache;      // Stores our Efl Object instances for this Scene's modules.
-   Eina_Hash    *scenelookup;     // Module lookup hashtable, using ModuleID's as inputs.
+   Eina_Hash *datacache;          // Scene Module Data lookup hashtable, using ModuleID's as inputs.
 
    DB *scenetable;
 
@@ -67,8 +56,24 @@ typedef struct
 }
 Engineer_Scene_Data;
 
+EOLIAN Eo *
+engineer_scene_add(Eo *obj, const char *name);
+
+static void
+_engineer_scene_iterate_init_task(void *data, Ecore_Thread *thread);
+
+static void
+_engineer_scene_iterate_init_done(void *data, Ecore_Thread *thread);
+
+static void
+_engineer_scene_iterate_init_cancel(void *data, Ecore_Thread *thread);
+
 EOLIAN static Eina_Bool
 _engineer_scene_iterate_cb(void *data);
+
+EOLIAN static Eina_Bool
+_engineer_scene_iterate_module_cb(const Eina_Hash *hash, const void *key,
+        void *data, void *fdata);
 
 EOLIAN static Eina_Bool
 _engineer_scene_iterate_entity_cb(const Eina_Hash *hash, const void *key,

@@ -7,6 +7,7 @@ set(CURRENT_VERSION 0.2.0)
 project(Engineer VERSION ${CURRENT_VERSION})
 
 # Find the location(s) of our project's prerequisite library files.
+find_package(PkgConfig REQUIRED)
 find_package(BerkeleyDB REQUIRED)
 find_package(Eina REQUIRED)
 find_package(Eo 1.18 REQUIRED)
@@ -38,6 +39,7 @@ include_directories(
    )
 
 # Compilation Configuration.
+add_definitions(-DEFL_EO_API_SUPPORT -DEFL_BETA_API_SUPPORT)
 add_definitions(-DPACKAGE_VERSION="${CURRENT_VERSION}")
 add_definitions("-g -Wall -Wextra -Wshadow -std=gnu99")
 

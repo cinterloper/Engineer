@@ -1,7 +1,7 @@
 #ifndef ENGINEER_SETTINGS_H_
 #define ENGINEER_SETTINGS_H_
 
-#define EFL_BETA_API_SUPPORT
+//#define EFL_BETA_API_SUPPORT
 #include <Ecore_Getopt.h>
 #include <Elementary.h>
 #include <Edi.h>

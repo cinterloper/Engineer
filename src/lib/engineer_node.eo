@@ -1,25 +1,24 @@
 struct Engineer_Node_Peer
 {
-   ipaddress: void_ptr;
-   mode: string;
+   ipaddress: uint;
+   mode:      string;
 }
 
 struct Engineer_Node_Module
 {
-   id:     uint;
-   handle: void_ptr;
+   id:      uint;
+   class:   void_ptr;
 
-   add:    void_ptr;
-   create: void_ptr;
-   load:   void_ptr;
-   save:   void_ptr;
-   del:    void_ptr;
-   free:   void_ptr;
-   lookup: void_ptr;
+   create:  void_ptr;
+   load:    void_ptr;
+   save:    void_ptr;
+   destroy: void_ptr;
+   lookup:  void_ptr;
 
-   awake:  void_ptr;
-   start:  void_ptr;
-   update: void_ptr;
+   factory: void_ptr;
+   awake:   void_ptr;
+   start:   void_ptr;
+   update:  void_ptr;
 }
 
 class Engineer.Node(Efl.Object)
@@ -81,7 +80,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in name: string;
+            @in name: stringshare;
          }
          return: Efl.Object;
       }
@@ -90,7 +89,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in name: string;
+            @in name: stringshare;
          }
          return: Efl.Object;
       }
@@ -99,7 +98,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in name: string;
+            @in name: stringshare;
          }
       }
 
@@ -107,7 +106,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in name: string;
+            @in name: stringshare;
          }
       }
 
@@ -115,7 +114,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in name: string;
+            @in name: stringshare;
          }
        return: uint;
       }
@@ -124,7 +123,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in file: string;
+            @in file: stringshare;
          }
       }
 
@@ -172,6 +171,104 @@ class Engineer.Node(Efl.Object)
          params
          {
             @in target: uint;
+         }
+      }
+
+      entity_id_use
+      {
+         return: uint;
+      }
+
+      entity_id_free
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      entity_location_get
+      {
+         params
+         {
+            @in target: uint;
+         }
+       return: uint;
+      }
+
+      entity_location_set
+      {
+         params
+         {
+            @in target:   uint;
+            @in location: uint;
+         }
+      }
+
+      entity_status_get
+      {
+         params
+         {
+            @in target: uint;
+         }
+         return: uint;
+      }
+
+      entity_status_set
+      {
+         params
+         {
+            @in target: uint;
+            @in mode:   char;
+         }
+      }
+
+      component_id_use
+      {
+         return: uint;
+      }
+
+      component_id_free
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      component_location_get
+      {
+         params
+         {
+            @in target: uint;
+         }
+         return: uint;
+      }
+
+      component_location_set
+      {
+         params
+         {
+            @in target:   uint;
+            @in location: uint;
+         }
+      }
+
+      component_status_get
+      {
+         params
+         {
+            @in target: uint;
+         }
+         return: uint;
+      }
+
+      component_status_set
+      {
+         params
+         {
+            @in target: uint;
+            @in mode:   char;
          }
       }
    }

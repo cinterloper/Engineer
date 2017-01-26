@@ -13,10 +13,8 @@ typedef Eo Engineer_Scene;
 
 typedef struct _Engineer_Scene_Entity
 {
-  Eina_Stringshare *name;
   unsigned int id;
-  unsigned int status;
-  unsigned int referencecount;
+  Eina_Stringshare *name;
   unsigned int parent;
   unsigned int siblingnext;
   unsigned int siblingprev;
@@ -26,11 +24,9 @@ typedef struct _Engineer_Scene_Entity
 
 typedef struct _Engineer_Scene_Component
 {
+  unsigned int id;
   Eina_Stringshare *name;
   unsigned int type;
-  unsigned int id;
-  unsigned int status;
-  unsigned int referencecount;
   unsigned int parent;
   unsigned int siblingnext;
   unsigned int siblingprev;
@@ -42,10 +38,6 @@ typedef struct _Engineer_Scene_Component
 
 EWAPI const Efl_Class *engineer_scene_class_get(void);
 
-EOAPI void engineer_scene_game_set(Eo *obj, const char *path);
-
-EOAPI const char *engineer_scene_game_get(const Eo *obj);
-
 EOAPI void engineer_scene_name_set(Eo *obj, const char *name);
 
 EOAPI const char *engineer_scene_name_get(const Eo *obj);
@@ -55,6 +47,8 @@ EOAPI Efl_Object *engineer_scene_efl_object_constructor(Eo *obj);
 EOAPI void engineer_scene_efl_object_destructor(Eo *obj);
 
 EOAPI Eina_Bool engineer_scene_iterate(Eo *obj);
+
+EOAPI Eina_Bool engineer_scene_iterate_module(Eo *obj, unsigned int *key);
 
 EOAPI Eina_Bool engineer_scene_iterate_entity(Eo *obj, void *key, void *data);
 
@@ -80,10 +74,6 @@ EOAPI Engineer_Scene_Entity *engineer_scene_entity_lookup(Eo *obj, unsigned int 
 
 EOAPI void engineer_scene_entity_data_swap(Eo *obj, unsigned int targeta, unsigned int targetb);
 
-EOAPI unsigned int engineer_scene_entity_status_get(Eo *obj, unsigned int target);
-
-EOAPI void engineer_scene_entity_status_set(Eo *obj, unsigned int target, char mode);
-
 EOAPI unsigned int engineer_scene_entity_parent_get(Eo *obj, unsigned int target);
 
 EOAPI void engineer_scene_entity_parent_set(Eo *obj, unsigned int target, unsigned int parent);
@@ -94,11 +84,7 @@ EOAPI Eina_Inarray *engineer_scene_entity_children_get(Eo *obj, unsigned int tar
 
 EOAPI Eina_Inarray *engineer_scene_entity_components_get(Eo *obj, unsigned int target);
 
-EOAPI unsigned int engineer_scene_entity_id_use(Eo *obj);
-
-EOAPI void engineer_scene_entity_id_free(Eo *obj, unsigned int target);
-
-EOAPI unsigned int engineer_scene_component_create(Eo *obj, unsigned int parent, const char *type);
+EOAPI unsigned int engineer_scene_component_create(Eo *obj, Eina_Stringshare *type, unsigned int parent);
 
 EOAPI void engineer_scene_component_destroy(Eo *obj, unsigned int target);
 
@@ -112,19 +98,11 @@ EOAPI Engineer_Scene_Component *engineer_scene_component_lookup(Eo *obj, unsigne
 
 EOAPI void engineer_scene_component_data_swap(Eo *obj, unsigned int targeta, unsigned int targetb);
 
-EOAPI unsigned int engineer_scene_component_status_get(Eo *obj, unsigned int target);
-
-EOAPI void engineer_scene_component_status_set(Eo *obj, unsigned int target, char mode);
-
 EOAPI unsigned int engineer_scene_component_parent_get(Eo *obj, unsigned int target);
 
 EOAPI void engineer_scene_component_parent_set(Eo *obj, unsigned int target, unsigned int parent);
 
 EOAPI void engineer_scene_component_sibling_swap(Eo *obj, unsigned int siblinga, unsigned int siblingb);
-
-EOAPI unsigned int engineer_scene_component_id_use(Eo *obj);
-
-EOAPI void engineer_scene_component_id_free(Eo *obj, unsigned int target);
 
 EWAPI extern const Efl_Event_Description _ENGINEER_SCENE_EVENT_SECTOR_ITERATE_CB;
 

@@ -50,17 +50,18 @@ update(const HANDLE *last, const HANDLE *next, Sclr *dt)
    *next->position->z = *last->position->z + MULT(last->velocity->z, dt) + (offset >> 1);
 }
 
+// When invoking this, pass the object pointer of the invoking module object instance.
 EOLIAN static void
 _engineer_transform_accelerate(Eo *obj, uint componentid, const Vec3 *input)
 {
-   HANDLE *next, nextbuffer;
-   next = &nextbuffer;
-
+   HANDLE *next = engineer_module_handle_alloc(obj);
    engineer_module_component_lookup(obj, 0, componentid, next);
 
    *next->acceleration->x += *input->x;
    *next->acceleration->y += *input->y;
    *next->acceleration->z += *input->z;
+
+   engineer_module_handle_free(obj, next);
 }
 
 #include "engineer_transform.eo.c"

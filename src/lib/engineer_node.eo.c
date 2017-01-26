@@ -36,29 +36,29 @@ void _engineer_node_file_close(Eo *obj, Engineer_Node_Data *pd);
 
 EOAPI EFL_VOID_FUNC_BODY(engineer_node_file_close);
 
-Efl_Object *_engineer_node_scene_create(Eo *obj, Engineer_Node_Data *pd, const char *name);
+Efl_Object *_engineer_node_scene_create(Eo *obj, Engineer_Node_Data *pd, Eina_Stringshare *name);
 
-EOAPI EFL_FUNC_BODYV(engineer_node_scene_create, Efl_Object *, NULL, EFL_FUNC_CALL(name), const char *name);
+EOAPI EFL_FUNC_BODYV(engineer_node_scene_create, Efl_Object *, NULL, EFL_FUNC_CALL(name), Eina_Stringshare *name);
 
-Efl_Object *_engineer_node_scene_load(Eo *obj, Engineer_Node_Data *pd, const char *name);
+Efl_Object *_engineer_node_scene_load(Eo *obj, Engineer_Node_Data *pd, Eina_Stringshare *name);
 
-EOAPI EFL_FUNC_BODYV(engineer_node_scene_load, Efl_Object *, NULL, EFL_FUNC_CALL(name), const char *name);
+EOAPI EFL_FUNC_BODYV(engineer_node_scene_load, Efl_Object *, NULL, EFL_FUNC_CALL(name), Eina_Stringshare *name);
 
-void _engineer_node_scene_save(Eo *obj, Engineer_Node_Data *pd, const char *name);
+void _engineer_node_scene_save(Eo *obj, Engineer_Node_Data *pd, Eina_Stringshare *name);
 
-EOAPI EFL_VOID_FUNC_BODYV(engineer_node_scene_save, EFL_FUNC_CALL(name), const char *name);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_node_scene_save, EFL_FUNC_CALL(name), Eina_Stringshare *name);
 
-void _engineer_node_scene_unload(Eo *obj, Engineer_Node_Data *pd, const char *name);
+void _engineer_node_scene_unload(Eo *obj, Engineer_Node_Data *pd, Eina_Stringshare *name);
 
-EOAPI EFL_VOID_FUNC_BODYV(engineer_node_scene_unload, EFL_FUNC_CALL(name), const char *name);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_node_scene_unload, EFL_FUNC_CALL(name), Eina_Stringshare *name);
 
-unsigned int _engineer_node_module_register(Eo *obj, Engineer_Node_Data *pd, const char *name);
+unsigned int _engineer_node_module_register(Eo *obj, Engineer_Node_Data *pd, Eina_Stringshare *name);
 
-EOAPI EFL_FUNC_BODYV(engineer_node_module_register, unsigned int, 0, EFL_FUNC_CALL(name), const char *name);
+EOAPI EFL_FUNC_BODYV(engineer_node_module_register, unsigned int, 0, EFL_FUNC_CALL(name), Eina_Stringshare *name);
 
-void _engineer_node_module_load(Eo *obj, Engineer_Node_Data *pd, const char *file);
+void _engineer_node_module_load(Eo *obj, Engineer_Node_Data *pd, Eina_Stringshare *file);
 
-EOAPI EFL_VOID_FUNC_BODYV(engineer_node_module_load, EFL_FUNC_CALL(file), const char *file);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_node_module_load, EFL_FUNC_CALL(file), Eina_Stringshare *file);
 
 void _engineer_node_module_unload(Eo *obj, Engineer_Node_Data *pd, Efl_Object *target);
 
@@ -83,6 +83,54 @@ EOAPI EFL_FUNC_BODY(engineer_node_module_id_use, unsigned int, 0);
 void _engineer_node_module_id_free(Eo *obj, Engineer_Node_Data *pd, unsigned int target);
 
 EOAPI EFL_VOID_FUNC_BODYV(engineer_node_module_id_free, EFL_FUNC_CALL(target), unsigned int target);
+
+unsigned int _engineer_node_entity_id_use(Eo *obj, Engineer_Node_Data *pd);
+
+EOAPI EFL_FUNC_BODY(engineer_node_entity_id_use, unsigned int, 0);
+
+void _engineer_node_entity_id_free(Eo *obj, Engineer_Node_Data *pd, unsigned int target);
+
+EOAPI EFL_VOID_FUNC_BODYV(engineer_node_entity_id_free, EFL_FUNC_CALL(target), unsigned int target);
+
+unsigned int _engineer_node_entity_location_get(Eo *obj, Engineer_Node_Data *pd, unsigned int target);
+
+EOAPI EFL_FUNC_BODYV(engineer_node_entity_location_get, unsigned int, 0, EFL_FUNC_CALL(target), unsigned int target);
+
+void _engineer_node_entity_location_set(Eo *obj, Engineer_Node_Data *pd, unsigned int target, unsigned int location);
+
+EOAPI EFL_VOID_FUNC_BODYV(engineer_node_entity_location_set, EFL_FUNC_CALL(target, location), unsigned int target, unsigned int location);
+
+unsigned int _engineer_node_entity_status_get(Eo *obj, Engineer_Node_Data *pd, unsigned int target);
+
+EOAPI EFL_FUNC_BODYV(engineer_node_entity_status_get, unsigned int, 0, EFL_FUNC_CALL(target), unsigned int target);
+
+void _engineer_node_entity_status_set(Eo *obj, Engineer_Node_Data *pd, unsigned int target, char mode);
+
+EOAPI EFL_VOID_FUNC_BODYV(engineer_node_entity_status_set, EFL_FUNC_CALL(target, mode), unsigned int target, char mode);
+
+unsigned int _engineer_node_component_id_use(Eo *obj, Engineer_Node_Data *pd);
+
+EOAPI EFL_FUNC_BODY(engineer_node_component_id_use, unsigned int, 0);
+
+void _engineer_node_component_id_free(Eo *obj, Engineer_Node_Data *pd, unsigned int target);
+
+EOAPI EFL_VOID_FUNC_BODYV(engineer_node_component_id_free, EFL_FUNC_CALL(target), unsigned int target);
+
+unsigned int _engineer_node_component_location_get(Eo *obj, Engineer_Node_Data *pd, unsigned int target);
+
+EOAPI EFL_FUNC_BODYV(engineer_node_component_location_get, unsigned int, 0, EFL_FUNC_CALL(target), unsigned int target);
+
+void _engineer_node_component_location_set(Eo *obj, Engineer_Node_Data *pd, unsigned int target, unsigned int location);
+
+EOAPI EFL_VOID_FUNC_BODYV(engineer_node_component_location_set, EFL_FUNC_CALL(target, location), unsigned int target, unsigned int location);
+
+unsigned int _engineer_node_component_status_get(Eo *obj, Engineer_Node_Data *pd, unsigned int target);
+
+EOAPI EFL_FUNC_BODYV(engineer_node_component_status_get, unsigned int, 0, EFL_FUNC_CALL(target), unsigned int target);
+
+void _engineer_node_component_status_set(Eo *obj, Engineer_Node_Data *pd, unsigned int target, char mode);
+
+EOAPI EFL_VOID_FUNC_BODYV(engineer_node_component_status_set, EFL_FUNC_CALL(target, mode), unsigned int target, char mode);
 
 static Eina_Bool
 _engineer_node_class_initializer(Efl_Class *klass)
@@ -109,7 +157,19 @@ _engineer_node_class_initializer(Efl_Class *klass)
       EFL_OBJECT_OP_FUNC(engineer_node_module_lookup, _engineer_node_module_lookup),
       EFL_OBJECT_OP_FUNC(engineer_node_module_lookup_by_type, _engineer_node_module_lookup_by_type),
       EFL_OBJECT_OP_FUNC(engineer_node_module_id_use, _engineer_node_module_id_use),
-      EFL_OBJECT_OP_FUNC(engineer_node_module_id_free, _engineer_node_module_id_free)
+      EFL_OBJECT_OP_FUNC(engineer_node_module_id_free, _engineer_node_module_id_free),
+      EFL_OBJECT_OP_FUNC(engineer_node_entity_id_use, _engineer_node_entity_id_use),
+      EFL_OBJECT_OP_FUNC(engineer_node_entity_id_free, _engineer_node_entity_id_free),
+      EFL_OBJECT_OP_FUNC(engineer_node_entity_location_get, _engineer_node_entity_location_get),
+      EFL_OBJECT_OP_FUNC(engineer_node_entity_location_set, _engineer_node_entity_location_set),
+      EFL_OBJECT_OP_FUNC(engineer_node_entity_status_get, _engineer_node_entity_status_get),
+      EFL_OBJECT_OP_FUNC(engineer_node_entity_status_set, _engineer_node_entity_status_set),
+      EFL_OBJECT_OP_FUNC(engineer_node_component_id_use, _engineer_node_component_id_use),
+      EFL_OBJECT_OP_FUNC(engineer_node_component_id_free, _engineer_node_component_id_free),
+      EFL_OBJECT_OP_FUNC(engineer_node_component_location_get, _engineer_node_component_location_get),
+      EFL_OBJECT_OP_FUNC(engineer_node_component_location_set, _engineer_node_component_location_set),
+      EFL_OBJECT_OP_FUNC(engineer_node_component_status_get, _engineer_node_component_status_get),
+      EFL_OBJECT_OP_FUNC(engineer_node_component_status_set, _engineer_node_component_status_set)
    );
    return efl_class_functions_set(klass, &ops, NULL);
 }

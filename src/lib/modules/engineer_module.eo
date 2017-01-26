@@ -25,11 +25,6 @@ abstract Engineer.Module(Efl.Object)
       {
       }
 
-      factory @class @pure_virtual
-      {
-         return: Efl.Object;
-      }
-
       iterate
       {
       }
@@ -64,7 +59,20 @@ abstract Engineer.Module(Efl.Object)
       {
       }
 
-      cache_add
+      handle_alloc
+      {
+         return: ptr(HANDLE);
+      }
+
+      handle_free
+      {
+         params
+         {
+            @in target: ptr(HANDLE);
+         }
+      }
+
+      cache_push
       {
          params
          {
@@ -73,7 +81,15 @@ abstract Engineer.Module(Efl.Object)
          }
       }
 
-      cache_set
+      cache_pop
+      {
+         params
+         {
+            @in target: uint;
+         }
+      }
+
+      cache_lookup
       {
          params
          {
@@ -83,7 +99,7 @@ abstract Engineer.Module(Efl.Object)
          }
       }
 
-      cache_lookup
+      cache_copy
       {
          params
          {
@@ -99,19 +115,6 @@ abstract Engineer.Module(Efl.Object)
          {
             @in componenta: uint;
             @in componentb: uint;
-         }
-      }
-
-      handle_alloc
-      {
-         return: ptr(HANDLE);
-      }
-
-      handle_free
-      {
-         params
-         {
-            @in target: ptr(HANDLE);
          }
       }
 
@@ -148,14 +151,6 @@ abstract Engineer.Module(Efl.Object)
          }
       }
 
-      component_dispose
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
       component_lookup
       {
          params
@@ -166,7 +161,12 @@ abstract Engineer.Module(Efl.Object)
          }
       }
 
-      component_awake @class @pure_virtual
+      factory @class @pure_virtual
+      {
+         return: Efl.Object;
+      }
+
+      awake @class @pure_virtual
       {
          params
          {
@@ -174,7 +174,7 @@ abstract Engineer.Module(Efl.Object)
          }
       }
 
-      component_start @class @pure_virtual
+      start @class @pure_virtual
       {
          params
          {
@@ -183,7 +183,7 @@ abstract Engineer.Module(Efl.Object)
          }
       }
 
-      component_update @class @pure_virtual
+      update @class @pure_virtual
       {
          params
          {

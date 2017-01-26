@@ -13,21 +13,20 @@ typedef Eo Engineer_Node;
 
 typedef struct _Engineer_Node_Peer
 {
-  void *ipaddress;
+  unsigned int ipaddress;
   const char *mode;
 } Engineer_Node_Peer;
 
 typedef struct _Engineer_Node_Module
 {
   unsigned int id;
-  void *handle;
-  void *add;
+  void *class;
   void *create;
   void *load;
   void *save;
-  void *del;
-  void *free;
+  void *destroy;
   void *lookup;
+  void *factory;
   void *awake;
   void *start;
   void *update;
@@ -53,17 +52,17 @@ EOAPI void engineer_node_file_save(Eo *obj);
 
 EOAPI void engineer_node_file_close(Eo *obj);
 
-EOAPI Efl_Object *engineer_node_scene_create(Eo *obj, const char *name);
+EOAPI Efl_Object *engineer_node_scene_create(Eo *obj, Eina_Stringshare *name);
 
-EOAPI Efl_Object *engineer_node_scene_load(Eo *obj, const char *name);
+EOAPI Efl_Object *engineer_node_scene_load(Eo *obj, Eina_Stringshare *name);
 
-EOAPI void engineer_node_scene_save(Eo *obj, const char *name);
+EOAPI void engineer_node_scene_save(Eo *obj, Eina_Stringshare *name);
 
-EOAPI void engineer_node_scene_unload(Eo *obj, const char *name);
+EOAPI void engineer_node_scene_unload(Eo *obj, Eina_Stringshare *name);
 
-EOAPI unsigned int engineer_node_module_register(Eo *obj, const char *name);
+EOAPI unsigned int engineer_node_module_register(Eo *obj, Eina_Stringshare *name);
 
-EOAPI void engineer_node_module_load(Eo *obj, const char *file);
+EOAPI void engineer_node_module_load(Eo *obj, Eina_Stringshare *file);
 
 EOAPI void engineer_node_module_unload(Eo *obj, Efl_Object *target);
 
@@ -76,5 +75,29 @@ EOAPI Engineer_Node_Module *engineer_node_module_lookup_by_type(Eo *obj, const c
 EOAPI unsigned int engineer_node_module_id_use(Eo *obj);
 
 EOAPI void engineer_node_module_id_free(Eo *obj, unsigned int target);
+
+EOAPI unsigned int engineer_node_entity_id_use(Eo *obj);
+
+EOAPI void engineer_node_entity_id_free(Eo *obj, unsigned int target);
+
+EOAPI unsigned int engineer_node_entity_location_get(Eo *obj, unsigned int target);
+
+EOAPI void engineer_node_entity_location_set(Eo *obj, unsigned int target, unsigned int location);
+
+EOAPI unsigned int engineer_node_entity_status_get(Eo *obj, unsigned int target);
+
+EOAPI void engineer_node_entity_status_set(Eo *obj, unsigned int target, char mode);
+
+EOAPI unsigned int engineer_node_component_id_use(Eo *obj);
+
+EOAPI void engineer_node_component_id_free(Eo *obj, unsigned int target);
+
+EOAPI unsigned int engineer_node_component_location_get(Eo *obj, unsigned int target);
+
+EOAPI void engineer_node_component_location_set(Eo *obj, unsigned int target, unsigned int location);
+
+EOAPI unsigned int engineer_node_component_status_get(Eo *obj, unsigned int target);
+
+EOAPI void engineer_node_component_status_set(Eo *obj, unsigned int target, char mode);
 
 #endif

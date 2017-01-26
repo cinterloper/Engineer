@@ -21,8 +21,6 @@ EOAPI Efl_Object *engineer_module_efl_object_constructor(Eo *obj);
 
 EOAPI void engineer_module_efl_object_destructor(Eo *obj);
 
-EOAPI Efl_Object *engineer_module_factory(const Eo *obj);
-
 EOAPI void engineer_module_iterate(Eo *obj);
 
 EOAPI void engineer_module_timeline_adjust(Eo *obj);
@@ -37,9 +35,9 @@ EOAPI void engineer_module_buffer_alloc(Eo *obj);
 
 EOAPI void engineer_module_buffer_free(Eo *obj);
 
-EOAPI void engineer_module_cache_add(Eo *obj, unsigned int componentid, HANDLE *data);
+EOAPI void engineer_module_cache_push(Eo *obj, unsigned int componentid, HANDLE *data);
 
-EOAPI void engineer_module_cache_set(Eo *obj, Engineer_Module_Frame *frame, unsigned int cacheid, HANDLE *component);
+EOAPI void engineer_module_cache_copy(Eo *obj, Engineer_Module_Frame *frame, unsigned int cacheid, HANDLE *component);
 
 EOAPI void engineer_module_cache_lookup(Eo *obj, Engineer_Module_Frame *frame, unsigned int cacheid, HANDLE *component);
 
@@ -61,10 +59,12 @@ EOAPI void engineer_module_component_dispose(Eo *obj, unsigned int target);
 
 EOAPI void engineer_module_component_lookup(Eo *obj, unsigned int timeoffset, unsigned int componentid, HANDLE *target);
 
-EOAPI void engineer_module_component_awake(const Eo *obj, unsigned long dt);
+EOAPI Efl_Object *engineer_module_factory(const Eo *obj);
 
-EOAPI void engineer_module_component_start(const Eo *obj, HANDLE *next, unsigned long dt);
+EOAPI void engineer_module_awake(const Eo *obj, unsigned long dt);
 
-EOAPI void engineer_module_component_update(const Eo *obj, HANDLE *last, HANDLE *next, unsigned long dt);
+EOAPI void engineer_module_start(const Eo *obj, HANDLE *next, unsigned long dt);
+
+EOAPI void engineer_module_update(const Eo *obj, HANDLE *last, HANDLE *next, unsigned long dt);
 
 #endif

@@ -1,0 +1,18 @@
+
+Brainstorm on broadphase:
+
+Begin with the leaf node that the ray originates in, in the octree.
+
+
+First, traverse up to the parent. For each branch off the parent (sibling), test if that branch
+   has any other children.
+
+For each child, traverse downwards, detecting at each level if any children intersect with the ray.
+
+Second, see if those children intersect with our ray. Keep a list of those that do.
+
+Finally, if any of those children are octree nodes containing objects, enqueue an intersection test (ray vs AABB)
+   with each.
+
+If the first step evaluated to true, for each successful intersection, perform the last 4 steps
+   using the next parent up as the new target.

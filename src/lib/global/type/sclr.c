@@ -23,7 +23,7 @@ engineer_type_Sclr_soa_push(Sclr *target, Sclr *input)
 }
 
 void
-engineer_type_Sclr_soa_nth(Sclr *target, uint index, Sclr *output)
+engineer_type_Sclr_soa_nth(Sclr *target, uint index, Sclr *output EINA_UNUSED)
 {
    output = eina_inarray_nth((Inarray*)target, index);
 }

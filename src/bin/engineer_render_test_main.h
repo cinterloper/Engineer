@@ -16,7 +16,13 @@
 
 //extern char *title;
 
+Eo *
+engineer_render_test_window_init();
+
+Eo *
+engineer_render_test_viewport_init(Eo *window);
+
 void
-engineer_render_test_init();
+engineer_render_test_game_init(Eo *root);
 
 #endif

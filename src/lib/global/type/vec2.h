@@ -1,7 +1,7 @@
 #ifndef _ENGINEER_TYPE_VEC2_H_
 #define _ENGINEER_TYPE_VEC2_H_
 
-#define EFL_BETA_API_SUPPORT
+//#define EFL_BETA_API_SUPPORT
 #include <Ecore_Getopt.h>
 #include "sclr.h"
 

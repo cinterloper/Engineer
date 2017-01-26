@@ -1,5 +1,19 @@
 #include "engineer_node.h"
 
+/*** Node EFL API ***/
+
+EOLIAN Eo*
+engineer_node_add(Eo *parent, const char *path, const char *title)
+{
+   Eo *node = efl_add(ENGINEER_NODE_CLASS, parent,
+      engineer_node_path_set(efl_added,  path),
+      engineer_node_title_set(efl_added, title));
+
+   return node;
+}
+
+/*** Node Eo Constructors/Destructors ***/
+
 EOLIAN static Efl_Object *
 _engineer_node_efl_object_constructor(Eo *obj, Engineer_Node_Data *pd EINA_UNUSED)
 {
@@ -9,16 +23,33 @@ _engineer_node_efl_object_constructor(Eo *obj, Engineer_Node_Data *pd EINA_UNUSE
 EOLIAN static Efl_Object *
 _engineer_node_efl_object_finalize(Eo *obj, Engineer_Node_Data *pd)
 {
-   // Set up our path elements.
-   if (pd->path  == NULL) getcwd(pd->path, sizeof(PATH_MAX));
-   if (pd->title == NULL) pd->title = "Untitled";
+    obj = efl_finalize(efl_super(obj, ENGINEER_NODE_CLASS));
 
- //pd->nodes        = eina_hash_string_superfast_new(eng_free_cb);
+   // Set up our path elements.
+   //if (pd->path == NULL) getcwd(pd->path, sizeof(PATH_MAX));
+   if (pd->game == NULL) pd->game = "Untitled";
+
+   pd->ipaddress    = 1; // 2130706433; // For now, (127).0.0.1
+   pd->mode         = 0; // Standalone = 0; Client = 1; Server = 2;.
+   pd->peers        = eina_hash_string_superfast_new(eng_free_cb);
    pd->scenes       = eina_hash_string_superfast_new(eng_free_cb);
-   pd->modules      = eina_inarray_new(sizeof(Engineer_Node_Module), 0);
+
+   pd->modulecount  = 0;
+   pd->modulequeue  = eina_inarray_new(sizeof(unsigned int), 0);
+   pd->modulecache  = eina_inarray_new(sizeof(Engineer_Node_Module), 0);
    pd->modulelookup = eina_hash_string_superfast_new(eng_free_cb);
 
-   printf("Finalize Path: %s, Title: %s\n", pd->path, pd->title);
+   pd->entitycount  = 0;
+   pd->entityqueue  = eina_inarray_new(sizeof(unsigned int), 0);
+   pd->entitylocate = eina_hash_int32_new(eng_free_cb);
+   pd->entitystatus = eina_hash_int64_new(eng_free_cb);
+
+   pd->componentcount  = 0;
+   pd->componentqueue  = eina_inarray_new(sizeof(unsigned int), 0);
+   pd->componentlocate = eina_hash_int32_new(eng_free_cb);
+   pd->componentstatus = eina_hash_int64_new(eng_free_cb);
+
+   printf("Finalize Path: %s, Title: %s\n", pd->path, pd->game);
 
    // Set up our path var.  Usually /opt/$GAMENAME.
    //Eina_Stringshare *gamepath = eina_stringshare_printf("%s/%s/", pd->path, pd->title);
@@ -37,25 +68,6 @@ _engineer_node_efl_object_finalize(Eo *obj, Engineer_Node_Data *pd)
 */
    printf("Game Module Checkpoint.\n");
 
-   // Load the Sector component module data.
-   Engineer_Node_Module *module, blank;
-   module = &blank;
-
-   engineer_node_module_register(obj, "Sector");
-
- //module->add     = &engineer_scene_sector_create;
- //module->load    = &engineer_scene_sector_load;
- //module->save    = &engineer_scene_sector_save;
- //module->destroy = &engineer_scene_sector_destroy;
- //module->dispose = &engineer_scene_sector_dispose;
- //module->lookup  = &engineer_scene_sector_lookup;
-
- //module->awake = ;
- //module->start = ;
- //module->update = &engineer_scene_sector_iterate;
-
-   eina_inarray_replace_at(pd->modules, 0, module);
-
    // Load any registered modules automatically.
 
    return obj;
@@ -69,6 +81,8 @@ _engineer_node_efl_object_destructor(Eo *obj, Engineer_Node_Data *pd)
    efl_destructor(efl_super(obj, ENGINEER_NODE_CLASS));
 }
 
+/*** Node Eo @property getter/setters. ***/
+
 EOLIAN static const char *
 _engineer_node_path_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd)
 {
@@ -78,25 +92,26 @@ _engineer_node_path_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd)
 EOLIAN static void
 _engineer_node_path_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd, const char *path)
 {
-   pd->path = (char*)path;
+   pd->path = eina_stringshare_add(path);
 }
 
 EOLIAN static const char *
 _engineer_node_title_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd)
 {
-  return pd->title;
+  return pd->game;
 }
 
 EOLIAN static void
-_engineer_node_title_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd, const char *title)
+_engineer_node_title_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd, const char *game)
 {
-   pd->title = (char*)title;
+   pd->game = eina_stringshare_add(game);
 }
 
 EOLIAN static void
-_engineer_node_file_load(Eo *obj, Engineer_Node_Data *pd)
+_engineer_node_file_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd EINA_UNUSED)
 {
-   if (pd->nodes     != NULL || pd->scenes     != NULL || pd->modules     != NULL ||
+   /*
+   if (pd->peers     != NULL || pd->scenes     != NULL || pd->modulecache != NULL ||
        pd->nodetable != NULL || pd->scenetable != NULL || pd->moduletable != NULL)
       engineer_node_file_close(obj);
 
@@ -130,6 +145,7 @@ _engineer_node_file_load(Eo *obj, Engineer_Node_Data *pd)
          DB_CREATE,        // Open flags.
          0);               // File mode (using defaults).
    }
+   */
 }
 
 EOLIAN static void
@@ -154,7 +170,7 @@ _engineer_node_file_close(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd)
 
 EOLIAN static Efl_Object *
 _engineer_node_scene_create(Eo *obj, Engineer_Node_Data *pd EINA_UNUSED,
-        const char *name)
+        Eina_Stringshare *name)
 {
    printf("Scene Create Checkpoint\n");
    // Make sure that a scene with this name does not already exist in the scene db.
@@ -178,7 +194,7 @@ _engineer_node_scene_create(Eo *obj, Engineer_Node_Data *pd EINA_UNUSED,
 
 EOLIAN static Efl_Object *
 _engineer_node_scene_load(Eo *obj, Engineer_Node_Data *pd,
-        const char *name)
+        Eina_Stringshare *name)
 {
 /*   // Check to see if an entry for the target scene is present in the game scene database.
    DBT key, data;
@@ -189,7 +205,7 @@ _engineer_node_scene_load(Eo *obj, Engineer_Node_Data *pd,
    key.flags = DB_DBT_USERMEM;
    if (pd->scenetable->get(pd->scenetable, NULL, &key, &data, 0) == DB_NOTFOUND) return;
 */
-   printf("Scene Load Checkpoint\n");
+   printf("Scene Load Checkpoint 1.\n");
 
    // Make sure that the scene file is valid.
    //const char path[PATH_MAX];
@@ -197,34 +213,35 @@ _engineer_node_scene_load(Eo *obj, Engineer_Node_Data *pd,
    //if (!ecore_file_is_dir(path)) return;
 
    // Create the scene object and load the data into it.
-   Efl_Object *scene;
-   scene = efl_add(ENGINEER_SCENE_CLASS, obj,
-              engineer_scene_game_set(efl_added, pd->title),
-              engineer_scene_name_set(efl_added, name));
+   Efl_Object *scene = engineer_scene_add(obj, name);
+
+   printf("Scene Load Checkpoint 2.\n");
 
    // Add the newly created scene object to the pd->scenes list using it's name as the key.
    if (eina_hash_find(pd->scenes, name)) return NULL;
    eina_hash_add(pd->scenes, name, scene);
+
+   printf("Scene Load Checkpoint 3.\n");
 
    return scene;
 }
 
 EOLIAN static void
 _engineer_node_scene_save(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd EINA_UNUSED,
-        const char *name EINA_UNUSED)
+        Eina_Stringshare *name EINA_UNUSED)
 {
 }
 
 EOLIAN static void
 _engineer_node_scene_unload(Eo *obj, Engineer_Node_Data *pd EINA_UNUSED,
-        const char *name)
+        Eina_Stringshare *name)
 {
    engineer_node_scene_save(obj, name);
 }
 
 EOLIAN static uint
 _engineer_node_module_register(Eo *obj, Engineer_Node_Data *pd,
-        const char *name)
+        Eina_Stringshare *name)
 {
    // Make sure our module file exists before registering it.
    Eina_Stringshare *file = eina_stringshare_printf("data/modules/%s.module", name);
@@ -243,44 +260,50 @@ _engineer_node_module_register(Eo *obj, Engineer_Node_Data *pd,
 
 EOLIAN static void
 _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-       const char *name)
+       Eina_Stringshare *name)
 {
    Engineer_Node_Module *module, blank;
    module = &blank;
 
-   engineer_node_module_register(obj, name);
+   module->id = engineer_node_module_register(obj, name);
 
    Eina_Stringshare *file = eina_stringshare_printf("data/modules/%s.module", name);
 
    printf("Engineer Game Module Load Checkpoint 1.\n");
 
-   module->handle  = eina_module_new(file);
-   if (module->handle == NULL) {eina_stringshare_del(file); return;}
-   eina_module_load(module->handle);
+   module->class  = eina_module_new(file);
+   if (module->class == NULL) {eina_stringshare_del(file); return;}
+   eina_module_load(module->class);
 
    printf("Engineer Game Module Load Checkpoint 2.\n");
 
-   #define RETURN {eina_module_free(module->handle); eina_stringshare_del(file); return;}
+   #define RETURN {eina_module_free(module->class); eina_stringshare_del(file); return;}
 
-   module->add  = eina_module_symbol_get(module->handle, "engineer_module_new");
-   if (module->add  == NULL) RETURN;
-   module->load = eina_module_symbol_get(module->handle, "engineer_module_component_load");
-   if (module->load == NULL) RETURN;
-   module->save = eina_module_symbol_get(module->handle, "engineer_module_component_save");
-   if (module->save == NULL) RETURN;
+   module->create  = eina_module_symbol_get(module->class, "engineer_module_component_create");
+   if (module->create  == NULL) RETURN;
+   module->load    = eina_module_symbol_get(module->class, "engineer_module_component_load");
+   if (module->load    == NULL) RETURN;
+   module->save    = eina_module_symbol_get(module->class, "engineer_module_component_save");
+   if (module->save    == NULL) RETURN;
+   module->destroy = eina_module_symbol_get(module->class, "engineer_module_component_destroy");
+   if (module->destroy == NULL) RETURN;
+   module->lookup  = eina_module_symbol_get(module->class, "engineer_module_component_lookup");
+   if (module->lookup  == NULL) RETURN;
 
-   module->awake  = eina_module_symbol_get(module->handle, "engineer_module_component_awake");
-   if (module->awake  == NULL) RETURN;
-   module->start  = eina_module_symbol_get(module->handle, "engineer_module_component_start");
-   if (module->start  == NULL) RETURN;
-   module->update = eina_module_symbol_get(module->handle, "engineer_module_component_update");
-   if (module->update == NULL) RETURN;
+   module->factory = eina_module_symbol_get(module->class, "engineer_module_factory");
+   if (module->factory == NULL) RETURN;
+   module->awake   = eina_module_symbol_get(module->class, "engineer_module_awake");
+   if (module->awake   == NULL) RETURN;
+   module->start   = eina_module_symbol_get(module->class, "engineer_module_start");
+   if (module->start   == NULL) RETURN;
+   module->update  = eina_module_symbol_get(module->class, "engineer_module_update");
+   if (module->update  == NULL) RETURN;
 
    #undef RETURN
 
    printf("Engineer Game Module Load Checkpoint 3.\n");
 
-   eina_inarray_push(pd->modules, module);
+   eina_inarray_push(pd->modulecache, module);
 
    printf("Engineer Game Module Load Checkpoint 4.\n");
 }
@@ -306,7 +329,7 @@ _engineer_node_module_lookup(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
 {
    Engineer_Node_Module *module;
 
-   module = eina_inarray_nth(pd->modules, target);
+   module = eina_inarray_nth(pd->modulecache, target);
 
    return module;
 }
@@ -319,7 +342,7 @@ _engineer_node_module_lookup_by_type(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd
    Engineer_Node_Module *module;
 
    index  = (uint)eina_hash_find(pd->modulelookup, target);
-   module = eina_inarray_nth(pd->modules, index);
+   module = eina_inarray_nth(pd->modulecache, index);
 
    return module;
 }
@@ -331,7 +354,7 @@ _engineer_node_module_id_use(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd)
    {
       Engineer_Node_Module blank;
       memset(&blank, 0, sizeof(Engineer_Node_Module));
-      eina_inarray_push(pd->modules, &blank);
+      eina_inarray_push(pd->modulecache, &blank);
 
       eina_inarray_push(pd->modulequeue, &pd->modulecount);
       pd->modulecount += 1;
@@ -346,6 +369,115 @@ _engineer_node_module_id_free(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
 {
    //engineer_scene_component_status_set(obj, target, 0);
    eina_inarray_insert_at(pd->modulequeue, 0, &target);
+}
+
+EOLIAN static uint
+_engineer_node_entity_id_use(Eo *obj, Engineer_Node_Data *pd)
+{
+   if (eina_inarray_count(pd->entityqueue) == 0)
+   {
+      eina_inarray_push(pd->entityqueue, &pd->entitycount);
+      pd->entitycount += 1;
+   }
+   uint *newid = eina_inarray_pop(pd->entityqueue);
+   engineer_node_component_location_set(obj, *newid, pd->ipaddress);
+
+   return *newid;
+}
+
+EOLIAN static void
+_engineer_node_entity_id_free(Eo *obj, Engineer_Node_Data *pd,
+        uint target)
+{
+   engineer_node_entity_status_set(obj, target, 0);
+   eina_inarray_insert_at(pd->entityqueue, 0, &target);
+}
+
+EOLIAN static uint
+_engineer_node_entity_location_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        uint target)
+{
+  return (uint)eina_hash_find(pd->entitylocate, &target);
+}
+
+EOLIAN static void
+_engineer_node_entity_location_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        uint target, uint location)
+{
+   eina_hash_set(pd->entitylocate, &target, &location);
+}
+
+EOLIAN static uint
+_engineer_node_entity_status_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        uint target)
+{
+   uint *status = eina_hash_find(pd->entitystatus, &target);
+   if (status == NULL) return 0;
+   return *status;
+}
+
+EOLIAN static void
+_engineer_node_entity_status_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        uint target, char mode)
+{
+   if (mode < 4) // Make sure that our mode is either zero, one, two, or three.
+   {
+      eina_hash_set(pd->entitystatus, &target, &mode);
+   }
+}
+
+EOLIAN static uint
+_engineer_node_component_id_use(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd)
+{
+   if (eina_inarray_count(pd->componentqueue) == 0)
+   {
+      eina_inarray_insert_at(pd->componentqueue, 0, &pd->componentcount);
+      pd->componentcount += 1;
+   }
+   uint *newid = eina_inarray_pop(pd->componentqueue);
+   engineer_node_component_location_set(obj, *newid, pd->ipaddress);
+   return *newid;
+}
+
+EOLIAN static void
+_engineer_node_component_id_free(Eo *obj, Engineer_Node_Data *pd,
+        uint target)
+{
+   engineer_node_component_status_set(obj, target, 0);  // Fixme: this no longer refers to the scene.
+   eina_inarray_insert_at(pd->componentqueue, 0, &target);
+}
+
+EOLIAN static uint
+_engineer_node_component_location_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        uint target)
+{
+  return (uint)eina_hash_find(pd->componentlocate, &target);
+}
+
+EOLIAN static void
+_engineer_node_component_location_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        uint target, uint location)
+{
+   eina_hash_set(pd->componentlocate, &target, &location);
+}
+
+EOLIAN static uint
+_engineer_node_component_status_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        uint target)
+{
+   uint *status = eina_hash_find(pd->componentstatus, &target);
+   if (status == NULL) return 0;
+   return *status;
+}
+
+EOLIAN static void
+_engineer_node_component_status_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        uint target, char mode)
+{
+   if (mode < 4) // Make sure that our mode is either zero, one, two, or three.
+   {
+      eina_hash_set(pd->componentstatus, &target, &mode);
+   }
 }
 
 #include "engineer_node.eo.c"

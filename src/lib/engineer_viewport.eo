@@ -1,42 +1,34 @@
-class Engineer.Viewport(Efl.Object)
+class Engineer.Viewport(Efl.Ui.Image)
 {
-   eo_prefix: engineer_widget_viewport
+   implements
+   {
+      Efl.Object.constructor;
+      Efl.Object.finalize;
+      Efl.Object.destructor;
+   }
 
-   methods {
-      @property alpha {
+   methods
+   {
+      @property alpha
+      {
          get {}
          set {}
-         values {
-            byte: alpha;
+         values
+         {
+            alpha: char;
          }
       }
 
-      @property buffers {
+      @property camera
+      {
          get {}
          set {}
-         values {
-            void: blue;
-            void: red;
+         values
+         {
+            camera: uint;
          }
-      }
-
-      @property camera {
-         get {}
-         set {}
-         values {
-            void: camera;
-         }
-      }
-
-      update {
-      }
-
-      resize {
       }
 
    }
 
-   implements {
-      Elf.Object.constructor;
-   }
 }

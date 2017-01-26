@@ -2,6 +2,17 @@
 
 /*** 2D Vector Algebra Functions ***/
 
+Vec2Buffer
+engineer_math_vec2_mult(Vec2 *va, Vec2 *vb)
+{
+   Vec2Buffer output;
+
+   output.x = MULT(va->x, vb->x);
+   output.y = MULT(va->y, vb->y);
+
+   return output;
+}
+
 SclrBuffer
 engineer_math_vec2_dot(Vec2 *va, Vec2 *vb)
 {
