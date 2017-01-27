@@ -60,7 +60,7 @@ elm_main(int argc, char **argv)
    //engineer_run();
 
    elm_run();
-   elm_shutdown();
+   //elm_shutdown();
 
    config_error:
       //engineer_render_test_shutdown();

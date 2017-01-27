@@ -21,7 +21,6 @@ Engineer_Scene_Frame;
 typedef struct
 {
    Eo *node;                      // Pointer to the Parent Node Eo.
-   // void *nodepd;
 
    const char   *name;            // The name of this scene. MUST be unique, the code will check.
    uint          size;
@@ -56,24 +55,11 @@ typedef struct
 }
 Engineer_Scene_Data;
 
-EOLIAN Eo *
+Eo *
 engineer_scene_add(Eo *obj, const char *name);
-
-static void
-_engineer_scene_iterate_init_task(void *data, Ecore_Thread *thread);
-
-static void
-_engineer_scene_iterate_init_done(void *data, Ecore_Thread *thread);
-
-static void
-_engineer_scene_iterate_init_cancel(void *data, Ecore_Thread *thread);
 
 EOLIAN static Eina_Bool
 _engineer_scene_iterate_cb(void *data);
-
-EOLIAN static Eina_Bool
-_engineer_scene_iterate_module_cb(const Eina_Hash *hash, const void *key,
-        void *data, void *fdata);
 
 EOLIAN static Eina_Bool
 _engineer_scene_iterate_entity_cb(const Eina_Hash *hash, const void *key,
@@ -82,5 +68,18 @@ _engineer_scene_iterate_entity_cb(const Eina_Hash *hash, const void *key,
 EOLIAN static Eina_Bool
 _engineer_scene_iterate_component_cb(const Eina_Hash *hash, const void *key,
         void *data, void *fdata);
+
+EOLIAN static Eina_Bool
+_engineer_scene_iterate_module_cb(const Eina_Hash *hash, const void *key,
+        void *data, void *fdata);
+
+static void
+_engineer_scene_iterate_module_init_task(void *data, Ecore_Thread *thread);
+
+static void
+_engineer_scene_iterate_module_init_done(void *data, Ecore_Thread *thread);
+
+static void
+_engineer_scene_iterate_module_init_cancel(void *data, Ecore_Thread *thread);
 
 #endif

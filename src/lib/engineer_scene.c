@@ -3,11 +3,11 @@
 // eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl` -I . -g h engineer_scene.eo
 // eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl` -I . -g c engineer_scene.eo
 
-EOLIAN Eo *
+Eo *
 engineer_scene_add(Eo *parent, const char *name)
 {
-   Eo *scene = efl_add(ENGINEER_SCENE_CLASS, parent,
-      engineer_scene_name_set(efl_added, name));
+   Eo *scene = efl_add(ENGINEER_SCENE_CLASS, parent);
+      //engineer_scene_name_set(efl_added, name));
 
    return scene;
 }
@@ -41,9 +41,8 @@ _engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd EINA_UNU
 Efl_Object *
 _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 {
-   Eo *node = efl_super(obj, ENGINEER_SCENE_CLASS);
-   obj = efl_finalize(node);
-   pd->node = node;
+   obj = efl_finalize(efl_super(obj, ENGINEER_SCENE_CLASS));
+   pd->node = efl_parent_get(obj);
 
    // The Scene size is in units of (2^x)/(2^16) meters where x is the setting. Max: bitwidth--.
    pd->size = 63;
@@ -61,7 +60,7 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 
    uint count = eina_inarray_count(pd->timeline);
 
-   printf("Scene Finalize Checkpoint 1. Number of Frames: %d\n", count);
+   printf("Scene Finalize Checkpoint. Number of Frames: %d\n", count);
 
    // We need to set up our timeline pointers for the first time here.
    // Note that past and present point to the same dataset for the initial frame to prevent
@@ -70,15 +69,12 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    pd->present = eina_inarray_nth(pd->timeline, 1);
    pd->future  = eina_inarray_nth(pd->timeline, 0);
 
-   printf("Scene Finalize Checkpoint 2.\n");
-
    // Create the in-memory data cache.
    pd->datacache = eina_hash_pointer_new(eng_free_cb);
 
-   printf("Scene Finalize Checkpoint 3.\n");
-
    // Create and fill our pd->scenecache array with a new Eo instance for each registered module.
-   count = eina_hash_population(pd->datacache); // Needs to be the node module cache.
+   Engineer_Node_Data *nodepd = efl_data_scope_get(pd->node, ENGINEER_NODE_CLASS);
+   count = eina_hash_population(nodepd->modulelookup);
    if (count != 0)
    {
       Engineer_Node_Module *module;
@@ -93,15 +89,8 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
       }
    }
 
-   printf("Scene Finalize Checkpoint 4.\n");
-
-   // Enqueue the creation of our scene iteration clock to run in the threadpool.
-   ecore_thread_run(
-      _engineer_scene_iterate_init_task,
-      _engineer_scene_iterate_init_done,
-      _engineer_scene_iterate_init_cancel,
-      obj);
-
+   pd->iterator = ecore_timer_add((double)1/pd->clockrate, _engineer_scene_iterate_cb, obj);
+   //ecore_timer_freeze(pd->iterator);
 /*
    Eina_List *tables = NULL, *list, *next;
    struct { DB *handle; char *name; } *table, buffer1, buffer2, buffer3, buffer4, buffer5;
@@ -142,8 +131,6 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 
    //engineer_scene_file_load(obj);
 */
-   printf("Scene Finalize Checkpoint 5.\n");
-
    // If our Scene is new, create a root Entity and set it up.
    if (pd->entitycount == 0)
    {
@@ -154,16 +141,14 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
       memset(root, 0, sizeof(Engineer_Scene_Entity));
 
       root->name = eina_stringshare_add("Scene Root");
-      printf("before\n");
-      root->id   = engineer_node_entity_id_use(obj);
-      printf("after\n");
+      root->id   = engineer_node_entity_id_use(efl_parent_get(obj));
 
       buffer = eina_inarray_push(pd->present->entitycache, root);
       root   = eina_inarray_nth(pd->present->entitycache, buffer);
       eina_hash_add(pd->present->entitylookup, &root->id, root);
 
-      //root->status         = 3; // Fixme: needs to refer to node data.
-      //root->referencecount = 1; // This one too.
+      //nodepd->status         = 3; // Fixme: needs to refer to node data.
+      //nodepd->referencecount = 1; // This one too.
 
       root->parent         = 0;
       root->siblingnext    = 0;
@@ -174,7 +159,7 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
       printf("Root Entity Create Checkpoint. EID: %d\n", root->id);
    }
 
-   printf("Scene Finalize Checkpoint 6.\n");
+   printf("Active Threads Test: %d\n", ecore_thread_available_get());
 
    return obj;
 }
@@ -185,6 +170,8 @@ _engineer_scene_efl_object_destructor(Eo *obj EINA_UNUSED, Engineer_Scene_Data *
    // For each loaded entity and it's components, flush all data in cache to DB.
    if (pd->componenttable != NULL) pd->componenttable->close(pd->componenttable, 0);
    if (pd->entitytable    != NULL) pd->entitytable->close(pd->entitytable, 0);
+
+   efl_destructor(efl_super(obj, ENGINEER_SCENE_CLASS));
 }
 
 /*** Scene Efl Object property getter/setters. ***/
@@ -203,64 +190,39 @@ _engineer_scene_name_set(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd, const cha
 
 /*** Iteration Methods. These are what make everything happen. ***/
 
-static void
-_engineer_scene_iterate_init_task(void *data, Ecore_Thread *thread EINA_UNUSED)
-{
-   printf("Engineer Scene Iterate Init Checkpoint.\n");
-
-   Eo *obj = data;
-   Engineer_Scene_Data *pd = efl_data_scope_get(obj, ENGINEER_SCENE_CLASS);
-
-   // Create and pause our Sector's iteration clock on Frame 0.
-   pd->iterator = ecore_timer_add(1/pd->clockrate, _engineer_scene_iterate_cb, obj);
-   ecore_timer_freeze(pd->iterator);
-}
-
-static void
-_engineer_scene_iterate_init_done(void *data EINA_UNUSED, Ecore_Thread *thread EINA_UNUSED)
-{
-   printf("Engineer Scene Iterate Init Done Checkpoint.\n");
-}
-
-static void
-_engineer_scene_iterate_init_cancel(void *data EINA_UNUSED, Ecore_Thread *thread EINA_UNUSED)
-{
-   printf("Engineer Scene Iterate Init Cancel Checkpoint.\n");
-}
-
 EOLIAN static Eina_Bool
 _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
 {
-   uint  count;
-   float timestamp;
+   uint  count, size;
+   double timestamp;
 
    // Store the timestamp for when this Sector's clock tick begins.
    timestamp = ecore_time_get();
-
-   printf("Scene Iterate Checkpoint 1.\n");
 
    // Check to see if our timeline Frame count is currently equal to our retention value.
    //    If not, modify the size of the timeline by one Frame in the correct direction.
    count = eina_inarray_count(pd->timeline);
    if (count != pd->retention) engineer_scene_timeline_adjust(obj);
 
-   printf("Scene Iterate Checkpoint 2.\n");
-
    // Cycle the timeline to get to our next frame. This also resets our pointers in case they
-   //    were nuked by an eina_inarray_push.
-   pd->future  = eina_inarray_nth(pd->timeline, (pd->future->index-1 + count) % count);
-   pd->present = eina_inarray_nth(pd->timeline,  pd->future->index++ % count);
-   pd->past    = eina_inarray_nth(pd->timeline,  pd->future->index+2 % count);
-
-   printf("Scene Iterate Checkpoint 3.\n");
+   //    were nuked by an eina_inarray_push.  Future pointer should change 0->2 to start.
+   pd->future  = eina_inarray_nth(pd->timeline, (pd->future->index - 1  + count) % count);
+   pd->present = eina_inarray_nth(pd->timeline, (pd->future->index + 1) % count);
+   pd->past    = eina_inarray_nth(pd->timeline, (pd->future->index + 2) % count);
 
    // Wipe clean the allocated space reserved for our next Frame's Entity and Component metadata.
-   eina_hash_free_buckets(pd->future->entitylookup);
-   eina_hash_free_buckets(pd->future->componentlookup);
+   eina_hash_free(pd->future->entitylookup);
+   eina_hash_free(pd->future->componentlookup);
+   pd->future->entitylookup    = eina_hash_int64_new(eng_free_cb);
+   pd->future->componentlookup = eina_hash_int64_new(eng_free_cb);
 
    // Clear all payload data for the future frame.
-   eina_inarray_flush(pd->future->entitycache);
-   eina_inarray_flush(pd->future->componentcache);
+   //eina_inarray_flush(pd->future->entitycache);
+   size = sizeof(Engineer_Scene_Entity) * eina_inarray_count(pd->present->entitycache);
+   eina_inarray_resize(pd->future->entitycache, size);
+   //eina_inarray_flush(pd->future->componentcache);
+   size = sizeof(Engineer_Scene_Component) * eina_inarray_count(pd->present->componentcache);
+   eina_inarray_resize(pd->future->componentcache, size);
 
    // Copy over our present Scenegraph metadata to the next Frame.
    eina_hash_foreach(pd->present->entitylookup,    _engineer_scene_iterate_entity_cb,    obj);
@@ -268,6 +230,8 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
 
    // Iterate thru each module's component code active in the scene.
    eina_hash_foreach(pd->datacache, _engineer_scene_iterate_module_cb, obj);
+
+   printf("Engineer Scene Iterator Checkpoint. Clockrate: %d Htz, Timestamp: %1.5f\n", pd->clockrate, timestamp);
 
    timestamp -= ecore_time_get();
 
@@ -294,6 +258,58 @@ _engineer_scene_iterate_cb(void *data)
 }
 
 EOLIAN static Eina_Bool
+_engineer_scene_iterate_entity(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        void *key, void *data)
+{
+   Engineer_Scene_Entity *buffer;
+   long unsigned int      index = *(long unsigned int*)data;
+
+   printf("Engineer Scene Iterate Entity Checkpoint. Index: %ld\n", index);
+
+   // Copy over our Entity lookup data into the new Frame's Entity hashtable.
+   eina_hash_add(pd->future->entitylookup, key, data);
+
+   // Copy the associated cache data for this Entity into the next Frame.
+   buffer = eina_inarray_nth(pd->present->entitycache, index);
+   eina_inarray_insert_at(pd->future->entitycache, index, buffer);
+
+   return EINA_TRUE;
+}
+
+EOLIAN static Eina_Bool
+_engineer_scene_iterate_entity_cb(const Eina_Hash *hash EINA_UNUSED, const void *key,
+        void *data, void *fdata)
+{
+   return engineer_scene_iterate_entity(fdata, (void*)key, data);
+}
+
+EOLIAN static Eina_Bool
+_engineer_scene_iterate_component(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        void *key, void *data)
+{
+   Engineer_Scene_Component *buffer;
+   long unsigned int         index = *(long unsigned int*)data;
+
+   printf("Engineer Scene Iterate Component Checkpoint. Index: %ld\n", index);
+
+   // Copy over our Component lookup data into the new Frame's Component hashtable.
+   eina_hash_add(pd->future->componentlookup, key, data);
+
+   // Copy the associated cache data for this Component into the next Frame.
+   buffer = eina_inarray_nth(pd->present->componentcache, index);
+   eina_inarray_replace_at(pd->future->componentcache, index, buffer);
+
+   return EINA_TRUE;
+}
+
+EOLIAN static Eina_Bool
+_engineer_scene_iterate_component_cb(const Eina_Hash *hash EINA_UNUSED, const void *key,
+        void *data, void *fdata)
+{
+   return engineer_scene_iterate_component(fdata, (void*)key, data);
+}
+
+EOLIAN static Eina_Bool
 _engineer_scene_iterate_module(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint *key)
 {
@@ -315,52 +331,38 @@ _engineer_scene_iterate_module_cb(const Eina_Hash *hash EINA_UNUSED, const void 
    return engineer_scene_iterate_module(fdata, (uint*)key);
 }
 
-EOLIAN static Eina_Bool
-_engineer_scene_iterate_entity(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
-        void *key, void *data)
+static void
+_engineer_scene_iterate_module_init_task(void *data, Ecore_Thread *thread EINA_UNUSED)
 {
-   Engineer_Scene_Entity *buffer;
-   uint                   index = *(uint*)data;
+   /*
+   // Enqueue the creation of our scene iteration clock to run in the threadpool.
+   ecore_thread_run(
+      _engineer_scene_iterate_module_init_task,
+      _engineer_scene_iterate_module_init_done,
+      _engineer_scene_iterate_module_init_cancel,
+      obj);
+   */
 
-   // Copy over our Entity lookup data into the new Frame's Entity hashtable.
-   eina_hash_add(pd->future->entitylookup, key, data);
+   printf("Engineer Scene Iterate Init Checkpoint.\n");
 
-   // Copy the associated cache data for this Entity into the next Frame.
-   buffer = eina_inarray_nth(pd->present->entitycache, index);
-   eina_inarray_replace_at(pd->future->entitycache, index, buffer);
+   Eo *obj = data;
+   Engineer_Scene_Data *pd = efl_data_scope_get(obj, ENGINEER_SCENE_CLASS);
 
-   return EINA_TRUE;
+   // Create and pause our Sector's iteration clock on Frame 0.
+   pd->iterator = ecore_timer_add(1/pd->clockrate, _engineer_scene_iterate_cb, obj);
+   ecore_timer_freeze(pd->iterator);
 }
 
-EOLIAN static Eina_Bool
-_engineer_scene_iterate_entity_cb(const Eina_Hash *hash EINA_UNUSED, const void *key,
-        void *data, void *fdata)
+static void
+_engineer_scene_iterate_module_init_done(void *data EINA_UNUSED, Ecore_Thread *thread EINA_UNUSED)
 {
-   return engineer_scene_iterate_entity(fdata, (void*)key, data);
+   printf("Engineer Scene Iterate Init Done Checkpoint.\n");
 }
 
-EOLIAN static Eina_Bool
-_engineer_scene_iterate_component(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
-        void *key, void *data)
+static void
+_engineer_scene_iterate_module_init_cancel(void *data EINA_UNUSED, Ecore_Thread *thread EINA_UNUSED)
 {
-   Engineer_Scene_Component *buffer;
-   uint                      index = *(uint*)data;
-
-   // Copy over our Component lookup data into the new Frame's Component hashtable.
-   eina_hash_add(pd->future->componentlookup, key, data);
-
-   // Copy the associated cache data for this Component into the next Frame.
-   buffer = eina_inarray_nth(pd->present->componentcache, index);
-   eina_inarray_replace_at(pd->future->componentcache, index, buffer);
-
-   return EINA_TRUE;
-}
-
-EOLIAN static Eina_Bool
-_engineer_scene_iterate_component_cb(const Eina_Hash *hash EINA_UNUSED, const void *key,
-        void *data, void *fdata)
-{
-   return engineer_scene_iterate_component(fdata, (void*)key, data);
+   printf("Engineer Scene Iterate Init Cancel Checkpoint.\n");
 }
 
 /*** Timeline Methods ***/
@@ -368,6 +370,8 @@ _engineer_scene_iterate_component_cb(const Eina_Hash *hash EINA_UNUSED, const vo
 EOLIAN static void
 _engineer_scene_timeline_adjust(Eo *obj, Engineer_Scene_Data *pd)
 {
+   printf("Scene Timeline Adjust Checkpoint 1.\n");
+
    // Before we start, we need to know what our present timeline index is, and how large it is.
    uint count = eina_inarray_count(pd->timeline);
    uint index = pd->present->index;
@@ -407,10 +411,10 @@ _engineer_scene_timeline_push(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd)
    frame->timestamp       = 0;
 
    frame->entitycache     = eina_inarray_new(sizeof(Engineer_Scene_Entity), 0);
-   frame->entitylookup    = eina_hash_int32_new(eng_free_cb);
+   frame->entitylookup    = eina_hash_int64_new(eng_free_cb);
 
    frame->componentcache  = eina_inarray_new(sizeof(Engineer_Scene_Component), 0);
-   frame->componentlookup = eina_hash_int32_new(eng_free_cb);
+   frame->componentlookup = eina_hash_int64_new(eng_free_cb);
 }
 
 EOLIAN static void

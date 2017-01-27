@@ -41,7 +41,7 @@ typedef struct
 }
 Engineer_Node_Data;
 
-EOLIAN Eo*
+Eo*
 engineer_node_add(Eo *obj, const char *path, const char *title);
 
 #endif

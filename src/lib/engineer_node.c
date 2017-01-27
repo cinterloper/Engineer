@@ -2,12 +2,12 @@
 
 /*** Node EFL API ***/
 
-EOLIAN Eo*
+Eo*
 engineer_node_add(Eo *parent, const char *path, const char *title)
 {
-   Eo *node = efl_add(ENGINEER_NODE_CLASS, parent,
-      engineer_node_path_set(efl_added,  path),
-      engineer_node_title_set(efl_added, title));
+   Eo *node = efl_add(ENGINEER_NODE_CLASS, parent);
+      //engineer_node_path_set(efl_added,  path),
+      //engineer_node_title_set(efl_added, title));
 
    return node;
 }
@@ -27,7 +27,7 @@ _engineer_node_efl_object_finalize(Eo *obj, Engineer_Node_Data *pd)
 
    // Set up our path elements.
    //if (pd->path == NULL) getcwd(pd->path, sizeof(PATH_MAX));
-   if (pd->game == NULL) pd->game = "Untitled";
+   if (pd->game == NULL) pd->game = "Default Node Title";
 
    pd->ipaddress    = 1; // 2130706433; // For now, (127).0.0.1
    pd->mode         = 0; // Standalone = 0; Client = 1; Server = 2;.
@@ -374,6 +374,7 @@ _engineer_node_module_id_free(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
 EOLIAN static uint
 _engineer_node_entity_id_use(Eo *obj, Engineer_Node_Data *pd)
 {
+   printf("Node Entity ID use Checkpoint.\n");
    if (eina_inarray_count(pd->entityqueue) == 0)
    {
       eina_inarray_push(pd->entityqueue, &pd->entitycount);
