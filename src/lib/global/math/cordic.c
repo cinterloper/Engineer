@@ -98,88 +98,70 @@ cordic_circular_init()
    }
 
    // Calculate circular gain by evaluating cos(0) without inverse gain.
-   Sclr x = ANGLBASIS;
-   Sclr y = 0;
-   Sclr z = 0;
-   cordic_circular_zmode(&x, &y, &z);
-   y = ANGLBASIS;
-   cordic_gain_c = DIVDANGL(&y, &x);
+   Vec3 gain;
+   gain.x = ANGLBASIS;
+   gain.y = 0;
+   gain.z = 0;
+   gain   = cordic_circular_zmode(gain);
+   gain.y = ANGLBASIS;
+   cordic_gain_c = ANGLDIVD(gain.y, gain.x);
 }
 
-void
-cordic_circular_ymode(Sclr *x0, Sclr *y0, Sclr *z0)
+Vec3
+cordic_circular_ymode(Vec3 input)
 {
-   Sclr x  = *x0;
-   Sclr y  = *y0;
-   Sclr z  = *z0;
-   Sclr dx = 0;
-   Sclr ds = 0;
+   Sclr mask = 0;
+   Sclr xbuf = 0;
 
-   for (unsigned int i = 0; i < SCALE; i++)
+   for (uint32_t i = 0; i < SCALE; i++)
    {
-      ds = y >> (SCALE - 1); // Most Significant Bit
-
-      dx = x + (((y >> i)          ^ ds) - ds);
-      y  = y - (((x >> i)          ^ ds) - ds);
-      z  = z + (((cordic_lut_c[i]) ^ ds) - ds);
-
-      x  = dx;
+      mask    = input.y >> (SCALE - 1);                       // Most Significant Bit.
+      xbuf    = input.x + (((input.y >> i)    ^ mask) - mask);
+      input.y = input.y - (((input.x >> i)    ^ mask) - mask);
+      input.z = input.z + (((cordic_lut_c[i]) ^ mask) - mask);
+      input.x = xbuf;
    }
 
-   *x0 = x;
-   *y0 = y;
-   *z0 = z;
+   return input;
 }
 
-void
-cordic_circular_aymode(Sclr *x0, Sclr *y0, Sclr *z0)
+Vec3
+cordic_circular_aymode(Vec3 input)
 {
-   Sclr x  = *x0;
-   Sclr y  = 0;
-   Sclr z  = *z0;
-   Sclr ay = *y0;
-   Sclr dx = 0;
-   Sclr ds = 0;
+   Sclr mask = 0;
+   Sclr xbuf = 0;
+   Sclr ybuf = input.y;
+   input.y   = 0;
 
-   for (unsigned int i = 0; i < SCALE; i++)
+   for (uint32_t i = 0; i < SCALE; i++)
    {
-      ds = (y + ay) >> (SCALE - 1); // Most Significant Bit
-
-      dx = x - (((y >> i)          ^ ds) - ds);
-      y  = y + (((x >> i)          ^ ds) - ds);
-      z  = z - (((cordic_lut_c[i]) ^ ds) - ds);
-
-      x  = dx;
+      mask    = (input.y + ybuf) >> (SCALE - 1);              // Most Significant Bit.
+      xbuf    = input.x - (((input.y >> i)    ^ mask) - mask);
+      input.y = input.y + (((input.x >> i)    ^ mask) - mask);
+      input.z = input.z - (((cordic_lut_c[i]) ^ mask) - mask);
+      input.x = xbuf;
    }
 
-   *x0 = x;
-   *y0 = y;
-   *z0 = z;
+   return input;
 }
 
-void
-cordic_circular_zmode(Sclr *x0, Sclr *y0, Sclr *z0)
+Vec3
+cordic_circular_zmode(Vec3 input)
 {
-   Sclr x  = *x0;
-   Sclr y  = *y0;
-   Sclr z  = *z0;
-   Sclr dx = 0;
-   Sclr ds = 0;
+   Sclr mask = 0;
+   Sclr xbuf = 0;
 
-   for (unsigned int i = 0; i < SCALE; i++)
+
+   for (uint32_t i = 0; i < SCALE; i++)
    {
-      ds = z >> (SCALE - 1); // Most Significant Bit
-
-      dx = x - (((y >> i)          ^ ds) - ds);
-      y  = y + (((x >> i)          ^ ds) - ds);
-      z  = z - (((cordic_lut_c[i]) ^ ds) - ds);
-
-      x  = dx;
+      mask    = input.z >> (SCALE - 1);                       // Most Significant Bit.
+      xbuf    = input.x - (((input.y >> i)    ^ mask) - mask);
+      input.y = input.y + (((input.x >> i)    ^ mask) - mask);
+      input.z = input.z - (((cordic_lut_c[i]) ^ mask) - mask);
+      input.x = xbuf;
    }
 
-   *x0 = x;
-   *y0 = y;
-   *z0 = z;
+   return input;
 }
 
 
@@ -190,10 +172,12 @@ cordic_circular_zmode(Sclr *x0, Sclr *y0, Sclr *z0)
 void
 cordic_hyperbolic_init() // Fixme //
 {
+   Sclr     t;
+   uint32_t i;
+
    // Compute our Lookup Table for the hyperbolic CORDIC computers.
-   Sclr t = ANGLBASIS;
-   unsigned int i;
-   for (i = 0; i < SCALE; ++i)
+   t = ANGLBASIS;
+   for (i = 0; i < SCALE; i++) // ++i?
    {
       t = t >> 1;
       cordic_lut_h[i] = (Sclr)(log((ANGLBASIS + t) / (ANGLBASIS - t))) >> 1;
@@ -216,73 +200,58 @@ cordic_hyperbolic_init() // Fixme //
    }
 
    // Calculate hyperbolic gain.
-   Sclr x = ANGLBASIS;
-   Sclr y = 0;
-   Sclr z = 0;
-   cordic_hyperbolic_zmode(&x, &y, &z);
-   y = ANGLBASIS;
-   cordic_gain_h = DIVD(&y, &x);// (ANGLBASE << ANGLMAG)/ x
+   Vec3 gain;
+   gain.x = ANGLBASIS;
+   gain.y = 0;
+   gain.z = 0;
+   gain   = cordic_hyperbolic_zmode(gain);
+   gain.y = ANGLBASIS;
+   cordic_gain_h = DIVD(gain.y, gain.x);// (ANGLBASE << ANGLMAG)/ x
 }
 
-void
-cordic_hyperbolic_ymode(Sclr *x0, Sclr *y0, Sclr *z0)
+Vec3
+cordic_hyperbolic_ymode(Vec3 input)
 {
-   Sclr x = *x0;
-   Sclr y = *y0;
-   Sclr z = *z0;
-   Sclr dx = 0;
-   Sclr ds = 0;
+   Sclr mask = 0;
+   Sclr xbuf = 0;
 
    for (unsigned int i = 0; i < SCALE; i++)
    {
-      ds = y >> (SCALE - 1); // Most Significant Bit
+      mask    = input.y >> (SCALE - 1);                       // Most Significant Bit
+      xbuf    = input.x - (((input.y >> i)    ^ mask) - mask);
+      input.y = input.y - (((input.x >> i)    ^ mask) - mask);
+      input.z = input.z + (((cordic_lut_c[i]) ^ mask) - mask);
+      input.x = xbuf;
 
-      dx = x - (((y >> i)          ^ ds) - ds);
-      y  = y - (((x >> i)          ^ ds) - ds);
-      z  = z + (((cordic_lut_c[i]) ^ ds) - ds);
-
-      x  = dx;
-
-      dx = x - ((((y >> i)          ^ ds) - ds) & cordic_lut_m[i]);
-      y  = y - ((((x >> i)          ^ ds) - ds) & cordic_lut_m[i]);
-      z  = z + ((((cordic_lut_c[i]) ^ ds) - ds) & cordic_lut_m[i]);
-
-      x  = dx;
+      xbuf    = input.x - ((((input.y >> i)    ^ mask) - mask) & cordic_lut_m[i]);
+      input.y = input.y - ((((input.x >> i)    ^ mask) - mask) & cordic_lut_m[i]);
+      input.z = input.z + ((((cordic_lut_c[i]) ^ mask) - mask) & cordic_lut_m[i]);
+      input.x = xbuf;
    }
 
-   *x0 = x;
-   *y0 = y;
-   *z0 = z;
+   return input;
 }
 
-void
-cordic_hyperbolic_zmode(Sclr *x0, Sclr *y0, Sclr *z0)
+Vec3
+cordic_hyperbolic_zmode(Vec3 input)
 {
-   Sclr x = *x0;
-   Sclr y = *y0;
-   Sclr z = *z0;
-   Sclr dx = 0;
-   Sclr ds = 0;
+   Sclr mask = 0;
+   Sclr xbuf = 0;
 
    for (unsigned int i = 0; i < SCALE; i++)
    {
-      ds = z >> (SCALE - 1); // Most Significant Bit
+      mask    = input.z >> (SCALE - 1); // Most Significant Bit
+      xbuf    = input.x + (((input.y >> i)    ^ mask) - mask);
+      input.y = input.y + (((input.x >> i)    ^ mask) - mask);
+      input.z = input.z - (((cordic_lut_c[i]) ^ mask) - mask);
+      input.x = xbuf;
 
-      dx = x + (((y >> i)          ^ ds) - ds);
-      y  = y + (((x >> i)          ^ ds) - ds);
-      z  = z - (((cordic_lut_c[i]) ^ ds) - ds);
-
-      x  = dx;
-
-      dx = x + ((((y >> i)          ^ ds) - ds) & cordic_lut_m[i]);
-      y  = y + ((((x >> i)          ^ ds) - ds) & cordic_lut_m[i]);
-      z  = z - ((((cordic_lut_c[i]) ^ ds) - ds) & cordic_lut_m[i]);
-
-      x  = dx;
+      xbuf    = input.x + ((((input.y >> i)    ^ mask) - mask) & cordic_lut_m[i]);
+      input.y = input.y + ((((input.x >> i)    ^ mask) - mask) & cordic_lut_m[i]);
+      input.z = input.z - ((((cordic_lut_c[i]) ^ mask) - mask) & cordic_lut_m[i]);
+      input.x = xbuf;
    }
 
-   *x0 = x;
-   *y0 = y;
-   *z0 = z;
+   return input;
 }
 

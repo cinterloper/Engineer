@@ -19,12 +19,9 @@ typedef struct
    Eina_Hash    *peers;           // A list of connected server peer nodes.
    Eina_Hash    *scenes;          // Our active scene Efl_Objects, referenced by thier proper names.
 
-   unsigned int  modulecount;     // Stores the present total amount of Modules in the Node.
-   Eina_Inarray *modulequeue;     // Stores (presently) free'd Module ID's.
-   Eina_Inarray *modulecache;     // Our active Engineer_Node_Module(s), referenced by their ID's.
-   Eina_Hash    *modulelookup;    // Finds the module, referenced by it's name string.
+   Eina_Hash    *classes;         // Finds the module class reference, keyed by it's murmur3 hash.
 
-   unsigned int  entitycount;     // Stores the total amount of Entities originated by the Node.
+   uint64_t      entitycount;     // Stores the total amount of Entities originated by the Node.
    Eina_Inarray *entityqueue;     // Stores (presently) available Entity ID's.
    Eina_Hash    *entitylocate;    // Stores where all Entities originated by this Node are currently stored.
    Eina_Hash    *entitystatus;    // Stores the status of currently loaded EntityID's.
@@ -33,15 +30,10 @@ typedef struct
    Eina_Inarray *componentqueue;  // Stores (presently) available Component ID's.
    Eina_Hash    *componentlocate; // Stores where all Components originated by this Node are currently stored.
    Eina_Hash    *componentstatus; // (Living/Locked/Dead/Free). Also stores refcount.
-
-   DB_ENV       *database;        // The handle pointer for our game database file/environment.
-   DB           *nodetable;
-   DB           *scenetable;
-   DB           *moduletable;     // This is a list of modules that have been registered to the game, referenced by thier ID.
 }
 Engineer_Node_Data;
 
-Eo*
-engineer_node_add(Eo *obj, const char *path, const char *title);
+Eo *
+engineer_node_new(Eo *parent, const char *path, const char *title);
 
 #endif

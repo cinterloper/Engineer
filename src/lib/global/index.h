@@ -1,8 +1,6 @@
 #ifndef _ENGINEER_GLOBAL_INDEX_H_
 #define _ENGINEER_GLOBAL_INDEX_H_
 
-//#define EFL_BETA_API_SUPPORT
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

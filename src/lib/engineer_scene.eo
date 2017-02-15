@@ -1,26 +1,6 @@
-struct Engineer_Scene_Entity
-{
-   id:             uint;
-   name:           stringshare;
-
-   parent:         uint;
-   siblingnext:    uint;
-   siblingprev:    uint;
-   firstcomponent: uint;
-   firstentity:    uint;
-}
-
-struct Engineer_Scene_Component
-{
-   id:             uint;
-   name:           stringshare;
-
-   type:           uint;
-
-   parent:         uint;
-   siblingnext:    uint;
-   siblingprev:    uint;
-}
+struct @extern Engineer_Module_Class {}
+struct @extern Engineer_Entity_History {}
+struct @extern Engineer_Scene_Frame {}
 
 class Engineer.Scene(Efl.Object)
 {
@@ -31,18 +11,19 @@ class Engineer.Scene(Efl.Object)
       Efl.Object.destructor;
    }
 
-   constructors
-   {
-   }
-
    events
    {
-      sector_iterate_cb;
+      iterate_cb;
    }
 
    methods
    {
       efl_object_constructor
+      {
+         return: Efl.Object;
+      }
+
+      efl_object_finalize
       {
          return: Efl.Object;
       }
@@ -63,241 +44,110 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
+      @property module
+      {
+         get
+         {
+            values
+            {
+               classid: uint64;
+            }
+            return: Efl.Object;
+         }
+      }
+
       iterate
       {
          return: bool;
       }
 
-      iterate_module
+      respond
       {
          params
          {
-            @in key: ptr(uint);
+            @in inboxs: ptr(Eina.Inarray);
+            @in offset: uint32;
          }
-         return: bool;
-      }
-
-      iterate_entity
-      {
-         params
-         {
-            @in key: void_ptr;
-            @in data: void_ptr;
-         }
-         return: bool;
-      }
-
-      iterate_component
-      {
-         params
-         {
-            @in key: void_ptr;
-            @in data: void_ptr;
-         }
-         return: bool;
-      }
-
-      timeline_adjust
-      {
-      }
-
-      timeline_push
-      {
-      }
-
-      timeline_pop
-      {
       }
 
       entity_create
       {
          params
          {
-            @in parent: uint;
-            @in name: string;
+            @in id:     uint64;
+            @in parent: uint64;
+            @in name:   string;
          }
-         return: uint;
-      }
-
-      entity_destroy
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      entity_dispose
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      entity_load
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      entity_save
-      {
-         params
-         {
-            @in target: uint;
-         }
+         return: bool;
       }
 
       entity_lookup
       {
          params
          {
-            @in target: uint;
+            @in target: uint64;
          }
-         return: ptr(Engineer_Scene_Entity);
-      }
-
-      entity_data_swap
-      {
-         params
-         {
-            @in targeta: uint;
-            @in targetb: uint;
-         }
-      }
-
-      entity_parent_get
-      {
-         params
-         {
-            @in target: uint;
-         }
-         return: uint;
+         return: uint32;
       }
 
       entity_parent_set
       {
          params
          {
-            @in target: uint;
-            @in parent: uint;
+            @in target: uint64;
+            @in parent: uint64;
          }
       }
 
-      entity_sibling_swap
+      entity_inbox_get
       {
          params
          {
-            @in siblinga: uint;
-            @in siblingb: uint;
-         }
-      }
-
-      entity_children_get
-      {
-         params
-         {
-            @in target: uint;
+            @in entityid: uint64;
          }
          return: ptr(Eina.Inarray);
       }
 
-      entity_components_get
+      entity_outbox_get
       {
          params
          {
-            @in target: uint;
+            @in entityid: uint64;
          }
          return: ptr(Eina.Inarray);
       }
 
-      component_create
+      notice_push_response_request
       {
          params
          {
-            @in type: stringshare;
-            @in parent: uint;
-         }
-         return: uint;
-      }
-
-      component_destroy
-      {
-         params
-         {
-            @in target: uint;
+            @in sender:   uint64;
+            @in response: uint64;
+            @in entityid: uint64;
+            @in payload:  void_ptr;
+            @in size:     uint32;
          }
       }
 
-      component_dispose
+      notice_push_entity_create
       {
          params
          {
-            @in target: uint;
+            @in sender:   uint64;
+            @in entityid: uint64;
+            @in parent:   uint64;
          }
       }
 
-      component_load
+      notice_push_component_create
       {
          params
          {
-            @in target: uint;
-         }
-      }
-
-      component_save
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      component_lookup
-      {
-         params
-         {
-            @in target: uint;
-         }
-         return: ptr(Engineer_Scene_Component);
-      }
-
-      component_data_swap
-      {
-         params
-         {
-            @in targeta: uint;
-            @in targetb: uint;
-         }
-      }
-
-      component_parent_get
-      {
-         params
-         {
-            @in target: uint;
-         }
-         return: uint;
-      }
-
-      component_parent_set
-      {
-         params
-         {
-            @in target: uint;
-            @in parent: uint;
-         }
-      }
-
-      component_sibling_swap
-      {
-         params
-         {
-            @in siblinga: uint;
-            @in siblingb: uint;
+            @in sender:      uint64;
+            @in classid:     uint64;
+            @in componentid: uint64;
+            @in parent:      uint64;
+            @in payload:     ptr(uint64);
          }
       }
 

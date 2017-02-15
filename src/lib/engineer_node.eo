@@ -1,24 +1,26 @@
+struct Engineer_Module_Class
+{
+   eina:  void_ptr;
+
+   id:    stringshare;
+   size:  uint64;
+
+   factory: void_ptr;
+
+   iterate: void_ptr;
+
+   component_create:  void_ptr;
+   component_destroy: void_ptr;
+   component_archive: void_ptr;
+   component_recall:  void_ptr;
+   component_sizeof:  void_ptr;
+   component_lookup:  void_ptr;
+}
+
 struct Engineer_Node_Peer
 {
    ipaddress: uint;
    mode:      string;
-}
-
-struct Engineer_Node_Module
-{
-   id:      uint;
-   class:   void_ptr;
-
-   create:  void_ptr;
-   load:    void_ptr;
-   save:    void_ptr;
-   destroy: void_ptr;
-   lookup:  void_ptr;
-
-   factory: void_ptr;
-   awake:   void_ptr;
-   start:   void_ptr;
-   update:  void_ptr;
 }
 
 class Engineer.Node(Efl.Object)
@@ -64,126 +66,34 @@ class Engineer.Node(Efl.Object)
          }
       }
 
-      file_load
-      {
-      }
-
-      file_save
-      {
-      }
-
-      file_close
-      {
-      }
-
-      scene_create
-      {
-         params
-         {
-            @in name: stringshare;
-         }
-         return: Efl.Object;
-      }
-
-      scene_load
-      {
-         params
-         {
-            @in name: stringshare;
-         }
-         return: Efl.Object;
-      }
-
-      scene_save
-      {
-         params
-         {
-            @in name: stringshare;
-         }
-      }
-
-      scene_unload
-      {
-         params
-         {
-            @in name: stringshare;
-         }
-      }
-
-      module_register
-      {
-         params
-         {
-            @in name: stringshare;
-         }
-       return: uint;
-      }
-
       module_load
       {
          params
          {
-            @in file: stringshare;
+            @in class: string;
          }
+         return: stringshare;
       }
 
-      module_unload
+      module_class_lookup
       {
          params
          {
-            @in target: Efl.Object;
+            @in target: uint64;
          }
-      }
-
-      module_unregister
-      {
-         params
-         {
-            @in name: string;
-         }
-      }
-
-      module_lookup
-      {
-         params
-         {
-            @in target: uint;
-         }
-         return: ptr(Engineer_Node_Module);
-      }
-
-      module_lookup_by_type
-      {
-         params
-         {
-            @in target: string;
-         }
-         return: ptr(Engineer_Node_Module);
-      }
-
-      module_id_use
-      {
-         return: uint;
-      }
-
-      module_id_free
-      {
-         params
-         {
-            @in target: uint;
-         }
+         return: ptr(Engineer_Module_Class);
       }
 
       entity_id_use
       {
-         return: uint;
+         return: uint64;
       }
 
       entity_id_free
       {
          params
          {
-            @in target: uint;
+            @in target: uint64;
          }
       }
 
@@ -191,17 +101,17 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in target: uint;
+            @in target: uint64;
          }
-       return: uint;
+       return: uint32;
       }
 
       entity_location_set
       {
          params
          {
-            @in target:   uint;
-            @in location: uint;
+            @in target:   uint64;
+            @in location: uint32;
          }
       }
 
@@ -209,30 +119,30 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in target: uint;
+            @in target: uint64;
          }
-         return: uint;
+         return: uint32;
       }
 
       entity_status_set
       {
          params
          {
-            @in target: uint;
+            @in target: uint64;
             @in mode:   char;
          }
       }
 
       component_id_use
       {
-         return: uint;
+         return: uint64;
       }
 
       component_id_free
       {
          params
          {
-            @in target: uint;
+            @in target: uint64;
          }
       }
 
@@ -240,17 +150,17 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in target: uint;
+            @in target: uint64;
          }
-         return: uint;
+         return: uint32;
       }
 
       component_location_set
       {
          params
          {
-            @in target:   uint;
-            @in location: uint;
+            @in target:   uint64;
+            @in location: uint32;
          }
       }
 
@@ -258,16 +168,16 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in target: uint;
+            @in target: uint64;
          }
-         return: uint;
+         return: uint32;
       }
 
       component_status_set
       {
          params
          {
-            @in target: uint;
+            @in target: uint64;
             @in mode:   char;
          }
       }

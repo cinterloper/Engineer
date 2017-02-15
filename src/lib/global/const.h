@@ -1,9 +1,12 @@
 #ifndef _ENGINEER_GLOBAL_CONSTANTS_H_
 #define _ENGINEER_GLOBAL_CONSTANTS_H_
 
+#define STRINGIFY(X)  STRINGIFY2(X)
+#define STRINGIFY2(X) #X
+
 // This sets the base word size/data type for all number storage.
 //    It should be set equal in size to the native bitwidth of the target CPU arch.
-#define BASE long
+#define BASE int64_t
 
 // This sets the (signed) Scalar type/bitwidth used by the Engineer.so library.
 #define SCALE (sizeof(BASE) * 8)

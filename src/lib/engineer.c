@@ -58,13 +58,6 @@ engineer_run(void)
    //uint entityid = eng_entity_create(scene, 0, "Sector1");
 }
 
-EAPI Efl_Object *
-eng_scene_new(char *name) // add a pointer to the game.
-{
-   return efl_add(ENGINEER_SCENE_CLASS, NULL,
-             //engineer_scene_path_set(efl_added, path)),
-             engineer_scene_name_set(efl_added, name)); // need to set up project pathing.
-}
 
 EAPI void
 eng_free_cb(void *data)

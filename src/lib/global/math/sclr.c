@@ -4,98 +4,110 @@ extern Sclr cordic_gain_h;
 
 /*** Elementary Arithmatic Functions ***/
 
-SclrBuffer
-engineer_math_mult(Sclr *a, Sclr *b)
+Sclr
+engineer_math_mult(Sclr multiplicand, Sclr multiplier)
 {
-   SclrBuffer output = *a * *b;
-   output += ((output & (1 << (RADIX - 1)) ) << 1);
+   Sclr output;
+
+   output   = multiplicand * multiplier;
+   output  += (output & (1 << (RADIX - 1))) << 1;
    output >>= RADIX;
 
    return output;
 }
 
-SclrBuffer
-engineer_math_divd(Sclr *a, Sclr *b)
+Sclr
+engineer_math_divd(Sclr dividend, Sclr divisor)
 {
-   Sclr output = (*a << RADIX)/ *b;
+   Sclr output;
+
+   output = (dividend << RADIX) / divisor;
 
    return output;
 }
 
-SclrBuffer
-engineer_math_abs(Sclr *a)
+Sclr
+engineer_math_abs(Sclr input)
 {
-   SclrBuffer output;
+   Sclr output;
 
-   output = (*a ^ (*a >> (SCALE - 1))) - (*a >> (SCALE - 1));
+   output = (input ^ (input >> (SCALE - 1))) - (input >> (SCALE - 1));
 
    return output;
 }
 
-SclrBuffer
-engineer_math_clamp(Sclr *a, Sclr *min, Sclr *max)
+Sclr
+engineer_math_clamp(Sclr input, Sclr min, Sclr max)
 {
-   SclrBuffer input, output;
+   Sclr buffer, output;
 
-   *min <<= 1;
-   *max <<= 1;
-   input  = *a - *min;
-   *a     = ((*a + *min) - ABS(&input)) >> 1;
-   input  = *a - *max;
-   output = ((*a + *max) + ABS(&input)) >> 1;
+   min <<= 1;
+   max <<= 1;
+
+   buffer = input - min;
+   input  = ((input + min) - ABS(buffer)) >> 1;
+   buffer = input - max;
+   output = ((input + max) + ABS(buffer)) >> 1;
 
    return output;
 }
 
-SclrBuffer
-engineer_math_exp(Sclr *a) // Fixme //
+Sclr
+engineer_math_exp(Sclr input) // Fixme //
 {
-   SclrBuffer output, sinh, cosh;
+   Vec3 buffer;
+   Sclr output;
 
-   cosh = cordic_gain_h;
-   sinh = 0;
-   cordic_hyperbolic_zmode(&cosh, &sinh, a);
-   output = (sinh + cosh);
+   buffer.x = cordic_gain_h; // Cosh()
+   buffer.y = 0;             // Sinh()
+   buffer.z = input;
+
+   buffer = cordic_hyperbolic_zmode(buffer);
+   output = buffer.y + buffer.x;
 
    return output;
 }
 
-SclrBuffer
-engineer_math_ln(Sclr *a) // Fixme //
+Sclr
+engineer_math_ln(Sclr input) // Fixme //
 {
    // Domain: 0.1 < a < 9.58 units.
-   SclrBuffer output, x, y, z;
+   Vec3 buffer;
+   Sclr output;
 
-   x = *a + BASIS;
-   y = *a - BASIS;
-   z = 0;
-   cordic_hyperbolic_ymode(&x, &y, &z);
-   output =  z << 1;
+   buffer.x = input + BASIS;
+   buffer.y = input - BASIS;
+   buffer.z = 0;
+
+   buffer = cordic_hyperbolic_ymode(buffer);
+   output = buffer.z << 1;
 
    return output;
 }
 
-SclrBuffer
-engineer_math_sqrt(Sclr *a)
+Sclr
+engineer_math_sqrt(Sclr input)
 {
    // Domain: |a| units.
-   // Christophe Meessen's shift-and-add algorithim for approximating
-   //    square roots of fixed point numbers.
-   SclrBuffer output, x, y, z, mask;
+   // This is a branchless variant of Christophe Meessen's shift-and-add algorithim
+   //    for approximating square roots of fixed point numbers.
+   Vec3 buffer;
+   Sclr output, mask;
 
-   x = ABS(a);
-   y = (Sclr)1 << (RADIX + 14);
-   z = 0;
-   for (unsigned int i = 0; i < (SCALE - 8); i++)
+   buffer.x = ABS(input);
+   buffer.y = (Sclr)1 << (RADIX + 14);
+   buffer.z = 0;
+
+   for (uint32_t i = 0; i < (SCALE - 8); i++)
    {
-      output = z + y;
-      mask = (x - output) >> (SCALE - 1);
-      x =  x         - ((    output) & ~mask);
-      z = (z & mask) + ((y + output) & ~mask);
-      x = x << 1;
-      y = y >> 1;
+      output   =  buffer.z + buffer.y;
+      mask     = (buffer.x - output) >> (SCALE - 1);
+      buffer.x =  buffer.x         - ((           output) & ~mask);
+      buffer.z = (buffer.z & mask) + ((buffer.y + output) & ~mask);
+      buffer.x =  buffer.x << 1;
+      buffer.y =  buffer.y >> 1;
    }
-   output = z >> 8;
+   output = buffer.z >> 8;
 
    return output;
 }

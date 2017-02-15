@@ -1,4 +1,6 @@
-struct @extern HANDLE {}
+struct @extern COMPONENT {}
+struct @extern SOAHANDLE {}
+struct @extern Engineer_Timemark {}
 struct @extern Engineer_Module_Frame {}
 
 abstract Engineer.Module(Efl.Object)
@@ -16,6 +18,11 @@ abstract Engineer.Module(Efl.Object)
 
    methods
    {
+      add @class @pure_virtual
+      {
+         return: Efl.Object;
+      }
+
       efl_object_constructor
       {
          return: Efl.Object;
@@ -29,92 +36,35 @@ abstract Engineer.Module(Efl.Object)
       {
       }
 
-      timeline_adjust
-      {
-      }
-
-      timeline_push
-      {
-      }
-
-      timeline_pop
-      {
-      }
-
-      timeline_copy
+      respond
       {
          params
          {
-            @in cacheid:     uint;
-            @in origin:      ptr(Engineer_Module_Frame);
-            @in destination: ptr(Engineer_Module_Frame);
+            @in inbox:  ptr(Eina.Inarray);
+            @in offset: uint32;
          }
       }
 
-      buffer_alloc
+      cache_sizeof
       {
+         return: uint32;
       }
 
-      buffer_free
-      {
-      }
-
-      handle_alloc
-      {
-         return: ptr(HANDLE);
-      }
-
-      handle_free
+      cache_read
       {
          params
          {
-            @in target: ptr(HANDLE);
+            @in buffer: ptr(COMPONENT);
+            @in index:  uint32;
          }
       }
 
-      cache_push
+      cache_write
       {
          params
          {
-            @in componentid: uint;
-            @in data:        ptr(HANDLE);
-         }
-      }
-
-      cache_pop
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      cache_lookup
-      {
-         params
-         {
-            @in frame:     ptr(Engineer_Module_Frame);
-            @in cacheid:   uint;
-            @in component: ptr(HANDLE);
-         }
-      }
-
-      cache_copy
-      {
-         params
-         {
-            @in frame:     ptr(Engineer_Module_Frame);
-            @in cacheid:   uint;
-            @in component: ptr(HANDLE);
-         }
-      }
-
-      cache_swap
-      {
-         params
-         {
-            @in componenta: uint;
-            @in componentb: uint;
+            @in buffer: ptr(COMPONENT);
+            @in index:  uint32;
          }
       }
 
@@ -122,76 +72,29 @@ abstract Engineer.Module(Efl.Object)
       {
          params
          {
-            @in parent: uint;
+            @in id:     uint64;
+            @in parent: uint64;
+            @in input:  ptr(COMPONENT);
          }
          return: uint;
-      }
-
-      component_load
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      component_save
-      {
-         params
-         {
-            @in target: uint;
-         }
-      }
-
-      component_destroy
-      {
-         params
-         {
-            @in targetid: uint;
-         }
       }
 
       component_lookup
       {
          params
          {
-            @in timeoffset:  uint;
-            @in componentid: uint;
-            @in target: ptr(HANDLE);
+            @in componentid: uint64;
          }
+         return: uint32;
       }
 
-      factory @class @pure_virtual
-      {
-         return: Efl.Object;
-      }
-
-      awake @class @pure_virtual
+      component_parent_set
       {
          params
          {
-            @in dt: ulong;
+            @in target: uint64;
+            @in parent: uint64;
          }
       }
-
-      start @class @pure_virtual
-      {
-         params
-         {
-            @in next: ptr(HANDLE);
-            @in dt:   ulong;
-         }
-      }
-
-      update @class @pure_virtual
-      {
-         params
-         {
-            @in last: ptr(HANDLE);
-            @in next: ptr(HANDLE);
-            @in dt:   ulong;
-         }
-      }
-
    }
 }

@@ -1,41 +1,45 @@
 #include "quat.h"
 
-QuatBuffer
-engineer_math_quat_multiply(Quat *q1, Quat *q2)
+Quat
+engineer_math_quat_multiply(Quat multiplicand, Quat multiplier)
 {
-   QuatBuffer output;
+   #define ma multiplicand
+   #define mb multiplier
+   Quat output;
 
-   output.w = MULT(q1->w, q2->w) - MULT(q1->x, q2->x) - MULT(q1->y, q2->y) - MULT(q1->z, q2->z);
-   output.x = MULT(q1->w, q2->x) + MULT(q1->x, q2->w) + MULT(q1->y, q2->z) - MULT(q1->z, q2->y);
-   output.y = MULT(q1->w, q2->y) + MULT(q1->y, q2->w) + MULT(q1->z, q2->x) - MULT(q1->x, q2->z); // x<>z Switched!
-   output.z = MULT(q1->w, q2->z) + MULT(q1->z, q2->w) + MULT(q1->x, q2->y) - MULT(q1->y, q2->x);
+   output.w = MULT(ma.w, mb.w) - MULT(ma.x, mb.x) - MULT(ma.y, mb.y) - MULT(ma.z, mb.z);
+   output.x = MULT(ma.w, mb.x) + MULT(ma.x, mb.w) + MULT(ma.y, mb.z) - MULT(ma.z, mb.y);
+   output.y = MULT(ma.w, mb.y) + MULT(ma.y, mb.w) + MULT(ma.z, mb.x) - MULT(ma.x, mb.z); // x<>z Switched!
+   output.z = MULT(ma.w, mb.z) + MULT(ma.z, mb.w) + MULT(ma.x, mb.y) - MULT(ma.y, mb.x);
 
    return output;
+   #undef mb
+   #undef ma
 }
 
-MtrxBuffer
-engineer_math_quat_matrixify(Quat *q)
+Mtrx
+engineer_math_quat_matrixify(Quat input)
 {
-   MtrxBuffer output;
-   SclrBuffer factor, twoW, twoX, twoY;
-   SclrBuffer wSq, xSq, ySq, zSq;
-   SclrBuffer xy, xz, yz, wx, wy, wz;
+   Mtrx output;
+   Sclr factor, twoW, twoX, twoY;
+   Sclr wSq, xSq, ySq, zSq;
+   Sclr xy, xz, yz, wx, wy, wz;
 
    // Helper quantities, we calculate these up front to avoid redundancies.
    factor = BASIS << 1;
-   twoW = MULT(q->w, &factor);
-   twoX = MULT(q->x, &factor);
-   twoY = MULT(q->y, &factor);
-   wSq  = MULT(q->w, q->w);
-   xSq  = MULT(q->x, q->x);
-   ySq  = MULT(q->y, q->y);
-   zSq  = MULT(q->z, q->z);
-   xy   = MULT(&twoX, q->y);
-   xz   = MULT(&twoX, q->z);
-   yz   = MULT(&twoY, q->z);
-   wx   = MULT(&twoW, q->x);
-   wy   = MULT(&twoW, q->y);
-   wz   = MULT(&twoW, q->z);
+   twoW = MULT(input.w, factor);
+   twoX = MULT(input.x, factor);
+   twoY = MULT(input.y, factor);
+   wSq  = MULT(input.w, input.w);
+   xSq  = MULT(input.x, input.x);
+   ySq  = MULT(input.y, input.y);
+   zSq  = MULT(input.z, input.z);
+   xy   = MULT(twoX, input.y);
+   xz   = MULT(twoX, input.z);
+   yz   = MULT(twoY, input.z);
+   wx   = MULT(twoW, input.x);
+   wy   = MULT(twoW, input.y);
+   wz   = MULT(twoW, input.z);
 
    // Fill in the first row.
    output.r0c0 = wSq + xSq - ySq - zSq;
@@ -53,20 +57,23 @@ engineer_math_quat_matrixify(Quat *q)
    return output;
 }
 
-QuatBuffer
-engineer_math_quat_normalize(Quat *q)
+Quat
+engineer_math_quat_normalize(Quat input)
 {
-   QuatBuffer output;
-   SclrBuffer basis, square, sqrt, inverse;
+   Quat output;
+   Sclr basis, square, sqrt, inverse;
 
    basis    = BASIS;
-   square   = MULT(q->x, q->x) + MULT(q->y, q->y) + MULT(q->z, q->z) + MULT(q->w, q->w);
-   sqrt     = SQRT(&square);
-   inverse  = DIVD(&basis, &sqrt);
-   output.x = MULT(q->x, &inverse);
-   output.y = MULT(q->y, &inverse);
-   output.z = MULT(q->z, &inverse);
-   output.w = MULT(q->w, &inverse);
+   square   = MULT(input.x, input.x)
+            + MULT(input.y, input.y)
+            + MULT(input.z, input.z)
+            + MULT(input.w, input.w);
+   sqrt     = SQRT(square);
+   inverse  = DIVD(basis, sqrt);
+   output.x = MULT(input.x, inverse);
+   output.y = MULT(input.y, inverse);
+   output.z = MULT(input.z, inverse);
+   output.w = MULT(input.w, inverse);
 
    //detect badness
    //assert(square > 0.1f);

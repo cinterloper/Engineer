@@ -1,7 +1,9 @@
 #ifndef ENGINEER_H_
 #define ENGINEER_H_
 
-// This library typedefs the following variable types: Sclr, Vec2, Vec3, and Quat.
+#define PROJECT engineer
+
+// This library typedefs the following variable types: Sclr, Angl, Vec2, Vec3, Quat, Mtrx.
 
 #ifdef EAPI
 # undef EAPI
@@ -33,6 +35,10 @@
 extern "C" {
 #endif
 
+#include <Ecore_Getopt.h>
+
+//#include <cl.h>
+//#include <ltpv.h>
 #include "../lib/global/index.h"
 
 #include "../lib/engineer_node.h"

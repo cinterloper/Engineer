@@ -7,6 +7,7 @@ Efl_Object *_engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *
 
 void _engineer_module_efl_object_destructor(Eo *obj, Engineer_Module_Data *pd);
 
+EOAPI EFL_FUNC_BODY_CONST(engineer_module_add, Efl_Object *, NULL);
 
 Efl_Object *_engineer_module_efl_object_constructor(Eo *obj, Engineer_Module_Data *pd);
 
@@ -20,81 +21,33 @@ void _engineer_module_iterate(Eo *obj, Engineer_Module_Data *pd);
 
 EOAPI EFL_VOID_FUNC_BODY(engineer_module_iterate);
 
-void _engineer_module_timeline_adjust(Eo *obj, Engineer_Module_Data *pd);
+void _engineer_module_respond(Eo *obj, Engineer_Module_Data *pd, Eina_Inarray *inbox, uint32_t offset);
 
-EOAPI EFL_VOID_FUNC_BODY(engineer_module_timeline_adjust);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_module_respond, EFL_FUNC_CALL(inbox, offset), Eina_Inarray *inbox, uint32_t offset);
 
-void _engineer_module_timeline_push(Eo *obj, Engineer_Module_Data *pd);
+uint32_t _engineer_module_cache_sizeof(Eo *obj, Engineer_Module_Data *pd);
 
-EOAPI EFL_VOID_FUNC_BODY(engineer_module_timeline_push);
+EOAPI EFL_FUNC_BODY(engineer_module_cache_sizeof, uint32_t, 0);
 
-void _engineer_module_timeline_pop(Eo *obj, Engineer_Module_Data *pd);
+void _engineer_module_cache_read(Eo *obj, Engineer_Module_Data *pd, COMPONENT *buffer, uint32_t index);
 
-EOAPI EFL_VOID_FUNC_BODY(engineer_module_timeline_pop);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_module_cache_read, EFL_FUNC_CALL(buffer, index), COMPONENT *buffer, uint32_t index);
 
-void _engineer_module_timeline_copy(Eo *obj, Engineer_Module_Data *pd, unsigned int cacheid, Engineer_Module_Frame *origin, Engineer_Module_Frame *destination);
+void _engineer_module_cache_write(Eo *obj, Engineer_Module_Data *pd, COMPONENT *buffer, uint32_t index);
 
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_timeline_copy, EFL_FUNC_CALL(cacheid, origin, destination), unsigned int cacheid, Engineer_Module_Frame *origin, Engineer_Module_Frame *destination);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_module_cache_write, EFL_FUNC_CALL(buffer, index), COMPONENT *buffer, uint32_t index);
 
-void _engineer_module_buffer_alloc(Eo *obj, Engineer_Module_Data *pd);
+unsigned int _engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd, uint64_t id, uint64_t parent, COMPONENT *input);
 
-EOAPI EFL_VOID_FUNC_BODY(engineer_module_buffer_alloc);
+EOAPI EFL_FUNC_BODYV(engineer_module_component_create, unsigned int, 0, EFL_FUNC_CALL(id, parent, input), uint64_t id, uint64_t parent, COMPONENT *input);
 
-void _engineer_module_buffer_free(Eo *obj, Engineer_Module_Data *pd);
+uint32_t _engineer_module_component_lookup(Eo *obj, Engineer_Module_Data *pd, uint64_t componentid);
 
-EOAPI EFL_VOID_FUNC_BODY(engineer_module_buffer_free);
+EOAPI EFL_FUNC_BODYV(engineer_module_component_lookup, uint32_t, 0, EFL_FUNC_CALL(componentid), uint64_t componentid);
 
-void _engineer_module_cache_push(Eo *obj, Engineer_Module_Data *pd, unsigned int componentid, HANDLE *data);
+void _engineer_module_component_parent_set(Eo *obj, Engineer_Module_Data *pd, uint64_t target, uint64_t parent);
 
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_cache_push, EFL_FUNC_CALL(componentid, data), unsigned int componentid, HANDLE *data);
-
-void _engineer_module_cache_copy(Eo *obj, Engineer_Module_Data *pd, Engineer_Module_Frame *frame, unsigned int cacheid, HANDLE *component);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_cache_copy, EFL_FUNC_CALL(frame, cacheid, component), Engineer_Module_Frame *frame, unsigned int cacheid, HANDLE *component);
-
-void _engineer_module_cache_lookup(Eo *obj, Engineer_Module_Data *pd, Engineer_Module_Frame *frame, unsigned int cacheid, HANDLE *component);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_cache_lookup, EFL_FUNC_CALL(frame, cacheid, component), Engineer_Module_Frame *frame, unsigned int cacheid, HANDLE *component);
-
-void _engineer_module_cache_swap(Eo *obj, Engineer_Module_Data *pd, unsigned int componenta, unsigned int componentb);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_cache_swap, EFL_FUNC_CALL(componenta, componentb), unsigned int componenta, unsigned int componentb);
-
-HANDLE *_engineer_module_handle_alloc(Eo *obj, Engineer_Module_Data *pd);
-
-EOAPI EFL_FUNC_BODY(engineer_module_handle_alloc, HANDLE *, NULL);
-
-void _engineer_module_handle_free(Eo *obj, Engineer_Module_Data *pd, HANDLE *target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_handle_free, EFL_FUNC_CALL(target), HANDLE *target);
-
-unsigned int _engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd, unsigned int parent);
-
-EOAPI EFL_FUNC_BODYV(engineer_module_component_create, unsigned int, 0, EFL_FUNC_CALL(parent), unsigned int parent);
-
-void _engineer_module_component_load(Eo *obj, Engineer_Module_Data *pd, unsigned int target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_component_load, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_module_component_save(Eo *obj, Engineer_Module_Data *pd, unsigned int target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_component_save, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_module_component_destroy(Eo *obj, Engineer_Module_Data *pd, unsigned int targetid);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_component_destroy, EFL_FUNC_CALL(targetid), unsigned int targetid);
-
-void _engineer_module_component_dispose(Eo *obj, Engineer_Module_Data *pd, unsigned int target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_component_dispose, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_module_component_lookup(Eo *obj, Engineer_Module_Data *pd, unsigned int timeoffset, unsigned int componentid, HANDLE *target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_module_component_lookup, EFL_FUNC_CALL(timeoffset, componentid, target), unsigned int timeoffset, unsigned int componentid, HANDLE *target);
-EOAPI EFL_FUNC_BODY_CONST(engineer_module_factory, Efl_Object *, NULL);
-EOAPI EFL_VOID_FUNC_BODYV_CONST(engineer_module_awake, EFL_FUNC_CALL(dt), unsigned long dt);
-EOAPI EFL_VOID_FUNC_BODYV_CONST(engineer_module_start, EFL_FUNC_CALL(next, dt), HANDLE *next, unsigned long dt);
-EOAPI EFL_VOID_FUNC_BODYV_CONST(engineer_module_update, EFL_FUNC_CALL(last, next, dt), HANDLE *last, HANDLE *next, unsigned long dt);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_module_component_parent_set, EFL_FUNC_CALL(target, parent), uint64_t target, uint64_t parent);
 
 static Eina_Bool
 _engineer_module_class_initializer(Efl_Class *klass)
@@ -106,30 +59,16 @@ _engineer_module_class_initializer(Efl_Class *klass)
       EFL_OBJECT_OP_FUNC(engineer_module_efl_object_constructor, _engineer_module_efl_object_constructor),
       EFL_OBJECT_OP_FUNC(engineer_module_efl_object_destructor, _engineer_module_efl_object_destructor),
       EFL_OBJECT_OP_FUNC(engineer_module_iterate, _engineer_module_iterate),
-      EFL_OBJECT_OP_FUNC(engineer_module_timeline_adjust, _engineer_module_timeline_adjust),
-      EFL_OBJECT_OP_FUNC(engineer_module_timeline_push, _engineer_module_timeline_push),
-      EFL_OBJECT_OP_FUNC(engineer_module_timeline_pop, _engineer_module_timeline_pop),
-      EFL_OBJECT_OP_FUNC(engineer_module_timeline_copy, _engineer_module_timeline_copy),
-      EFL_OBJECT_OP_FUNC(engineer_module_buffer_alloc, _engineer_module_buffer_alloc),
-      EFL_OBJECT_OP_FUNC(engineer_module_buffer_free, _engineer_module_buffer_free),
-      EFL_OBJECT_OP_FUNC(engineer_module_cache_push, _engineer_module_cache_push),
-      EFL_OBJECT_OP_FUNC(engineer_module_cache_copy, _engineer_module_cache_copy),
-      EFL_OBJECT_OP_FUNC(engineer_module_cache_lookup, _engineer_module_cache_lookup),
-      EFL_OBJECT_OP_FUNC(engineer_module_cache_swap, _engineer_module_cache_swap),
-      EFL_OBJECT_OP_FUNC(engineer_module_handle_alloc, _engineer_module_handle_alloc),
-      EFL_OBJECT_OP_FUNC(engineer_module_handle_free, _engineer_module_handle_free),
+      EFL_OBJECT_OP_FUNC(engineer_module_respond, _engineer_module_respond),
+      EFL_OBJECT_OP_FUNC(engineer_module_cache_sizeof, _engineer_module_cache_sizeof),
+      EFL_OBJECT_OP_FUNC(engineer_module_cache_read, _engineer_module_cache_read),
+      EFL_OBJECT_OP_FUNC(engineer_module_cache_write, _engineer_module_cache_write),
       EFL_OBJECT_OP_FUNC(engineer_module_component_create, _engineer_module_component_create),
-      EFL_OBJECT_OP_FUNC(engineer_module_component_load, _engineer_module_component_load),
-      EFL_OBJECT_OP_FUNC(engineer_module_component_save, _engineer_module_component_save),
-      EFL_OBJECT_OP_FUNC(engineer_module_component_destroy, _engineer_module_component_destroy),
-      EFL_OBJECT_OP_FUNC(engineer_module_component_dispose, _engineer_module_component_dispose),
-      EFL_OBJECT_OP_FUNC(engineer_module_component_lookup, _engineer_module_component_lookup)
+      EFL_OBJECT_OP_FUNC(engineer_module_component_lookup, _engineer_module_component_lookup),
+      EFL_OBJECT_OP_FUNC(engineer_module_component_parent_set, _engineer_module_component_parent_set)
    );
    EFL_OPS_DEFINE(cops,
-      EFL_OBJECT_OP_FUNC(engineer_module_factory, NULL),
-      EFL_OBJECT_OP_FUNC(engineer_module_awake, NULL),
-      EFL_OBJECT_OP_FUNC(engineer_module_start, NULL),
-      EFL_OBJECT_OP_FUNC(engineer_module_update, NULL)
+      EFL_OBJECT_OP_FUNC(engineer_module_add, NULL)
    );
    return efl_class_functions_set(klass, &ops, &cops);
 }

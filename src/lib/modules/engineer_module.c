@@ -1,384 +1,244 @@
 #include "engineer_module.h"
 
 // All Modules are actually classes that inherit from the Engineer_Module class.
-// All actual Component data is held in a simple struct of linear arrays.
-//
-// Our data index space is divided into 3 contiguous regions as follows: |  Legend:
-// Low Index >--X---------------Y---> High Index                         |  X == offsetactive
-// ActiveRegion | PassiveRegion | DisposalRegion                         |  Y == offsetpassive
+// All active Component data is held in a struct (tree) of linear arrays.
 
 /*** Constructors ***/
 
 EOLIAN static Efl_Object *
 _engineer_module_efl_object_constructor(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED)
 {
-   return efl_constructor(efl_super(obj, ENGINEER_MODULE_CLASS));
+   obj = efl_constructor(efl_super(obj, ENGINEER_MODULE_CLASS));
+   return obj;
 }
 
-Efl_Object *
+EOLIAN static Efl_Object *
 _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
 {
-   // Create and initialize the minimum space (3 frames) needed to start our timeline.
-   pd->timeline = eina_inarray_new(sizeof(Engineer_Module_Frame), 0);
+   obj = efl_finalize(efl_super(obj, ENGINEER_MODULE_CLASS));
 
-   engineer_module_timeline_push(obj);
-   engineer_module_timeline_push(obj);
-   engineer_module_timeline_push(obj);
+   uint index;
+   Engineer_Module_Frame *frame, blank;
 
-   pd->past    = eina_inarray_nth(pd->timeline, 0);
-   pd->present = eina_inarray_nth(pd->timeline, 0);
-   pd->future  = eina_inarray_nth(pd->timeline, 1);
-/*
-   pd->table->handle = NULL;
-   db_create(&pd->table->handle, NULL, 0);
-   pd->table->handle->open(
-      pd->table->handle,    // DB structure pointer
-      NULL,                 // Transaction pointer
-      scene,                // On-disk file that holds the database.
-      "Module.NAME",        // Optional logical database name
-      DB_QUEUE,             // Database access method
-      DB_CREATE,            // Open flags
-      0);                   // File mode (using defaults)
-*/
+   pd->lookup = eina_hash_int64_new(NULL);
+
+   // Initialize the memory needed to start our triple buffer and allocate it's contents.
+   pd->buffer = eina_inarray_new(sizeof(Engineer_Module_Frame), 3);
+   for (uint32_t count = 0; count < 3; count++)
+   {
+      memset(&blank, 0, sizeof(Engineer_Module_Frame));
+      index = eina_inarray_push(pd->buffer, &blank);
+      frame = eina_inarray_nth(pd->buffer, index);
+
+      frame->id   = eina_inarray_new(sizeof(uint64_t), 0);
+      frame->name = eina_inarray_new(sizeof(Eina_Stringshare*), 0);
+
+      frame->parent      = eina_inarray_new(sizeof(uint64_t), 0);
+      frame->siblingnext = eina_inarray_new(sizeof(uint64_t), 0);
+      frame->siblingprev = eina_inarray_new(sizeof(uint64_t), 0);
+
+      #define FIELD(KEY, TYPE) \
+         TYPE##NEW(&frame->KEY);
+      FIELDS
+      #undef FIELD
+   }
+
+   pd->past    = eina_inarray_nth(pd->buffer, 0);
+   pd->present = eina_inarray_nth(pd->buffer, 1);
+   pd->future  = eina_inarray_nth(pd->buffer, 2);
+
    return obj;
 }
 
 EOLIAN static void
 _engineer_module_efl_object_destructor(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED)
 {
+   efl_destructor(efl_super(obj, ENGINEER_MODULE_CLASS));
 }
 
-/*** Module Iterator ***/
+/*** Module iteration Handler ***/
 
 EOLIAN static void
 _engineer_module_iterate(Eo *obj, Engineer_Module_Data *pd)
 {
-   HANDLE *next, *last;
-   uint count = eina_inarray_count(pd->timeline);
+   COMPONENT component;
+   void *buffer;
+   Eina_Inarray *inbox;
+   uint32_t index, size, target, count, offset;
+   uint64_t *parent;
 
-   // Cycle the timeline to get to our next frame. This is the frame with the index immediately less
-   //    than the current one. This also resets our pointers in case they were nuked by an
-   //    eina_inarray_push.
-   pd->future   = eina_inarray_nth(pd->timeline, (pd->future->index-1 + count) % count);
-   pd->present  = eina_inarray_nth(pd->timeline,  pd->future->index++ % count);
-   pd->past     = eina_inarray_nth(pd->timeline,  pd->future->index+2 % count);
+   // Cycle our Module's Component iteration buffer.
+   buffer      = pd->past;
+   pd->past    = pd->present;
+   pd->present = pd->future;
+   pd->future  = buffer;
 
-   // Wipe clean the allocated space reserved for our next Frame's Entity and Component metadata.
-   // Clear all payload data for the future frame.
-   eina_inarray_flush((Eina_Inarray*)pd->future->cache);
-   eina_hash_free_buckets(pd->future->lookup);
+   // Copy over our present Module Component metadata to the future Frame.
+   size = engineer_module_cache_sizeof(obj);
+   uint64_t presentfield[size], futurefield[size];
 
-   last = engineer_module_handle_alloc(obj);
-   next = engineer_module_handle_alloc(obj);
+   presentfield[0] = pd->present->name;
+   presentfield[1] = pd->present->parent;
+   presentfield[2] = pd->present->siblingnext;
+   presentfield[3] = pd->present->siblingprev;
+   index = 3;
+   #define FIELD(KEY, TYPE) \
+      index = engineer_type_TYPE_reference(presentfield, pd->present->KEY, index);
+   FIELDS
+   #undef FIELD
 
-   // For each component stored in this object, do the engineer_module_update() method.
-   for (uint cacheid = 0; cacheid <= pd->future->offsetactive; cacheid += 1)
+   futurefield[0] = pd->future->name;
+   futurefield[1] = pd->future->parent;
+   futurefield[2] = pd->future->siblingnext;
+   futurefield[3] = pd->future->siblingprev;
+   index = 3;
+   #define FIELD(KEY, TYPE) \
+      index = engineer_type_TYPE_reference(futurefield, pd->future->KEY, index);
+   FIELDS
+   #undef FIELD
+
+   count = eina_inarray_count(pd->present->id);
+   for (index = 0; index < size; index++)
    {
-      engineer_module_cache_lookup(obj, pd->present, cacheid, last);
-      engineer_module_cache_lookup(obj, pd->future,  cacheid, next);
-
-      engineer_module_update(obj, last, next, 32);
+      for(target = 0; target < count; target++)
+      {
+         eina_inarray_replace_at(futurefield[index], target,
+            eina_inarry_nth(presentfield[index], target));
+      }
    }
 
-   engineer_module_handle_free(obj, next);
-   engineer_module_handle_free(obj, last);
-}
 
-/*** Module Timeline Methods ***/
-
-EOLIAN static void
-_engineer_module_timeline_adjust(Eo *obj, Engineer_Module_Data *pd)
-{
-   // Before we start, we need to know what our present timeline index is, and how large it is.
-   uint count = eina_inarray_count(pd->timeline);
-   uint index = pd->present->index;
-
-   Eo *parent = efl_parent_get(obj);
-   Engineer_Scene_Data *ppd = efl_data_scope_get(parent, ENGINEER_SCENE_CLASS);
-
-   // If the count is more than our retention value and our future Frame pointer is pointing
-   //    at the end of the pd->timeline inarray.
-   if ((ppd->retention > count) &&
-      (index++ == count))
+   // Now iterate over each Component stored in this Module.
+   index = 0;
+   EINA_INARRAY_FOREACH(pd->present->parent, parent)
    {
-      engineer_module_timeline_push(obj);
-      count += 1;
-   }
+      // Read our COMPONENT buffer from our module SoA.
+      engineer_module_cache_read(obj, &component, index);
 
-   // If it is less than our retention value, and we are in the correct timeline window.
-   if ((ppd->retention < count) &&
-      (index++ <= ppd->retention) &&
-      (index-- >= count - ppd->retention))
-   {
-      engineer_module_timeline_pop(obj);
-      count -= 1;
+      // Find the Entity this component belongs to and import it's inbox,
+      //    then respond to the notices in it.
+      inbox  = engineer_scene_entity_inbox_get(efl_parent_get(obj), *parent);
+      count  = *(uint64_t*)eina_inarray_nth(inbox, 0);
+      offset = 1;
+      for(uint32_t subindex = 0; subindex < count; subindex++)
+      {
+         engineer_module_respond(obj, inbox, offset);
+      }
+
+      // Run the update() function for this Module on the current Component.
+      engineer_module_update(&component);
+
+      // Write our COMPONENT data to our module SOA.
+      engineer_module_cache_write(obj, &component, index);
+      index += 1;
    }
 }
 
 EOLIAN static void
-_engineer_module_timeline_push(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd)
+_engineer_module_respond(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        Eina_Inarray *inbox, uint32_t offset)
 {
-   uint index;
-   HANDLE *cache;
-   Engineer_Module_Frame *frame, blank;
+   index = 0;
+   EINA_INARRAY_FOREACH(inbox, target)
+   {
+      // The first two bytes in our inbox array tell us how many notices we have recieved.
+      count  = *(char*)eina_inarray_nth(target, 0) << 8;
+      count += *(char*)eina_inarray_nth(target, 1);
+      offset = 2;
+      for(subindex = 0; subindex < count; subindex++)
+      {
+         // Layout of each note string: 0: Case/Size, 1->Remainder: Type Dependant Notice Data;
+         switch(*(uint64_t*)eina_inarray_nth(target, offset))
+         {
+            //#define RESPONSE(KEY, SIZE) \
+            //  case eina_hash_murmer3(STRINGIFY(KEY), strlen(STRINGIFY(KEY))): \
+            //     response(KEY, data, payload); \
+            //  break;
+            //#undef RESPONSE
+         }
+      }
+      index += 1;
+   }
+}
 
-   // Allocate the main memory space needed to store the Frame and zero it out.
-   memset(&blank, 0, sizeof(Engineer_Scene_Frame));
-   index = eina_inarray_push(pd->timeline, &blank);
-   frame = eina_inarray_nth(pd->timeline, index);
+/*** Module Cache Methods ***/
 
-   cache = frame->cache;
-   frame->offsetactive  = 0;
-   frame->offsetpassive = 0;
+EOLIAN static uint32_t
+_engineer_module_cache_sizeof(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED)
+{
+   size = 4;
+   #define FIELD(KEY, TYPE) \
+      size += engineer_type_TYPE_sizeof();
+   #undef FIELD
 
-   // Now allocate it's contents.
-   #define VAR(TYPE, KEY) \
-      cache->KEY = engineer_type_TYPE_soa_new();
-   DATA
-   #undef VAR
-   frame->lookup = eina_hash_int32_new(eng_free_cb);
+   return size;
 }
 
 EOLIAN static void
-_engineer_module_timeline_pop(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd)
+_engineer_module_cache_read(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        COMPONENT *buffer, uint32_t index)
 {
-   Engineer_Module_Frame *frame, blank;
-   HANDLE *cache;
+   // Read our COMPONENT buffer from our module SoA.
+   buffer->this        = *(uint64_t*)eina_inarray_nth(pd->present->id, index);
+   buffer->name        = *(const char*)eina_inarray_nth(pd->present->name, index);
+   buffer->parent      = *(uint64_t*)eina_inarray_nth(pd->present->parent, index);
+   buffer->nextsibling = *(uint64_t*)eina_inarray_nth(pd->present->siblingnext, index);
+   buffer->prevsibling = *(uint64_t*)eina_inarray_nth(pd->present->siblingprev, index);
 
-   // Deallocate the main memory space occupide by the old Frame.
-   frame = eina_inarray_pop(pd->timeline);
-   blank = *frame;
-   frame = &blank;
-   cache = frame->cache;
-
-   // Now free it's contents.
-   #define VAR(TYPE, KEY) \
-      engineer_type_TYPE_soa_free(cache->KEY);
-   DATA
-   #undef VAR
-   eina_hash_free(frame->lookup);
+   #define FIELD(KEY, TYPE) \
+      TYPE##READ(KEY)
+   FIELDS
+   #undef FIELD
 }
 
 EOLIAN static void
-_engineer_module_timeline_copy(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        uint cacheid, Engineer_Module_Frame *origin, Engineer_Module_Frame *destination)
+_engineer_module_cache_write(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
+        COMPONENT *buffer, uint32_t index)
 {
-   HANDLE *cache = origin->cache;
-   HANDLE *component, buffer;
-   component = &buffer;
-
-   #define VAR(TYPE, KEY) \
-      TYPE KEYbuffer; \
-      component->KEY = &KEYbuffer;
-   DATA
-   #undef VAR
-
-   component->component = eina_inarray_nth((Eina_Inarray*)cache->component, cacheid);
-
-   #define VAR(TYPE, KEY) \
-      engineer_type_TYPE_soa_nth(cache->KEY, cacheid, component->KEY);
-   DATA
-   #undef VAR
-
-   cache = destination->cache;
-
-   #define VAR(TYPE, KEY) \
-      engineer_type_TYPE_soa_replace_at(cache->KEY, cacheid, component->KEY);
-   DATA
-   #undef VAR
-}
-
-/*** Buffer Methods ***/
-
-EOLIAN static BUFFER *
-_engineer_module_buffer_alloc(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED)
-{
-   return malloc(sizeof(BUFFER));
-}
-
-EOLIAN static void
-_engineer_module_buffer_free(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        BUFFER *target)
-{
-   free(target);
-}
-
-/** Handle Methods ***/
-
-EOLIAN static HANDLE *
-_engineer_module_handle_alloc(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED)
-{
-   HANDLE *component = malloc(sizeof(HANDLE));
-
-   #define VAR(TYPE, KEY) \
-      component->KEY = engineer_type_TYPE_handle_alloc();
-   DATA
-   #undef VAR
-
-   return component;
-}
-
-EOLIAN static void
-_engineer_module_handle_free(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        HANDLE *target)
-{
-   #define VAR(TYPE, KEY) \
-      target->KEY = engineer_type_TYPE_handle_free();
-   DATA
-   #undef VAR
-
-   free(target);
-}
-
-/*** Frame Cache Methods ***/
-
-EOLIAN static void
-_engineer_module_cache_push(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
-        uint componentid, HANDLE *data EINA_UNUSED) // Fixme COMPODATA->COMPONENT
-{
-   void      *lookup            = pd->future->lookup;
-   HANDLE    *cache EINA_UNUSED = pd->future->cache;
-   uint       cacheindex;
-
-   // Push a new Component data entry into the cache inarrays.
-   #define VAR(TYPE, KEY) \
-      cacheindex = engineer_type_TYPE_soa_push(cache->KEY, data->KEY);
-   DATA
-   #undef VAR
-
-   // Set up our lookup table entry for this Component.
-   eina_hash_add(lookup, &componentid, &cacheindex);
-}
-
-EOLIAN static void
-_engineer_module_cache_pop(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        uint target EINA_UNUSED)
-{
-}
-
-// This method takes a COMPONENT reference tree and populates it with references to the
-//    given target cache data.
-EOLIAN static void
-_engineer_module_cache_lookup(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        Engineer_Module_Frame *frame, uint cacheid, HANDLE *component)
-{
-   HANDLE *cache     = frame->cache;
-   component->component = eina_inarray_nth((Eina_Inarray*)cache->component, cacheid);
-
-   #define VAR(TYPE, KEY) \
-      engineer_type_TYPE_soa_nth(cache->KEY, cacheid, component->KEY);
-   DATA
-   #undef VAR
-}
-
-EOLIAN static void
-_engineer_module_cache_copy(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        Engineer_Module_Frame *frame, uint cacheid EINA_UNUSED, HANDLE *component EINA_UNUSED)
-{
-   HANDLE EINA_UNUSED *cache = frame->cache;
-
-   #define VAR(TYPE, KEY) \
-      engineer_type_TYPE_soa_replace_at(cache->KEY, cacheid, component->KEY);
-   DATA
-   #undef VAR
-}
-
-EOLIAN static void
-_engineer_module_cache_swap(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        Engineer_Module_Frame *frame, uint componenta, uint componentb)
-{
-   void   *lookup    = frame->lookup;
-   HANDLE *cache     = frame->cache;
-   void   *component = cache->component;
-
-   // Swap the Component pointer data.
-   uint *indexa = eina_hash_find(lookup, &componenta);
-   uint *indexb = eina_hash_find(lookup, &componentb);
-   void *indexc = eina_inarray_nth((Eina_Inarray*)component, *indexa);
-   eina_inarray_replace_at((Eina_Inarray*)component, *indexa, indexb);
-   eina_inarray_replace_at((Eina_Inarray*)component, *indexb, indexc);
-
-   // Swap the data for componenta with the data of componentb in all defined VARs.
-   #define VAR(TYPE, KEY) \
-      TYPEData KEYbuffer; \
-      engineer_type_TYPE_soa_nth(cache->KEY, *indexa, &KEYbuffer); \
-      engineer_type_TYPE_soa_replace_at(cache->KEY, *indexa,  indexb); \
-      engineer_type_TYPE_soa_replace_at(cache->KEY, *indexb, &KEYbuffer);
-   DATA
-   #undef VAR
-
-   // Switch the ID lookup hashtable entries.
-   indexc = indexa;
-   eina_hash_modify(lookup, &componenta, indexb);
-   eina_hash_modify(lookup, &componentb, indexc);
+   // Write our COMPONENT buffer to our module SoA.
+   #define FIELD(KEY, TYPE) \
+       TYPE##WRITE(KEY)
+   FIELDS
+   #undef FIELD
 }
 
 /*** Component Methods ***/
 
 EOLIAN static uint
 _engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
-        uint componentid)
+        uint64_t id, uint64_t parent, COMPONENT *input)
 {
-   HANDLE data;
-   memset(&data, 0, sizeof(HANDLE));
+   Engineer_Module_Frame *frame;
+   uint64_t               index;
 
-   engineer_module_cache_push(obj, componentid, &data);
+   if(engineer_module_component_lookup(obj, id) == NULL)
+   {
+      EINA_INARRAY_FOREACH(pd->buffer, frame)
+      {
+         eina_inarray_push(frame->id,             &id);
+         eina_inarray_push(frame->name,           eina_stringshare_printf(STRINGIFY(SYMBOL));
+         eina_inarray_push(frame->parent,         &parent);
+         eina_inarray_push(frame->siblingnext,    &id);
+         eina_inarray_push(frame->siblingprev,    &id);
 
-   return componentid;
+         #define FIELD(KEY, TYPE) \
+            engineer_module_type_TYPE_soa_push(frame->KEY, input->KEY);
+         FIELDS
+         #undef FIELD
+      }
+      index = eina_inarray_count(pd->future->id) - 1;
+
+      engineer_module_component_parent_set(obj, id, parent);
+      eina_inarray_push(pd->history, eina_inarray_new(sizeof(uint64_t), 0));
+      eina_hash_add(pd->lookup, &id, &index);
+
+      printf("Component Create Checkpoint. CID: %ld, Parent: %ld, Name: %s\n", id, parent, name);
+
+      return EINA_TRUE;
+   }
+   else return EINA_FALSE;
 }
-
-EOLIAN static void
-_engineer_module_component_load(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED ,
-        uint target EINA_UNUSED)
-{
- /*
-   COMPONENT *payload = engineer_module_data_lookup(obj, target);
-
-   DBT key, data;
-   memset(&key, 0, sizeof(DBT));
-   memset(&data, 0, sizeof(DBT));
-   key.data = &target;
-   key.size = sizeof(uint);
-   data.data = payload;
-   data.ulen = sizeof(*payload);
-   data.flags = DB_DBT_USERMEM;
-   pd->table->get(pd->table, NULL, &key, &data, 0);
-
-   // If there is no component data in the module database that has the target id, do nothing.
-   if (data.data == NULL) return;
-*/
-}
-
-EOLIAN static void
-_engineer_module_component_save(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        uint target EINA_UNUSED)
-{
 /*
-   engineer_scene_component_save(obj, target);
-
-   COMPONENT *payload = engineer_module_data_lookup(obj, target);
-
-   // If there is no component data in this module cache that has the target id, do nothing.
-   if (payload == NULL) return;
-
-   DBT key, data;
-   memset(&key, 0, sizeof(DBT));
-   memset(&data, 0, sizeof(DBT));
-   key.data = &target;
-   key.size = sizeof(uint);
-   data.data = payload;
-   data.size = sizeof(*payload);
-
-   pd->table->put(pd->table, NULL, &key, &data, 0);
-
-   // Remove the sector data entry from the cache and lookup table.
-   COMPONENT *swapee = eina_inarray_nth(pd->cache, eina_inarray_count(pd->cache));
-   engineer_module_data_swap(obj, target, swapee->component->id);
-   eina_hash_del(pd->lookup, &target, NULL);
-   eina_inarray_pop(pd->cache);
-*/
-}
-
 EOLIAN static void
 _engineer_module_component_destroy(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
         uint targetid EINA_UNUSED)
@@ -388,27 +248,154 @@ _engineer_module_component_destroy(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd
 }
 
 EOLIAN static void
-_engineer_module_component_lookup(Eo *obj, Engineer_Module_Data *pd,
-        uint timeoffset, uint componentid, HANDLE *component)
+_engineer_module_component_dispose(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED)
 {
-   uint count;
-   Engineer_Module_Frame *frame;
+}
 
-   count = eina_inarray_count(pd->timeline);
-   frame = eina_inarray_nth(pd->timeline, (pd->future->index + timeoffset) % count);
+EOLIAN static void
+_engineer_module_component_archive(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED ,
+        uint target EINA_UNUSED)
+{
+}
 
-   uint *cacheid = eina_hash_find(frame->lookup, &componentid);
-   cacheid -= 1;
-   if ((ulong)cacheid == ULONG_NULL) return;
-
-   engineer_module_cache_lookup(obj, frame, *cacheid, component);
+EOLIAN static void
+_engineer_module_component_recall(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        uint target EINA_UNUSED)
+{
+}
+*/
+EOLIAN static uint32_t
+_engineer_module_component_lookup(Eo *obj, Engineer_Module_Data *pd,
+        uint64_t componentid)
+{
+   return eina_hash_find(pd->lookup, &componentid);
 }
 /*
-#undef NAME
-#undef DATA
+EOLIAN static void
+_engineer_module_component_cache_swap(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        uint targeta, uint targetb)
+{
+   Engineer_Scene_Component *payloada, *payloadb, payloadbuffer;
+   uint *targetalookup = eina_hash_find(pd->future->componentlookup, &targeta);
+   uint *targetblookup = eina_hash_find(pd->future->componentlookup, &targetb);
+   uint  lookupbuffer = *targetalookup;
 
-#undef BUFFER
-#undef HANDLE
-#undef SYMBOL
+   payloada = eina_inarray_nth(pd->future->componentcache, *targetalookup);
+   payloadb = eina_inarray_nth(pd->future->componentcache, *targetblookup);
+   payloadbuffer = *payloada;
+   *payloada = *payloadb;
+   *payloadb = payloadbuffer;
+
+   eina_hash_modify(pd->future->componentlookup, &targeta, targetblookup);
+   eina_hash_modify(pd->future->componentlookup, &targetb, &lookupbuffer);
+}
+
+EOLIAN static uint
+_engineer_scene_component_parent_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        uint target)
+{
+   Engineer_Scene_Component *component = eina_hash_find(pd->present->componentlookup, &target); // engineer_scene_component_lookup(obj, target);
+   return component->parent;
+}
 */
+EOLIAN static void
+_engineer_module_component_parent_set(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        uint64_t target, uint64_t parent)
+{
+   Engineer_Scene_Component *component     = eina_hash_find(pd->future->componentlookup, &target); // engineer_scene_component_lookup(obj, target);
+   if (component == NULL) return;
+   Engineer_Scene_Component *componentnext = eina_hash_find(pd->future->componentlookup, &component->siblingnext); // engineer_scene_component_lookup(obj, component->siblingnext);
+   Engineer_Scene_Component *componentprev = eina_hash_find(pd->future->componentlookup, &component->siblingprev); // engineer_scene_component_lookup(obj, component->siblingprev);
+   Engineer_Scene_Entity    *oldparent     = eina_hash_find(pd->future->entitylookup, &component->parent); // engineer_scene_entity_lookup(obj, component->parent);
+   Engineer_Scene_Entity    *newparent     = eina_hash_find(pd->future->entitylookup, &parent); // ;engineer_scene_entity_lookup(obj, parent);
+
+   if (newparent == NULL) printf("ERROR: newparent == NULL!\n");
+
+   if (oldparent != NULL && componentnext != NULL && componentprev != NULL)
+   {
+      // Check to see if the target is the old parents first child.
+      if (oldparent->firstcomponent == target)
+      {
+         oldparent->firstcomponent = component->siblingnext;
+      }
+
+      // Check to see if the old parent has only one child.
+      if (componentnext->siblingprev == target)
+      {
+         oldparent->firstcomponent = UINT_NULL;
+      }
+      else // relink the remaining child Entities.
+      {
+         componentnext->siblingprev = component->siblingprev;
+         componentprev->siblingnext = component->siblingnext;
+      }
+   }
+
+   component->parent = parent; // Set the new parent ComponentID for the target Entity.
+
+   // Check to see if new parent has any children. If not, set up the first child properly.
+   if (newparent->firstcomponent == UINT_NULL)
+   {
+      newparent->firstcomponent = target;
+      component->siblingnext = target;
+      component->siblingprev = target;
+   }
+   else // add the target Component to the back end of the new parent's child list.
+   {
+
+      componentnext = eina_hash_find(pd->future->componentlookup, &newparent->firstcomponent);  // engineer_scene_component_lookup(obj, newparent->firstcomponent);
+      componentprev = eina_hash_find(pd->future->componentlookup, &componentnext->siblingprev); // engineer_scene_component_lookup(obj, componentnext->siblingprev);
+
+      component->siblingnext = componentprev->siblingnext;
+      component->siblingprev = componentnext->siblingprev;
+      componentnext->siblingprev = target;
+      componentprev->siblingnext = target;
+   }
+}
+/*
+EOLIAN static void
+_engineer_module_component_sibling_swap(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        uint siblinga, uint siblingb)
+{
+   Engineer_Scene_Component *componenta = eina_hash_find(pd->future->componentlookup, &siblinga); // engineer_scene_component_lookup(obj, siblinga);
+   Engineer_Scene_Component *componentb = eina_hash_find(pd->future->componentlookup, &siblingb); // engineer_scene_component_lookup(obj, siblingb);
+
+   if (componenta->parent == componentb->parent)
+   {
+      Engineer_Scene_Entity *parent = eina_hash_find(pd->future->componentlookup, &componenta->parent); //engineer_scene_entity_lookup(obj, componenta->parent);
+
+      if (siblinga == parent->firstcomponent)
+      {
+         parent->firstcomponent = siblingb;
+      }
+      if (siblingb == parent->firstcomponent)
+      {
+         parent->firstcomponent = siblinga;
+      }
+
+      Engineer_Scene_Component *componentanext, *componentaprev, *componentbnext, *componentbprev;
+
+      componentanext = eina_hash_find(pd->future->componentlookup, &componenta->siblingnext); // engineer_scene_component_lookup(obj, componenta->siblingnext);
+      componentaprev = eina_hash_find(pd->future->componentlookup, &componenta->siblingprev); // engineer_scene_component_lookup(obj, componenta->siblingprev);
+      componentbnext = eina_hash_find(pd->future->componentlookup, &componentb->siblingnext); // engineer_scene_component_lookup(obj, componentb->siblingnext);
+      componentbprev = eina_hash_find(pd->future->componentlookup, &componentb->siblingprev); // engineer_scene_component_lookup(obj, componentb->siblingprev);
+
+      uint  buffernext            = componenta->siblingnext;
+      uint  bufferprev            = componenta->siblingprev;
+      uint  buffernextbacklink    = componentanext->siblingprev;
+      uint  bufferprevbacklink    = componentaprev->siblingnext;
+
+      componenta->siblingnext     = componentb->siblingnext;
+      componenta->siblingprev     = componentb->siblingprev;
+      componentanext->siblingprev = componentbnext->siblingprev;
+      componentaprev->siblingnext = componentbprev->siblingnext;
+
+      componentb->siblingnext     = buffernext;
+      componentb->siblingprev     = bufferprev;
+      componentbnext->siblingprev = buffernextbacklink;
+      componentbprev->siblingnext = bufferprevbacklink;
+   }
+}
+*/
+
 #include "engineer_module.eo.c"

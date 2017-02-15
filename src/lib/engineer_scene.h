@@ -5,81 +5,69 @@
 
 #include "engineer_scene.eo.h"
 
+#define NOTIFY(a, b, c) \
+   engineer_scene_entity_notify(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED, a, b, c)
+
 typedef struct
 {
-   uint  index;
-   uint  timestamp;
+   uint64_t      id;
+   Eina_Inarray *name;
 
-   Eina_Inarray *entitycache;
-   Eina_Hash    *entitylookup;
+   Eina_Inarray *parent;
+   Eina_Inarray *siblingnext;
+   Eina_Inarray *siblingprev;
+   Eina_Inarray *firstentity;
+   Eina_Inarray *firstcomponent;
 
-   Eina_Inarray *componentcache;
-   Eina_Hash    *componentlookup;
+   Eina_Inarray *inbox;
+   Eina_Inarray *outbox;
+}
+Engineer_Entity_History;
+
+typedef struct
+{
+   double timestamp;
+
+   // Active Entity Data Cache.
+   Eina_Inarray *id;
+   Eina_Inarray *name;
+
+   Eina_Inarray *parent;
+   Eina_Inarray *siblingnext;
+   Eina_Inarray *siblingprev;
+   Eina_Inarray *firstentity;
+   Eina_Inarray *firstcomponent;
+
+   Eina_Inarray *inbox;  // Inbox for Entity Scope Notices, for each Current Entity.
+   Eina_Inarray *outbox; // Outbox for Scene Scope Notices, for each Current Entity.
 }
 Engineer_Scene_Frame;
 
 typedef struct
 {
-   Eo *node;                      // Pointer to the Parent Node Eo.
-
-   const char   *name;            // The name of this scene. MUST be unique, the code will check.
-   uint          size;
+   const char   *name;            // The name of this scene.
+   uint64_t      size;            // Diameter, in the quantum unit.
+   uint32_t      shape;           // 0 for a cube, 1 for a sphere
 
    Efl_Loop_Timer *iterator;      // Triggers our frame update, the frequency can be changed.
    uint            clockrate;     // This value controls the FPS the scene is set to run at.
-
-   Eina_Inarray   *timeline;      // This contains an inarray of our recent Enginer_Scene_Frame(s).
-   uint            retention;     // This value controls how many recent Frames the Scene stores.
-   uint            current;       // This is used to store the current Scene_Frame inarray index.
 
    Engineer_Scene_Frame *past;    // Used for interpolation. Is the frame before the present one.
    Engineer_Scene_Frame *present; // Points to the current frame data.
    Engineer_Scene_Frame *future;  // Points to the frame currently receiving the iterator update.
 
-   Eina_Hash *datacache;          // Scene Module Data lookup hashtable, using ModuleID's as inputs.
+   Eina_Inarray *timecard;        // Stores the completion time for the present and past frames.
+   Eina_Inarray *buffer;          // The buffer that the most recent 3 frames are stored in.
+   Eina_Inarray *history;         // Stores all changes made to our Entity data frame-by-frame.
+   Eina_Hash    *lookup;          // Entity index lookup by ID.
 
-   DB *scenetable;
-
-   DB *entitymeta;
-   DB *entitytable;
-
-   DB *componentmeta;
-   DB *componenttable;
-
-   // To be moved to the Game Eo later.
-   unsigned int  entitycount;     // Stores the present total amount of Entities in the Scene.
-   Eina_Inarray *entityqueue;     // Stores (presently) free'd Entity ID's.
-
-   unsigned int  componentcount;  // Stores the present total amount of Components in the Scene.
-   Eina_Inarray *componentqueue;  // Stores (presently) free'd Component ID's.
+   Eina_Hash *modules;            // Module Data Eo lookup hash, using stringshare pointers as keys.
 }
 Engineer_Scene_Data;
 
 Eo *
-engineer_scene_add(Eo *obj, const char *name);
+engineer_scene_new(Eo *parent, const char *name);
 
-EOLIAN static Eina_Bool
-_engineer_scene_iterate_cb(void *data);
-
-EOLIAN static Eina_Bool
-_engineer_scene_iterate_entity_cb(const Eina_Hash *hash, const void *key,
-        void *data, void *fdata);
-
-EOLIAN static Eina_Bool
-_engineer_scene_iterate_component_cb(const Eina_Hash *hash, const void *key,
-        void *data, void *fdata);
-
-EOLIAN static Eina_Bool
-_engineer_scene_iterate_module_cb(const Eina_Hash *hash, const void *key,
-        void *data, void *fdata);
-
-static void
-_engineer_scene_iterate_module_init_task(void *data, Ecore_Thread *thread);
-
-static void
-_engineer_scene_iterate_module_init_done(void *data, Ecore_Thread *thread);
-
-static void
-_engineer_scene_iterate_module_init_cancel(void *data, Ecore_Thread *thread);
+Eina_Bool _engineer_scene_iterate_cb(void *obj);
 
 #endif

@@ -17,54 +17,26 @@ typedef Eo Engineer_Module;
 
 EWAPI const Efl_Class *engineer_module_class_get(void);
 
+EOAPI Efl_Object *engineer_module_add(const Eo *obj);
+
 EOAPI Efl_Object *engineer_module_efl_object_constructor(Eo *obj);
 
 EOAPI void engineer_module_efl_object_destructor(Eo *obj);
 
 EOAPI void engineer_module_iterate(Eo *obj);
 
-EOAPI void engineer_module_timeline_adjust(Eo *obj);
+EOAPI void engineer_module_respond(Eo *obj, Eina_Inarray *inbox, uint32_t offset);
 
-EOAPI void engineer_module_timeline_push(Eo *obj);
+EOAPI uint32_t engineer_module_cache_sizeof(Eo *obj);
 
-EOAPI void engineer_module_timeline_pop(Eo *obj);
+EOAPI void engineer_module_cache_read(Eo *obj, COMPONENT *buffer, uint32_t index);
 
-EOAPI void engineer_module_timeline_copy(Eo *obj, unsigned int cacheid, Engineer_Module_Frame *origin, Engineer_Module_Frame *destination);
+EOAPI void engineer_module_cache_write(Eo *obj, COMPONENT *buffer, uint32_t index);
 
-EOAPI void engineer_module_buffer_alloc(Eo *obj);
+EOAPI unsigned int engineer_module_component_create(Eo *obj, uint64_t id, uint64_t parent, COMPONENT *input);
 
-EOAPI void engineer_module_buffer_free(Eo *obj);
+EOAPI uint32_t engineer_module_component_lookup(Eo *obj, uint64_t componentid);
 
-EOAPI void engineer_module_cache_push(Eo *obj, unsigned int componentid, HANDLE *data);
-
-EOAPI void engineer_module_cache_copy(Eo *obj, Engineer_Module_Frame *frame, unsigned int cacheid, HANDLE *component);
-
-EOAPI void engineer_module_cache_lookup(Eo *obj, Engineer_Module_Frame *frame, unsigned int cacheid, HANDLE *component);
-
-EOAPI void engineer_module_cache_swap(Eo *obj, unsigned int componenta, unsigned int componentb);
-
-EOAPI HANDLE *engineer_module_handle_alloc(Eo *obj);
-
-EOAPI void engineer_module_handle_free(Eo *obj, HANDLE *target);
-
-EOAPI unsigned int engineer_module_component_create(Eo *obj, unsigned int parent);
-
-EOAPI void engineer_module_component_load(Eo *obj, unsigned int target);
-
-EOAPI void engineer_module_component_save(Eo *obj, unsigned int target);
-
-EOAPI void engineer_module_component_destroy(Eo *obj, unsigned int targetid);
-
-EOAPI void engineer_module_component_dispose(Eo *obj, unsigned int target);
-
-EOAPI void engineer_module_component_lookup(Eo *obj, unsigned int timeoffset, unsigned int componentid, HANDLE *target);
-
-EOAPI Efl_Object *engineer_module_factory(const Eo *obj);
-
-EOAPI void engineer_module_awake(const Eo *obj, unsigned long dt);
-
-EOAPI void engineer_module_start(const Eo *obj, HANDLE *next, unsigned long dt);
-
-EOAPI void engineer_module_update(const Eo *obj, HANDLE *last, HANDLE *next, unsigned long dt);
+EOAPI void engineer_module_component_parent_set(Eo *obj, uint64_t target, uint64_t parent);
 
 #endif

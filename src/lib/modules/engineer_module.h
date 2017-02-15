@@ -1,73 +1,92 @@
 #ifndef _ENGINEER_MODULE_H_
 #define _ENGINEER_MODULE_H_
 
+#ifndef PROJECT
+   #define PROJECT
+#endif
+#ifndef SYMBOL
+   #define SYMBOL
+#endif
+#ifndef FIELDS
+   #define FIELDS
+#endif
+#ifndef RESPONSES
+   #define RESPONSES
+#endif
+
 #include "../../headers/Engineer.h"
+#include "engineer_module.eo.h"
 
-#ifndef NAME
-   #define NAME default
-#endif
-
-#ifndef DATA
-   #define DATA
-#endif
-
-#define BUFFER NAME_Component_Buffer
-#define HANDLE NAME_Component_Handle
-#define SYMBOL NAME_engineer_module
-
-#define factory(a)      _SYMBOL_factory(a, Engineer_Module_Data *pd EINA_UNUSED)
-#define awake(a, b)     _SYMBOL_awake(Eo *obj EINA_UNUSED, a, b)
-#define start(a, b)     _SYMBOL_start(Eo *obj EINA_UNUSED, a, b)
-#define update(a, b, c) _SYMBOL_update(Eo *obj EINA_UNUSED, a, b, c)
-
+#define COMPONENT PROJECT_SYMBOL_Data
 typedef struct
 {
-   Engineer_Scene_Component *component;
+   const uint64_t  this;
+   const char     *name;
 
-   #define VAR(TYPE, KEY) \
-      TYPEBuffer KEY;
-   DATA
-   #undef VAR
+   const uint64_t  parent;
+   const uint64_t  nextsibling;
+   const uint64_t  prevsibling;
+
+   #define FIELD(KEY, TYPE) \
+      TYPE KEY;
+   FIELDS
+   #undef FIELD
 }
-BUFFER;
+COMPONENT;
 
 typedef struct
 {
-   Engineer_Scene_Component *component;
 
-   #define VAR(TYPE, KEY) \
-      TYPE *KEY;
-   DATA
-   #undef VAR
+   uint64_t      id; // Much like war, this never changes.
+   Eina_Inarray *name;
+
+   Eina_Inarray *parent;
+   Eina_Inarray *siblingnext;
+   Eina_Inarray *siblingprev;
+
+   #define FIELD(KEY, TYPE) \
+      TYPE##SOA KEY;
+   FIELDS
+   #undef FIELD
 }
-HANDLE;
+Engineer_Component_History;
 
 typedef struct
 {
-   uint  index;
+   uint64_t timestamp;
 
-   uint  offsetactive;
-   uint  offsetpassive;
+   // All of the following vars are Engineer_Component data Arrays.
+   Eina_Inarray *id;     // This field is used to correlate array indices to Component ID's.
+   Eina_Inarray *name;
 
-   HANDLE    *cache;
-   Eina_Hash *lookup;
+   Eina_Inarray *parent;
+   Eina_Inarray *siblingnext;
+   Eina_Inarray *siblingprev;
+
+   #define FIELD(KEY, TYPE) \
+      TYPE##SOA KEY;
+   FIELDS
+   #undef FIELD
 }
 Engineer_Module_Frame;
 
 typedef struct
 {
-   Engineer_Scene_Data   *scene;    // Stores the pointer of the parent Scene private data.
+   uint64_t               class;     // Stores Class ID for the Scene Eo accesors.
 
-   Eina_Inarray          *timeline;
+   Eina_Inarray          *buffer;    // Triple framebuffer that most recent 3 frames are stored in.
 
-   Engineer_Module_Frame *past;     // Used for interpolation. Is the frame before the present one.
-   Engineer_Module_Frame *present;  // Points to the current frame data.
-   Engineer_Module_Frame *future;   // Points to the frame currently receiving the iterator update.
+   Engineer_Module_Frame *past;      // Used for interpolation. Is the frame before the present one.
+   Engineer_Module_Frame *present;   // Points to the current frame data.
+   Engineer_Module_Frame *future;    // Points to the frame currently receiving the iterator update.
 
-   DB        *table;
+   Eina_Hash *history;               // Stores historical record of Component data.
+   Eina_Hash *lookup;                // This is our lookup hash for correlating Component ID's to array indices.
 }
 Engineer_Module_Data;
 
-#include "engineer_module.eo.h"
+extern void
+engineer_module_update(COMPONENT *buffer);
 
 #endif
+

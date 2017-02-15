@@ -1,17 +1,17 @@
-#ifndef _ENGINEER_TRANSFORM_H_
-#define _ENGINEER_TRANSFORM_H_
+#ifndef _TRANSFORM_H_
+#define _TRANSFORM_H_
 
-// "NAME" *MUST* be the same as your Efl_Object Class name in the lowercase/underscore format.
-#define NAME engineer_transform
-#define DATA \
-   VAR(Vec3, position) \
-   VAR(Vec3, velocity) \
-   VAR(Vec3, acceleration)
+#define SYMBOL transform
 
-#include "../engineer_module.h"
-#include "engineer_transform.eo.h"
+#define FIELDS \
+   FIELD(position, Vec3) \
+   FIELD(velocity, Vec3) \
+   FIELD(impulse,  Vec3) \
+   FIELD(netforce, Vec3) 
 
-typedef struct {}
-Engineer_Transform_Data;
+#define RESPONSES \
+   REPSONSE(accelerate, sizeof(Vec3))
+
+#include "../engineer_module_subclass_autogen.h"
 
 #endif

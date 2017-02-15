@@ -1,5 +1,5 @@
-EWAPI const Efl_Event_Description _ENGINEER_SCENE_EVENT_SECTOR_ITERATE_CB =
-   EFL_EVENT_DESCRIPTION("sector_iterate_cb");
+EWAPI const Efl_Event_Description _ENGINEER_SCENE_EVENT_ITERATE_CB =
+   EFL_EVENT_DESCRIPTION("iterate_cb");
 
 Efl_Object *_engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd);
 
@@ -10,6 +10,18 @@ Efl_Object *_engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd
 void _engineer_scene_efl_object_destructor(Eo *obj, Engineer_Scene_Data *pd);
 
 
+Efl_Object *_engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd);
+
+EOAPI EFL_FUNC_BODY(engineer_scene_efl_object_constructor, Efl_Object *, NULL);
+
+Efl_Object *_engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd);
+
+EOAPI EFL_FUNC_BODY(engineer_scene_efl_object_finalize, Efl_Object *, NULL);
+
+void _engineer_scene_efl_object_destructor(Eo *obj, Engineer_Scene_Data *pd);
+
+EOAPI EFL_VOID_FUNC_BODY(engineer_scene_efl_object_destructor);
+
 void _engineer_scene_name_set(Eo *obj, Engineer_Scene_Data *pd, const char *name);
 
 EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_name_set, EFL_FUNC_CALL(name), const char *name);
@@ -18,129 +30,49 @@ const char *_engineer_scene_name_get(Eo *obj, Engineer_Scene_Data *pd);
 
 EOAPI EFL_FUNC_BODY_CONST(engineer_scene_name_get, const char *, NULL);
 
-Efl_Object *_engineer_scene_efl_object_constructor(Eo *obj, Engineer_Scene_Data *pd);
+Efl_Object *_engineer_scene_module_get(Eo *obj, Engineer_Scene_Data *pd, uint64_t *classid);
 
-EOAPI EFL_FUNC_BODY(engineer_scene_efl_object_constructor, Efl_Object *, NULL);
-
-void _engineer_scene_efl_object_destructor(Eo *obj, Engineer_Scene_Data *pd);
-
-EOAPI EFL_VOID_FUNC_BODY(engineer_scene_efl_object_destructor);
+EOAPI EFL_FUNC_BODYV_CONST(engineer_scene_module_get, Efl_Object *, NULL, EFL_FUNC_CALL(classid), uint64_t *classid);
 
 Eina_Bool _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd);
 
 EOAPI EFL_FUNC_BODY(engineer_scene_iterate, Eina_Bool, 0);
 
-Eina_Bool _engineer_scene_iterate_module(Eo *obj, Engineer_Scene_Data *pd, unsigned int *key);
+void _engineer_scene_respond(Eo *obj, Engineer_Scene_Data *pd, Eina_Inarray *inboxs, uint32_t offset);
 
-EOAPI EFL_FUNC_BODYV(engineer_scene_iterate_module, Eina_Bool, 0, EFL_FUNC_CALL(key), unsigned int *key);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_respond, EFL_FUNC_CALL(inboxs, offset), Eina_Inarray *inboxs, uint32_t offset);
 
-Eina_Bool _engineer_scene_iterate_entity(Eo *obj, Engineer_Scene_Data *pd, void *key, void *data);
+Eina_Bool _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd, uint64_t id, uint64_t parent, const char *name);
 
-EOAPI EFL_FUNC_BODYV(engineer_scene_iterate_entity, Eina_Bool, 0, EFL_FUNC_CALL(key, data), void *key, void *data);
+EOAPI EFL_FUNC_BODYV(engineer_scene_entity_create, Eina_Bool, 0, EFL_FUNC_CALL(id, parent, name), uint64_t id, uint64_t parent, const char *name);
 
-Eina_Bool _engineer_scene_iterate_component(Eo *obj, Engineer_Scene_Data *pd, void *key, void *data);
+uint32_t _engineer_scene_entity_lookup(Eo *obj, Engineer_Scene_Data *pd, uint64_t target);
 
-EOAPI EFL_FUNC_BODYV(engineer_scene_iterate_component, Eina_Bool, 0, EFL_FUNC_CALL(key, data), void *key, void *data);
+EOAPI EFL_FUNC_BODYV(engineer_scene_entity_lookup, uint32_t, 0, EFL_FUNC_CALL(target), uint64_t target);
 
-void _engineer_scene_timeline_adjust(Eo *obj, Engineer_Scene_Data *pd);
+void _engineer_scene_entity_parent_set(Eo *obj, Engineer_Scene_Data *pd, uint64_t target, uint64_t parent);
 
-EOAPI EFL_VOID_FUNC_BODY(engineer_scene_timeline_adjust);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_entity_parent_set, EFL_FUNC_CALL(target, parent), uint64_t target, uint64_t parent);
 
-void _engineer_scene_timeline_push(Eo *obj, Engineer_Scene_Data *pd);
+Eina_Inarray *_engineer_scene_entity_inbox_get(Eo *obj, Engineer_Scene_Data *pd, uint64_t entityid);
 
-EOAPI EFL_VOID_FUNC_BODY(engineer_scene_timeline_push);
+EOAPI EFL_FUNC_BODYV(engineer_scene_entity_inbox_get, Eina_Inarray *, NULL, EFL_FUNC_CALL(entityid), uint64_t entityid);
 
-void _engineer_scene_timeline_pop(Eo *obj, Engineer_Scene_Data *pd);
+Eina_Inarray *_engineer_scene_entity_outbox_get(Eo *obj, Engineer_Scene_Data *pd, uint64_t entityid);
 
-EOAPI EFL_VOID_FUNC_BODY(engineer_scene_timeline_pop);
+EOAPI EFL_FUNC_BODYV(engineer_scene_entity_outbox_get, Eina_Inarray *, NULL, EFL_FUNC_CALL(entityid), uint64_t entityid);
 
-unsigned int _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd, unsigned int parent, const char *name);
+void _engineer_scene_notice_push_response_request(Eo *obj, Engineer_Scene_Data *pd, uint64_t sender, uint64_t response, uint64_t entityid, void *payload, uint32_t size);
 
-EOAPI EFL_FUNC_BODYV(engineer_scene_entity_create, unsigned int, 0, EFL_FUNC_CALL(parent, name), unsigned int parent, const char *name);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_notice_push_response_request, EFL_FUNC_CALL(sender, response, entityid, payload, size), uint64_t sender, uint64_t response, uint64_t entityid, void *payload, uint32_t size);
 
-void _engineer_scene_entity_destroy(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
+void _engineer_scene_notice_push_entity_create(Eo *obj, Engineer_Scene_Data *pd, uint64_t sender, uint64_t entityid, uint64_t parent);
 
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_entity_destroy, EFL_FUNC_CALL(target), unsigned int target);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_notice_push_entity_create, EFL_FUNC_CALL(sender, entityid, parent), uint64_t sender, uint64_t entityid, uint64_t parent);
 
-void _engineer_scene_entity_dispose(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
+void _engineer_scene_notice_push_component_create(Eo *obj, Engineer_Scene_Data *pd, uint64_t sender, uint64_t classid, uint64_t componentid, uint64_t parent, uint64_t *payload);
 
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_entity_dispose, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_scene_entity_load(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_entity_load, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_scene_entity_save(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_entity_save, EFL_FUNC_CALL(target), unsigned int target);
-
-Engineer_Scene_Entity *_engineer_scene_entity_lookup(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_FUNC_BODYV(engineer_scene_entity_lookup, Engineer_Scene_Entity *, NULL, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_scene_entity_data_swap(Eo *obj, Engineer_Scene_Data *pd, unsigned int targeta, unsigned int targetb);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_entity_data_swap, EFL_FUNC_CALL(targeta, targetb), unsigned int targeta, unsigned int targetb);
-
-unsigned int _engineer_scene_entity_parent_get(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_FUNC_BODYV(engineer_scene_entity_parent_get, unsigned int, 0, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_scene_entity_parent_set(Eo *obj, Engineer_Scene_Data *pd, unsigned int target, unsigned int parent);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_entity_parent_set, EFL_FUNC_CALL(target, parent), unsigned int target, unsigned int parent);
-
-void _engineer_scene_entity_sibling_swap(Eo *obj, Engineer_Scene_Data *pd, unsigned int siblinga, unsigned int siblingb);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_entity_sibling_swap, EFL_FUNC_CALL(siblinga, siblingb), unsigned int siblinga, unsigned int siblingb);
-
-Eina_Inarray *_engineer_scene_entity_children_get(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_FUNC_BODYV(engineer_scene_entity_children_get, Eina_Inarray *, NULL, EFL_FUNC_CALL(target), unsigned int target);
-
-Eina_Inarray *_engineer_scene_entity_components_get(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_FUNC_BODYV(engineer_scene_entity_components_get, Eina_Inarray *, NULL, EFL_FUNC_CALL(target), unsigned int target);
-
-unsigned int _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd, Eina_Stringshare *type, unsigned int parent);
-
-EOAPI EFL_FUNC_BODYV(engineer_scene_component_create, unsigned int, 0, EFL_FUNC_CALL(type, parent), Eina_Stringshare *type, unsigned int parent);
-
-void _engineer_scene_component_destroy(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_component_destroy, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_scene_component_dispose(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_component_dispose, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_scene_component_load(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_component_load, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_scene_component_save(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_component_save, EFL_FUNC_CALL(target), unsigned int target);
-
-Engineer_Scene_Component *_engineer_scene_component_lookup(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_FUNC_BODYV(engineer_scene_component_lookup, Engineer_Scene_Component *, NULL, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_scene_component_data_swap(Eo *obj, Engineer_Scene_Data *pd, unsigned int targeta, unsigned int targetb);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_component_data_swap, EFL_FUNC_CALL(targeta, targetb), unsigned int targeta, unsigned int targetb);
-
-unsigned int _engineer_scene_component_parent_get(Eo *obj, Engineer_Scene_Data *pd, unsigned int target);
-
-EOAPI EFL_FUNC_BODYV(engineer_scene_component_parent_get, unsigned int, 0, EFL_FUNC_CALL(target), unsigned int target);
-
-void _engineer_scene_component_parent_set(Eo *obj, Engineer_Scene_Data *pd, unsigned int target, unsigned int parent);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_component_parent_set, EFL_FUNC_CALL(target, parent), unsigned int target, unsigned int parent);
-
-void _engineer_scene_component_sibling_swap(Eo *obj, Engineer_Scene_Data *pd, unsigned int siblinga, unsigned int siblingb);
-
-EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_component_sibling_swap, EFL_FUNC_CALL(siblinga, siblingb), unsigned int siblinga, unsigned int siblingb);
+EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_notice_push_component_create, EFL_FUNC_CALL(sender, classid, componentid, parent, payload), uint64_t sender, uint64_t classid, uint64_t componentid, uint64_t parent, uint64_t *payload);
 
 static Eina_Bool
 _engineer_scene_class_initializer(Efl_Class *klass)
@@ -149,39 +81,22 @@ _engineer_scene_class_initializer(Efl_Class *klass)
       EFL_OBJECT_OP_FUNC(efl_constructor, _engineer_scene_efl_object_constructor),
       EFL_OBJECT_OP_FUNC(efl_finalize, _engineer_scene_efl_object_finalize),
       EFL_OBJECT_OP_FUNC(efl_destructor, _engineer_scene_efl_object_destructor),
+      EFL_OBJECT_OP_FUNC(engineer_scene_efl_object_constructor, _engineer_scene_efl_object_constructor),
+      EFL_OBJECT_OP_FUNC(engineer_scene_efl_object_finalize, _engineer_scene_efl_object_finalize),
+      EFL_OBJECT_OP_FUNC(engineer_scene_efl_object_destructor, _engineer_scene_efl_object_destructor),
       EFL_OBJECT_OP_FUNC(engineer_scene_name_set, _engineer_scene_name_set),
       EFL_OBJECT_OP_FUNC(engineer_scene_name_get, _engineer_scene_name_get),
-      EFL_OBJECT_OP_FUNC(engineer_scene_efl_object_constructor, _engineer_scene_efl_object_constructor),
-      EFL_OBJECT_OP_FUNC(engineer_scene_efl_object_destructor, _engineer_scene_efl_object_destructor),
+      EFL_OBJECT_OP_FUNC(engineer_scene_module_get, _engineer_scene_module_get),
       EFL_OBJECT_OP_FUNC(engineer_scene_iterate, _engineer_scene_iterate),
-      EFL_OBJECT_OP_FUNC(engineer_scene_iterate_module, _engineer_scene_iterate_module),
-      EFL_OBJECT_OP_FUNC(engineer_scene_iterate_entity, _engineer_scene_iterate_entity),
-      EFL_OBJECT_OP_FUNC(engineer_scene_iterate_component, _engineer_scene_iterate_component),
-      EFL_OBJECT_OP_FUNC(engineer_scene_timeline_adjust, _engineer_scene_timeline_adjust),
-      EFL_OBJECT_OP_FUNC(engineer_scene_timeline_push, _engineer_scene_timeline_push),
-      EFL_OBJECT_OP_FUNC(engineer_scene_timeline_pop, _engineer_scene_timeline_pop),
+      EFL_OBJECT_OP_FUNC(engineer_scene_respond, _engineer_scene_respond),
       EFL_OBJECT_OP_FUNC(engineer_scene_entity_create, _engineer_scene_entity_create),
-      EFL_OBJECT_OP_FUNC(engineer_scene_entity_destroy, _engineer_scene_entity_destroy),
-      EFL_OBJECT_OP_FUNC(engineer_scene_entity_dispose, _engineer_scene_entity_dispose),
-      EFL_OBJECT_OP_FUNC(engineer_scene_entity_load, _engineer_scene_entity_load),
-      EFL_OBJECT_OP_FUNC(engineer_scene_entity_save, _engineer_scene_entity_save),
       EFL_OBJECT_OP_FUNC(engineer_scene_entity_lookup, _engineer_scene_entity_lookup),
-      EFL_OBJECT_OP_FUNC(engineer_scene_entity_data_swap, _engineer_scene_entity_data_swap),
-      EFL_OBJECT_OP_FUNC(engineer_scene_entity_parent_get, _engineer_scene_entity_parent_get),
       EFL_OBJECT_OP_FUNC(engineer_scene_entity_parent_set, _engineer_scene_entity_parent_set),
-      EFL_OBJECT_OP_FUNC(engineer_scene_entity_sibling_swap, _engineer_scene_entity_sibling_swap),
-      EFL_OBJECT_OP_FUNC(engineer_scene_entity_children_get, _engineer_scene_entity_children_get),
-      EFL_OBJECT_OP_FUNC(engineer_scene_entity_components_get, _engineer_scene_entity_components_get),
-      EFL_OBJECT_OP_FUNC(engineer_scene_component_create, _engineer_scene_component_create),
-      EFL_OBJECT_OP_FUNC(engineer_scene_component_destroy, _engineer_scene_component_destroy),
-      EFL_OBJECT_OP_FUNC(engineer_scene_component_dispose, _engineer_scene_component_dispose),
-      EFL_OBJECT_OP_FUNC(engineer_scene_component_load, _engineer_scene_component_load),
-      EFL_OBJECT_OP_FUNC(engineer_scene_component_save, _engineer_scene_component_save),
-      EFL_OBJECT_OP_FUNC(engineer_scene_component_lookup, _engineer_scene_component_lookup),
-      EFL_OBJECT_OP_FUNC(engineer_scene_component_data_swap, _engineer_scene_component_data_swap),
-      EFL_OBJECT_OP_FUNC(engineer_scene_component_parent_get, _engineer_scene_component_parent_get),
-      EFL_OBJECT_OP_FUNC(engineer_scene_component_parent_set, _engineer_scene_component_parent_set),
-      EFL_OBJECT_OP_FUNC(engineer_scene_component_sibling_swap, _engineer_scene_component_sibling_swap)
+      EFL_OBJECT_OP_FUNC(engineer_scene_entity_inbox_get, _engineer_scene_entity_inbox_get),
+      EFL_OBJECT_OP_FUNC(engineer_scene_entity_outbox_get, _engineer_scene_entity_outbox_get),
+      EFL_OBJECT_OP_FUNC(engineer_scene_notice_push_response_request, _engineer_scene_notice_push_response_request),
+      EFL_OBJECT_OP_FUNC(engineer_scene_notice_push_entity_create, _engineer_scene_notice_push_entity_create),
+      EFL_OBJECT_OP_FUNC(engineer_scene_notice_push_component_create, _engineer_scene_notice_push_component_create)
    );
    return efl_class_functions_set(klass, &ops, NULL);
 }

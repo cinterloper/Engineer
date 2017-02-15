@@ -99,7 +99,7 @@ engineer_render_test_viewport_init(Eo *window)
 void
 engineer_render_test_game_init(Eo *root)
 {
-   Eo *node = engineer_node_add(root,
+   Eo *node = engineer_node_new(root,
                  "/home/brokenshakles/Projects/SoftwareEngines/Engineer/build",
                  "Engineer_Render_Test");
 
@@ -109,7 +109,9 @@ engineer_render_test_game_init(Eo *root)
    // engineer_node_module_load(node, eina_stringshare_add("Engineer_Actor.so"));
    // engineer_node_module_load(node, eina_stringshare_add("Engineer_Camera.so"));
 
-   Eo *scene EINA_UNUSED = engineer_scene_add(node, "engrendertest");
+   printf("Scene Creation Pre-Checkpoint.\n");
+
+   Eo *scene EINA_UNUSED = engineer_scene_new(node, "engrendertest");
 
    //uint root, camera, sphere;
    //root = engineer_scene_entity_create(scene, (uint)0, "Root");

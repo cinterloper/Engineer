@@ -5,104 +5,100 @@ extern Sclr cordic_gain_h;
 
 /*** Elementary Arithmatic Functions ***/
 
-AnglBuffer
-engineer_math_mult_angl(Angl *a, Angl *b)
+Angl
+engineer_math_angl_mult(Angl multiplicand, Angl multiplier)
 {
-   #ifndef CORDIC_LINEAR
-   AnglBuffer output = *a * *b;
-   output += ((output & ((Angl)1 << (ANGLRADIX - 1)) ) << 1);
+   Angl output;
+
+   output   = multiplicand * multiplier;
+   output  += (output & ((Angl)1 << (ANGLRADIX - 1)) ) << 1;
    output >>= ANGLRADIX;
 
    return output;
-   #else
-   Sclr x = *a;
-   Sclr y =  0;
-   Sclr z = *b;
-   cordic_linear_zmode(&x, &y, &z);
-
-   return y;
-   #endif
 }
 
-AnglBuffer
-engineer_math_divd_angl(Angl *a, Angl *b)
+Angl
+engineer_math_angl_divd(Angl dividend, Angl divisor)
 {
-   #ifndef CORDIC_LINEAR
-   AnglBuffer output = (*a << ANGLRADIX)/ *b;
+   Angl output;
+
+   output = (dividend << ANGLRADIX) / divisor;
 
    return output;
-   #else
-   Sclr x = *b;
-   Sclr y = *a;
-   Sclr z =  0;
-   cordic_linear_ymode(&x, &y, &z);
-
-   return z;
-   #endif
 }
 
 /*** Elementary Trigonomic Functions ***/
 
-Vec2Buffer
-engineer_math_sincos(Angl *a)
+Vec2
+engineer_math_sincos(Angl input)
 {
    // Domain: |a| < 1.74
-   Vec2Buffer output;
-   SclrBuffer sin, cos;
+   Vec3 buffer;
+   Vec2 output;
 
-   sin = 0;
-   cos = cordic_gain_c;
-   cordic_circular_zmode(&cos, &sin, a);
-   output.x = ANGL2SCLR(cos);
-   output.y = ANGL2SCLR(sin);
+   buffer.x = cordic_gain_c; // Cos()
+   buffer.y = 0;             // Sin()
+   buffer.z = input;
+
+   buffer   = cordic_circular_zmode(buffer);
+   output.x = ANGL2SCLR(buffer.x);
+   output.y = ANGL2SCLR(buffer.y);
 
    return output;
 }
 
-SclrBuffer
-engineer_math_tan(Angl *a)
+Sclr
+engineer_math_tan(Angl input)
 {
    // Domain: |a| < 1.74
-   SclrBuffer output, sin, cos;
+   Vec3 buffer;
+   Sclr output;
 
-   sin = 0;
-   cos = cordic_gain_c;
-   cordic_circular_zmode(&cos, &sin, a);
-   output = DIVDANGL(&sin, &cos);
+   buffer.x = cordic_gain_c; // Cos()
+   buffer.y = 0;             // Sin()
+   buffer.z = input;
+
+   buffer = cordic_circular_zmode(buffer);
+   output = ANGLDIVD(buffer.y, buffer.x);
    output = ANGL2SCLR(output);
 
    return output;
 }
 
-SclrBuffer
-engineer_math_atan(Angl *a)
+Sclr
+engineer_math_atan(Angl input)
 {
    // Domain: all a
-   SclrBuffer output, x, z;
+   Vec3 buffer;
+   Sclr output;
 
-   x = ANGLBASIS;
-   z = 0;
-   cordic_circular_ymode(&x, a, &z);
-   output = ANGL2SCLR(z);
+   buffer.x = ANGLBASIS;
+   buffer.y = input;
+   buffer.z = 0;
+
+   buffer = cordic_circular_ymode(buffer);
+   output = ANGL2SCLR(buffer.z);
 
    return output;
 }
 
-SclrBuffer
-engineer_math_asin(Angl *a) // Fixme //
+Sclr
+engineer_math_asin(Angl input) // Fixme //
 {
    // Domain: |a| < 0.98
-   // We use the trig identity for this, as there really isnt a good way to vectorize it directly.
-   SclrBuffer output;
 
+   Vec3 buffer;
+   Sclr output;
+
+   buffer.x = cordic_gain_c;
+   buffer.y = input;
+   buffer.z = 0;
+
+   buffer = cordic_circular_aymode(buffer);
+   output = ANGL2SCLR(buffer.z);
+
+   //We will use the trig identity for this if there isn't a good way to vectorize it directly.
    //output = ANGL2SCLR(ATAN(DIVD(a, SQRT(1 - MULT(a, a)))));
-
-   SclrBuffer x, z;
-
-   x = cordic_gain_c;
-   z = 0;
-   cordic_circular_aymode(&x, a, &z);
-   output = ANGL2SCLR(z);
 
    return output;
 }
@@ -110,46 +106,54 @@ engineer_math_asin(Angl *a) // Fixme //
 
 /*** Hyperbolic Functions ***/
 
-Vec2Buffer
-engineer_math_sincosh(Angl *a)
+Vec2
+engineer_math_sincosh(Angl input)
 {
    // Domain: |a| < 1.13 OR |a| <= 1.125, after scaling,
-   Vec2Buffer output;
-   SclrBuffer cosh, sinh;
+   Vec3 buffer;
+   Vec2 output;
 
-   sinh  = 0;
-   cosh  = cordic_gain_h;
-   cordic_hyperbolic_zmode(&cosh, &sinh, a);
-   output.x = cosh;
-   output.y = sinh;
+   buffer.x = cordic_gain_h; // Cosh()
+   buffer.y = 0;             // Sinh()
+   buffer.z = input;
 
-   return output;
-}
-
-SclrBuffer
-engineer_math_tanh(Angl *a)
-{
-   // Domain: |a| < 1.13 units.
-   SclrBuffer output, sinh, cosh;
-
-   cosh = cordic_gain_h;
-   sinh = 0;
-   cordic_hyperbolic_zmode(&cosh, &sinh, a);
-   output = DIVDANGL(&sinh, &cosh);
+   buffer   = cordic_hyperbolic_zmode(buffer);
+   output.x = buffer.x;
+   output.y = buffer.y;
 
    return output;
 }
 
-SclrBuffer
-engineer_math_atanh(Angl *a)
+Sclr
+engineer_math_tanh(Angl input)
 {
    // Domain: |a| < 1.13 units.
-   SclrBuffer output, x, z;
+   Vec3 buffer;
+   Sclr output;
 
-   x = ANGLBASIS;
-   z = 0;
-   cordic_hyperbolic_ymode(&x, a, &z);
-   output = z;
+   buffer.x = cordic_gain_h; // Cosh()
+   buffer.y = 0;             // Sinh()
+   buffer.z = input;
+
+   buffer = cordic_hyperbolic_zmode(buffer);
+   output = ANGLDIVD(buffer.y, buffer.x);
+
+   return output;
+}
+
+Sclr
+engineer_math_atanh(Angl input)
+{
+   // Domain: |a| < 1.13 units.
+   Vec3 buffer;
+   Sclr output;
+
+   buffer.x = ANGLBASIS;
+   buffer.y = input;
+   buffer.z = 0;         // Atanh()
+
+   buffer = cordic_hyperbolic_ymode(buffer);
+   output = buffer.z;
 
    return output;
 }

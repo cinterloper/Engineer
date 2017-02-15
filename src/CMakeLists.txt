@@ -24,6 +24,7 @@ find_package(Elementary 1.18.0 REQUIRED)
 find_package(Edi REQUIRED)
 
 include_directories(
+   ${OpenCl_INCLUDE_DIR}
    ${DB_INLCUDE_DIRS}
    ${EINA_INCLUDE_DIRS}
    ${EVAS_INCLUDE_DIRS}
@@ -35,7 +36,6 @@ include_directories(
    ${ECORE_INCLUDE_DIRS}
    ${ELEMENTARY_INCLUDE_DIRS}
    ${EDI_INCLUDE_DIRS}
-   ${CMAKE_SOURCE_DIR}/headers
    )
 
 # Compilation Configuration.

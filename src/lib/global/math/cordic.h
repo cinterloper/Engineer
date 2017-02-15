@@ -7,6 +7,7 @@
 #include "../const.h"
 #include "sclr.h"
 #include "angl.h"
+#include "vec3.h"
 
 // Define this to perform all multiplications and divisions with the linear CORDIC method.
 // Protip: DO NOT DEFINE THIS.  It does NOT output correct vaules.
@@ -15,17 +16,17 @@
 void cordic_init();
 
 void cordic_linear_init();
-void cordic_linear_ymode(Sclr *x0, Sclr *y0, Sclr *z0);
-void cordic_linear_zmode(Sclr *x0, Sclr *y0, Sclr *z0);
+Vec3 cordic_linear_ymode(Vec3 input);
+Vec3 cordic_linear_zmode(Vec3 input);
 
 void cordic_circular_init();
-void cordic_circular_ymode(Sclr *x0, Sclr *y0, Sclr *z0);
-void cordic_circular_aymode(Sclr *x0, Sclr *y0, Sclr *z0);
-void cordic_circular_zmode(Sclr *x0, Sclr *y0, Sclr *z0);
+Vec3 cordic_circular_ymode(Vec3 input);
+Vec3 cordic_circular_aymode(Vec3 input);
+Vec3 cordic_circular_zmode(Vec3 input);
 
 void cordic_hyperbolic_init();
-void cordic_hyperbolic_ymode(Sclr *x0, Sclr *y0, Sclr *z0);
-void cordic_hyperbolic_zmode(Sclr *x0, Sclr *y0, Sclr *z0);
+Vec3 cordic_hyperbolic_ymode(Vec3 input);
+Vec3 cordic_hyperbolic_zmode(Vec3 input);
 
 #endif
 
