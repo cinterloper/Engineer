@@ -54,6 +54,10 @@ void _engineer_scene_entity_parent_set(Eo *obj, Engineer_Scene_Data *pd, uint64_
 
 EOAPI EFL_VOID_FUNC_BODYV(engineer_scene_entity_parent_set, EFL_FUNC_CALL(target, parent), uint64_t target, uint64_t parent);
 
+uint64_t _engineer_scene_entity_firstcomponent_get(Eo *obj, Engineer_Scene_Data *pd, uint64_t target);
+
+EOAPI EFL_FUNC_BODYV(engineer_scene_entity_firstcomponent_get, uint64_t, 0, EFL_FUNC_CALL(target), uint64_t target);
+
 Eina_Inarray *_engineer_scene_entity_inbox_get(Eo *obj, Engineer_Scene_Data *pd, uint64_t entityid);
 
 EOAPI EFL_FUNC_BODYV(engineer_scene_entity_inbox_get, Eina_Inarray *, NULL, EFL_FUNC_CALL(entityid), uint64_t entityid);
@@ -92,6 +96,7 @@ _engineer_scene_class_initializer(Efl_Class *klass)
       EFL_OBJECT_OP_FUNC(engineer_scene_entity_create, _engineer_scene_entity_create),
       EFL_OBJECT_OP_FUNC(engineer_scene_entity_lookup, _engineer_scene_entity_lookup),
       EFL_OBJECT_OP_FUNC(engineer_scene_entity_parent_set, _engineer_scene_entity_parent_set),
+      EFL_OBJECT_OP_FUNC(engineer_scene_entity_firstcomponent_get, _engineer_scene_entity_firstcomponent_get),
       EFL_OBJECT_OP_FUNC(engineer_scene_entity_inbox_get, _engineer_scene_entity_inbox_get),
       EFL_OBJECT_OP_FUNC(engineer_scene_entity_outbox_get, _engineer_scene_entity_outbox_get),
       EFL_OBJECT_OP_FUNC(engineer_scene_notice_push_response_request, _engineer_scene_notice_push_response_request),

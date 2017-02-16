@@ -6,7 +6,7 @@
 
 #define TYPE Quat
 
-#define FIELDS    \
+#define SUBTYPES  \
    FIELD(w, Angl) \
    FIELD(x, Sclr) \
    FIELD(y, Sclr) \

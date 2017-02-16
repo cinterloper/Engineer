@@ -144,7 +144,7 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
 
    #define RETURN {eina_module_free(module->eina); eina_stringshare_del(file); return NULL;}
 
-   module->factory = eina_module_symbol_get(module->eina, "engineer_module_add");
+   module->factory = eina_module_symbol_get(module->eina, "engineer_module_new");
    if (module->factory == NULL) RETURN;
 
    module->iterate = eina_module_symbol_get(module->eina, "engineer_module_iterate");

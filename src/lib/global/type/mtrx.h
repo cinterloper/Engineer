@@ -5,7 +5,7 @@
 
 #define TYPE Mtrx
 
-#define FIELDS    \
+#define SUBTYPES     \
    FIELD(r0c0, Sclr) \
    FIELD(r0c1, Sclr) \
    FIELD(r0c2, Sclr) \

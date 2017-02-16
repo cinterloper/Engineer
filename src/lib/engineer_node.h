@@ -2,7 +2,6 @@
 #define _ENGINEER_NODE_H_
 
 #include "../headers/Engineer.h"
-#include "engineer_node.eo.h"
 
 // EntityID's and ComponentID's are each 64 bits long, with the largest 24 bits of the number
 //    specifying the cluster Ip address of the originating Node. This allows compatibility with
@@ -35,5 +34,7 @@ Engineer_Node_Data;
 
 Eo *
 engineer_node_new(Eo *parent, const char *path, const char *title);
+
+#include "engineer_node.eo.h"
 
 #endif

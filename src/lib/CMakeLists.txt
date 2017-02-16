@@ -28,4 +28,4 @@ target_link_libraries(Engineer
    )
 
 # Now that the main lib has been compiled, lets build all of the Modules in the modules subdir.
-#add_subdirectory(modules)
+add_subdirectory(modules)

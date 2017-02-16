@@ -43,5 +43,10 @@ inline void SclrWRITE(Eina_Inarray **key, Sclr *bufferkey, uint32_t index)
    eina_inarray_replace_at(*key, index, bufferkey);
 }
 
+inline void SclrCOPY(Eina_Inarray **source, Eina_Inarray **destination, uint32_t index)
+{
+   eina_inarray_replace_at(*source, index, *destination);
+}
+
 #endif
 

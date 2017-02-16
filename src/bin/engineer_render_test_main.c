@@ -62,7 +62,7 @@ elm_main(int argc, char **argv)
    elm_run();
    //elm_shutdown();
 
-   config_error:
+   //config_error:
       //engineer_render_test_shutdown();
 
    engineer_render_test_error:

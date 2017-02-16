@@ -99,6 +99,24 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
+      entity_firstcomponent_set
+      {
+         params
+         {
+            @in target:    uint64;
+            @in component: uint64;
+         }
+      }
+
+      entity_firstcomponent_get
+      {
+         params
+         {
+            @in target: uint64;
+         }
+         return: uint64;
+      }
+
       entity_inbox_get
       {
          params

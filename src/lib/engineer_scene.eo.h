@@ -39,6 +39,10 @@ EOAPI uint32_t engineer_scene_entity_lookup(Eo *obj, uint64_t target);
 
 EOAPI void engineer_scene_entity_parent_set(Eo *obj, uint64_t target, uint64_t parent);
 
+EOAPI void engineer_scene_entity_firstcomponent_set(Eo *obj, uint64_t target, uint64_t component);
+
+EOAPI uint64_t engineer_scene_entity_firstcomponent_get(Eo *obj, uint64_t target);
+
 EOAPI Eina_Inarray *engineer_scene_entity_inbox_get(Eo *obj, uint64_t entityid);
 
 EOAPI Eina_Inarray *engineer_scene_entity_outbox_get(Eo *obj, uint64_t entityid);

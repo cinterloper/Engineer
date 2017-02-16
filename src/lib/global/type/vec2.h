@@ -5,7 +5,7 @@
 
 #define TYPE Vec2
 
-#define FIELDS    \
+#define SUBTYPES  \
    FIELD(x, Sclr) \
    FIELD(y, Sclr)
 
