@@ -35,6 +35,4 @@ Engineer_Node_Data;
 Eo *
 engineer_node_new(Eo *parent, const char *path, const char *title);
 
-#include "engineer_node.eo.h"
-
 #endif

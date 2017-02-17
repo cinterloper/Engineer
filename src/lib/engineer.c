@@ -54,8 +54,6 @@ engineer_shutdown(void)
 EAPI void
 engineer_run(void)
 {
-   //Eo *scene = eng_scene_new("My Scene");
-   //uint entityid = eng_entity_create(scene, 0, "Sector1");
 }
 
 

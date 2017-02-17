@@ -3,8 +3,6 @@
 
 #include "../headers/Engineer.h"
 
-#include "engineer_viewport.eo.h"
-
 typedef struct
 {
    uint alpha;

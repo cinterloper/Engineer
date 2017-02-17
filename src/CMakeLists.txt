@@ -4,6 +4,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}" ${CMAKE_MODULE_PATH})
 
 # Remember to update the version number after a significant update!
 set(CURRENT_VERSION 0.2.0)
+set(PROJECT_BINARY_DIR ${CMAKE_SOURCE_DIR}/../build)
 project(Engineer VERSION ${CURRENT_VERSION})
 
 # Find the location(s) of our project's prerequisite library files.
@@ -39,10 +40,17 @@ include_directories(
    )
 
 # Compilation Configuration.
-add_definitions(-DEFL_EO_API_SUPPORT -DEFL_BETA_API_SUPPORT)
+#add_definitions(-DENGINEER_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
+add_definitions(-DEFL_EO_API_SUPPORT=1 -DEFL_BETA_API_SUPPORT=1)
 add_definitions(-DPACKAGE_VERSION="${CURRENT_VERSION}")
 add_definitions("-g -Wall -Wextra -Wshadow -std=gnu99")
 
-# All of our actual targets are in another castle.
-add_subdirectory(bin)
+# First we assemble the core library and it's toolbox.
 add_subdirectory(lib)
+
+# Now that the main lib has been compiled, lets build all of the Modules in the modules subdir.
+add_subdirectory(modules)
+
+# All of our binary targets are in another castle.
+add_subdirectory(bin)
+

@@ -103,7 +103,7 @@ class Engineer.Node(Efl.Object)
          {
             @in target: uint64;
          }
-       return: uint32;
+       return: uint64;
       }
 
       entity_location_set
@@ -111,7 +111,7 @@ class Engineer.Node(Efl.Object)
          params
          {
             @in target:   uint64;
-            @in location: uint32;
+            @in location: uint64;
          }
       }
 
@@ -152,7 +152,7 @@ class Engineer.Node(Efl.Object)
          {
             @in target: uint64;
          }
-         return: uint32;
+         return: uint64;
       }
 
       component_location_set
@@ -160,7 +160,7 @@ class Engineer.Node(Efl.Object)
          params
          {
             @in target:   uint64;
-            @in location: uint32;
+            @in location: uint64;
          }
       }
 

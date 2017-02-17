@@ -52,4 +52,3 @@ _engineer_viewport_camera_get(Eo *obj EINA_UNUSED, Engineer_Viewport_Data *pd)
    return pd->camera;
 }
 
-#include "engineer_viewport.eo.c"

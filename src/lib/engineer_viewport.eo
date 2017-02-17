@@ -1,4 +1,4 @@
-class Engineer.Viewport(Efl.Ui.Image)
+class Engineer.Viewport(Efl.Object)
 {
    implements
    {

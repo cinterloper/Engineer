@@ -130,7 +130,7 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    module = &buffer;
 
    // Make sure our module file exists before loading it.
-   Eina_Stringshare *file = eina_stringshare_printf("data/modules/%s.module", class);
+   Eina_Stringshare *file = eina_stringshare_printf("lib/modules/lib%s.so", class);
    if (!ecore_file_exists(file)) {eina_stringshare_del(file); return NULL;}
 
    // Check to see if the module class is already registered.
@@ -222,16 +222,16 @@ _engineer_node_entity_id_free(Eo *obj, Engineer_Node_Data *pd,
    eina_inarray_insert_at(pd->entityqueue, 0, &target);
 }
 
-EOLIAN static uint32_t
+EOLIAN static uint64_t
 _engineer_node_entity_location_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
         uint64_t target)
 {
-  return (uint)eina_hash_find(pd->entitylocate, &target);
+  return (uint64_t)eina_hash_find(pd->entitylocate, &target);
 }
 
 EOLIAN static void
 _engineer_node_entity_location_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        uint64_t target, uint32_t location)
+        uint64_t target, uint64_t location)
 {
    eina_hash_set(pd->entitylocate, &target, &location);
 }
@@ -276,16 +276,16 @@ _engineer_node_component_id_free(Eo *obj, Engineer_Node_Data *pd,
    eina_inarray_insert_at(pd->componentqueue, 0, &target);
 }
 
-EOLIAN static uint32_t
+EOLIAN static uint64_t
 _engineer_node_component_location_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
         uint64_t target)
 {
-  return (uint32_t)eina_hash_find(pd->componentlocate, &target);
+  return (uint64_t)eina_hash_find(pd->componentlocate, &target);
 }
 
 EOLIAN static void
 _engineer_node_component_location_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        uint64_t target, uint32_t location)
+        uint64_t target, uint64_t location)
 {
    eina_hash_set(pd->componentlocate, &target, &location);
 }
@@ -309,4 +309,3 @@ _engineer_node_component_status_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    }
 }
 
-#include "engineer_node.eo.c"

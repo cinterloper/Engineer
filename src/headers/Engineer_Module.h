@@ -1,6 +1,6 @@
 #ifndef ENGINEER_MODULE_H_
 #define ENGINEER_MODULE_H_
 
-#include "../lib/modules/engineer_module.h"
+#include "../lib/engineer_module.h"
 
 #endif

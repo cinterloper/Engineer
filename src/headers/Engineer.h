@@ -32,9 +32,9 @@ extern "C" {
 #endif
 
 #define EFL_BETA_API_SUPPORT 1
-//#define EFL_EO_API_SUPPORT 1
+#define EFL_EO_API_SUPPORT 1
 
-#define PROJECT engineer
+#define PROJECT Engineer
 
 #include <Ecore_Getopt.h>
 

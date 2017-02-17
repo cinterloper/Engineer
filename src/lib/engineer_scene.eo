@@ -66,7 +66,6 @@ class Engineer.Scene(Efl.Object)
          params
          {
             @in inboxs: ptr(Eina.Inarray);
-            @in offset: uint32;
          }
       }
 
@@ -87,7 +86,7 @@ class Engineer.Scene(Efl.Object)
          {
             @in target: uint64;
          }
-         return: uint32;
+         return: uint64;
       }
 
       entity_parent_set
@@ -135,15 +134,15 @@ class Engineer.Scene(Efl.Object)
          return: ptr(Eina.Inarray);
       }
 
-      notice_push_response_request
+      notice_push_event
       {
          params
          {
             @in sender:   uint64;
-            @in response: uint64;
+            @in type:     uint64;
             @in entityid: uint64;
+            @in size:     uint64;
             @in payload:  void_ptr;
-            @in size:     uint32;
          }
       }
 

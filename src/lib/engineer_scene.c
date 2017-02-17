@@ -141,7 +141,7 @@ EOLIAN static Eina_Bool
 _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
 {
    double   timestamp;
-   uint32_t index, offset, count;
+   uint32_t index, count;
 
    Engineer_Scene_Frame  *buffer;
    Engineer_Module_Class *class;
@@ -160,7 +160,7 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
    // Copy over our present Scenegraph Entity metadata to the future Frame.
    for(index = 0; index < eina_inarray_count(pd->id); index++)
    {
-      #define METAFIELDS \
+      #define METADATA \
          FIELD(name) \
          FIELD(parent) \
          FIELD(siblingnext) \
@@ -171,9 +171,9 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
       #define FIELD(key) \
          eina_inarray_replace_at(pd->future->key, index, \
             eina_inarray_nth(pd->present->key, index));
-      METAFIELDS
+      METADATA
       #undef FIELD
-      #undef METAFIELDS
+      #undef METADATA
    }
 
    printf("Scene Iterator Checkpoint 2.\n");
@@ -198,14 +198,8 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
    Eina_Inarray **outbox;
    EINA_INARRAY_FOREACH(pd->present->outbox, outbox)
    {
-      // The first field in our outbox array tell us how many notices we have recieved.
-      count  = *(uint32_t*)eina_inarray_nth(*outbox, 0);
-      offset = 2;
-      for(uint32_t subindex = 0; subindex < count; subindex++)
-      {
-         printf("Scene Iterator Checkpoint 3b.\n");
-         engineer_scene_respond(obj, *outbox, offset);
-      }
+      printf("Scene Iterator Response Checkpoint.\n");
+      engineer_scene_respond(obj, *outbox);
       index += 1;
    }
 
@@ -256,75 +250,79 @@ Eina_Bool _engineer_scene_iterate_cb(void *obj)
 
 EOLIAN static void
 _engineer_scene_respond(Eo *obj, Engineer_Scene_Data *pd,
-        Eina_Inarray *outbox, uint32_t offset)
+        Eina_Inarray *outbox)
 {
-   uint32_t type, count;
-   uint64_t size, target, parent;
+   uint64_t count, offset, current, type, size, target, parent;
 
    Engineer_Module_Class *class;
    Eo                    *module;
    Eina_Inarray          *input;
 
-   type = (*(uint64_t*)eina_inarray_nth(outbox, offset));
-   switch(type)
+   count  = *(uint64_t*)eina_inarray_nth(outbox, 0);
+   offset = 1;
+   for(current = 0; current < count; current++)
    {
-      case 0: // Respond by creating an Entity and attaching it to a parent Entity.
-      size  = 3;
-      target = *(uint64_t*)eina_inarray_nth(outbox, offset + 2);
-      parent = *(uint64_t*)eina_inarray_nth(outbox, offset + 3);
+      type = (*(uint64_t*)eina_inarray_nth(outbox, offset + 1));
+      switch(type)
+      {
+         case 0: // Respond by creating an Entity and attaching it to a parent Entity.
+         size  = 4;
+         target = *(uint64_t*)eina_inarray_nth(outbox, offset + 2);
+         parent = *(uint64_t*)eina_inarray_nth(outbox, offset + 3);
 
-      engineer_scene_entity_create(obj, target, parent, NULL);
-      break;
+         engineer_scene_entity_create(obj, target, parent, NULL);
+         break;
 
-      case 1: // Respond by creating a Component and attaching it to a parent Entity.
-      input  = eina_inarray_nth(outbox, offset + 2);
-      class  = engineer_node_module_class_lookup(efl_parent_get(obj), input);
-      module = engineer_scene_module_get(obj, input);
-      size   = class->size;
-      target = *(uint64_t*)eina_inarray_nth(outbox, offset + 3);
-      parent = *(uint64_t*)eina_inarray_nth(outbox, offset + 4);
+         case 1: // Respond by creating a Component and attaching it to a parent Entity.
+         input  = eina_inarray_nth(outbox, offset + 2);
+         class  = engineer_node_module_class_lookup(efl_parent_get(obj), *(uint64_t*)input);
+         module = engineer_scene_module_get(obj, (uint64_t*)input);
+         size   = class->size;
+         target = *(uint64_t*)eina_inarray_nth(outbox, offset + 3);
+         parent = *(uint64_t*)eina_inarray_nth(outbox, offset + 4);
 
-      // Push our resident notice payload to the input buffer.
-      input  =  eina_inarray_new(sizeof(uint64_t), class->size);
-      for(count = 0; count < class->size; count++)
-         eina_inarray_push(input, eina_inarray_nth(outbox, offset + 5 + count));
+         // Push our resident notice payload to the input buffer.
+         input  =  eina_inarray_new(sizeof(uint64_t), class->size);
+         for(count = 0; count < class->size; count++)
+            eina_inarray_push(input, eina_inarray_nth(outbox, offset + count + 5));
 
-      // Invoke our module's component_create method.
-      uint64_t (*component_create)(Eo *module, uint64_t target, uint64_t parent, void *input);
-      component_create = class->component_create;
-      target = *(uint64_t*)eina_inarray_nth(pd->id, target);
+         // Invoke our module's component_create method.
+         uint64_t (*component_create)(Eo *module, uint64_t target, uint64_t parent, void *input);
+         component_create = class->component_create;
+         target = *(uint64_t*)eina_inarray_nth(pd->id, target);
 
-      component_create(module, target, parent, input);
+         component_create(module, target, parent, input);
 
-      eina_inarray_free(input);
-      break;
-      /*
-      case 2: // Request to Reattach an Entity to a new parent Entity.
-      break;
+         eina_inarray_free(input);
+         break;
+         /*
+         case 2: // Request to Reattach an Entity to a new parent Entity.
+         break;
 
-      case 3: // Request to Reattach a Component to a new parent Entity.
-      break;
+         case 3: // Request to Reattach a Component to a new parent Entity.
+         break;
 
-      case 4: // Request to Destroy an Entity and it's descendants.
-      break;
+         case 4: // Request to Destroy an Entity and it's descendants.
+         break;
 
-      case 5: // Request to Destroy Component.
-      break;
+         case 5: // Request to Destroy Component.
+         break;
 
-      case 6: // Request to Archive Entity and it's descendants.
-      break;
+         case 6: // Request to Archive Entity and it's descendants.
+         break;
 
-      case 7: // Request to Archive Component.
-      break;
+         case 7: // Request to Archive Component.
+         break;
 
-      case 8: // Request to Recall Entity and it's descendants.
-      break;
+         case 8: // Request to Recall Entity and it's descendants.
+         break;
 
-      case 9: // Request to Recall Component.
-      break;
-      */
+         case 9: // Request to Recall Component.
+         break;
+        */
+      }
+      offset += size;
    }
-   offset += size;
 }
 
 /*** Entity Methods ***/
@@ -397,11 +395,11 @@ _engineer_scene_entity_recall(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_
 {
 }
 */
-EOLIAN uint32_t
+EOLIAN uint64_t
 _engineer_scene_entity_lookup(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint64_t entityid)
 {
-   return (uint32_t)eina_hash_find(pd->lookup, &entityid) - 1;
+   return (uint64_t)eina_hash_find(pd->lookup, &entityid) - 1;
 }
 /*
 EOLIAN static void
@@ -625,19 +623,22 @@ _engineer_scene_entity_outbox_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
    return eina_inarray_nth(pd->present->outbox, *(uint32_t*)eina_hash_find(pd->lookup, &entityid));
 }
 
+/*** Scene Notification Requests ***/
+
 EOLIAN static void
-_engineer_scene_notice_push_response_request(Eo *obj, Engineer_Scene_Data *pd,
-        uint64_t sender, uint64_t response, uint64_t entityid, void *payload, uint32_t size)
+_engineer_scene_notice_push_event(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target, uint64_t sender, uint64_t type,  uint64_t size, void *payload)
 {
    Eina_Inarray *inbox;
    uint64_t     *input;
-   uint32_t index, count;
+   uint64_t index, count;
 
-   index = engineer_scene_entity_lookup(obj, entityid);
+   index = engineer_scene_entity_lookup(obj, target);
    inbox = eina_inarray_nth(pd->future->inbox, index);
 
-   eina_inarray_push(inbox, &response);
    eina_inarray_push(inbox, &sender);
+   eina_inarray_push(inbox, &type);
+   eina_inarray_push(inbox, &size);
    for (count = 0; count < size; count++)
       eina_inarray_push(inbox, payload + (count << 3));
 
@@ -646,13 +647,13 @@ _engineer_scene_notice_push_response_request(Eo *obj, Engineer_Scene_Data *pd,
 }
 /*
 EOLIAN static void
-_engineer_scene_notice_push_response_request_ancestors(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_scene_notice_push_event_ancestors(Eo *obj, Engineer_Scene_Data *pd,
         uint64_t entityid, uint32_t response, uint32_t size, void *payload)
 {
 }
 
 EOLIAN static void
-_engineer_scene_notice_push_response_request_descendants(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_scene_notice_push_event_descendants(Eo *obj, Engineer_Scene_Data *pd,
         uint64_t entityid, uint64_t response, uint32_t size, void *payload)
 {
 }
@@ -668,8 +669,8 @@ _engineer_scene_notice_push_entity_create(Eo *obj, Engineer_Scene_Data *pd,
    index  = engineer_scene_entity_lookup(obj, entityid);
    outbox = eina_inarray_nth(pd->future->outbox, index);
 
-   eina_inarray_push(outbox, &type);
    eina_inarray_push(outbox, &sender);
+   eina_inarray_push(outbox, &type);
    eina_inarray_push(outbox, &entityid);
    eina_inarray_push(outbox, &parent);
 
@@ -690,8 +691,8 @@ _engineer_scene_notice_push_component_create(Eo *obj, Engineer_Scene_Data *pd,
    outbox = eina_inarray_nth(pd->future->outbox, index);
    class  = engineer_node_module_class_lookup(efl_parent_get(obj), classid);
 
-   eina_inarray_push(outbox, &type);
    eina_inarray_push(outbox, &sender);
+   eina_inarray_push(outbox, &type);
    eina_inarray_push(outbox, &classid);
    eina_inarray_push(outbox, &componentid);
    eina_inarray_push(outbox, &parent);
@@ -702,4 +703,3 @@ _engineer_scene_notice_push_component_create(Eo *obj, Engineer_Scene_Data *pd,
    *input += 1;
 }
 
-#include "engineer_scene.eo.c"
