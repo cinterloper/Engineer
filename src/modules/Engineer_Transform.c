@@ -19,13 +19,13 @@ void start(Engineer_Component *data EINA_UNUSED)
 {
 }
 
-void update(Engineere_Component *data)
+void update(Engineer_Component *data)
 {
    // We use Velocity Verlet Integration to calculate the next position and velocity.
    //    Then we record our acceleration/impulse input to our timeline.
    Sclr offset;
-   double dt;
-   double dtsqr;
+   double dt = 1/32;
+   double dtsqr = dt * dt;
 
    offset            = MULT(data->impulse.x,  dtsqr);
    data->position.x += MULT(data->velocity.x, dt) + (offset >> 1);
@@ -46,7 +46,7 @@ void update(Engineere_Component *data)
    data->impulse.z = data->netforce.z;
 }
 
-bool response(accelerate, Engineer_Component *data, void *note, uint64_t size)
+bool event(accelerate, Engineer_Component *data, void *note, uint64_t size EINA_UNUSED)
 {
    Vec3 *force = note;
 

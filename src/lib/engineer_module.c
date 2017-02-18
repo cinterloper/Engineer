@@ -37,9 +37,9 @@ _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
    {
       frame->name = eina_inarray_new(sizeof(Eina_Stringshare*), 0);
 
-      frame->parent         = eina_inarray_new(sizeof(uint64_t), 0);
-      frame->siblingnext    = eina_inarray_new(sizeof(uint64_t), 0);
-      frame->siblingprev    = eina_inarray_new(sizeof(uint64_t), 0);
+      frame->parent      = eina_inarray_new(sizeof(uint64_t), 0);
+      frame->siblingnext = eina_inarray_new(sizeof(uint64_t), 0);
+      frame->siblingprev = eina_inarray_new(sizeof(uint64_t), 0);
 
       #define FIELD(key, type) \
          type##NEW(&frame->key)
@@ -52,8 +52,8 @@ _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
    pd->present = eina_inarray_nth(pd->buffer, 1);
    pd->past    = eina_inarray_nth(pd->buffer, 2);
 
-   pd->id       = eina_inarray_new(sizeof(uint64_t), 0);
-   pd->lookup   = eina_hash_int64_new(NULL);
+   pd->id     = eina_inarray_new(sizeof(uint64_t), 0);
+   pd->lookup = eina_hash_int64_new(NULL);
 
    return obj;
 }
@@ -65,13 +65,11 @@ _engineer_module_efl_object_destructor(Eo *obj, Engineer_Module_Data *pd EINA_UN
 }
 
 EOLIAN static Eina_Bool
-_engineer_module_iterate(Eo *obj, Engineer_Module_Data *pd)
+_engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
 {
-   uint64_t index;
-
-   Engineer_Component *buffer;
+   Engineer_Component     buffer;
    Engineer_Module_Frame *frame;
-   //Engineer_Module_Class *class;
+   uint64_t               index;
 
    // Cycle the timeline to get to our next frame.
    frame       = pd->past;
@@ -94,7 +92,7 @@ _engineer_module_iterate(Eo *obj, Engineer_Module_Data *pd)
       #undef FIELD
 
       #define FIELD(key, type) \
-         type##COPY(&pd->present->key, &pd->future->key, index)
+         type##COPY(&pd->present->key, &pd->future->key, index);
       STATE
       #undef FIELD
 
@@ -102,33 +100,33 @@ _engineer_module_iterate(Eo *obj, Engineer_Module_Data *pd)
    }
 
    // Set up our buffer here.
+   engineer_module_cache_read(obj, &buffer, index);
 
    // Alter the Scenegraph according to the present Entities' outboxen.
    index = 0;
-   uint64_t *outbox;
-   EINA_INARRAY_FOREACH(pd->id, outbox)
+   Eina_Inarray *inbox;
+   uint64_t     *parent;
+   EINA_INARRAY_FOREACH(pd->present->parent, parent)
    {
-      printf("Scene Iterator Response Checkpoint.\n");
-      engineer_module_respond(obj, *outbox);
+      inbox = engineer_scene_inbox_get(efl_parent_get(obj), *parent);
+      engineer_module_dispatch(obj, &buffer, inbox);
       index += 1;
    }
 
-   // Invoke engineer_module_update() here.
+   // Invoke engineer_module_component_update() here.
+   engineer_module_component_update(&buffer);
 
    // Flush our buffer here
+   engineer_module_cache_write(obj, &buffer, index);
 
    return ECORE_CALLBACK_RENEW;
 }
 
 EOLIAN static void
-_engineer_module_respond(Eo *obj, Engineer_Scene_Data *pd,
-        Eina_Inarray *inbox)
+_engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
+        Engineer_Component *buffer EINA_UNUSED, Eina_Inarray *inbox)
 {
-   uint64_t count, offset, current, type, size, target, parent;
-
-   //Engineer_Module_Class *class;
-   Eo                    *module;
-   Eina_Inarray          *input;
+   uint64_t count, offset, current, type, size;
 
    count  = *(uint64_t*)eina_inarray_nth(inbox, 0);
    offset = 1;
@@ -137,18 +135,182 @@ _engineer_module_respond(Eo *obj, Engineer_Scene_Data *pd,
       type = (*(uint64_t*)eina_inarray_nth(inbox, offset + 1));
       switch(type)
       {
-         #define FIELD(key, size)
-         case 0: // Respond by creating an Entity and attaching it to a parent Entity.
-         size  = 4;
-         target = *(uint64_t*)eina_inarray_nth(outbox, offset + 2);
-         parent = *(uint64_t*)eina_inarray_nth(outbox, offset + 3);
-
-         engineer_scene_entity_create(obj, target, parent, NULL);
-         break;
-
-         #undef FIELD
+         size = *(uint64_t*)eina_inarray_nth(inbox, offset + 2);
+         #define EVENT(key, size) \
+            case engineer_hash_murmur3(STRINGIFY(key), sizeof(STRINGIFY(key), 0xAAAAAAAA): \
+            engineer_module_event_##key(buffer, eina_inarray_nth(inbox, offset + 3), size) \
+            break;
+         EVENTS
+         #undef EVENT
       }
-      offset += size;
+      offset += (size + 3);
    }
 }
+
+EOLIAN static uint64_t
+_engineer_module_cache_sizeof(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED)
+{
+   uint64_t counter = 0;
+   #define FIELD(key, type) \
+      type##SIZE(&counter)
+   STATE
+   #undef FIELD
+   return counter;
+}
+
+EOLIAN static void
+_engineer_module_cache_read(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
+        Engineer_Component *buffer, uint64_t index)
+{
+   buffer->name = *(char**)eina_inarray_nth(pd->present->name, index);
+
+   buffer->parent      = *(uint64_t*)eina_inarray_nth(pd->present->parent,      index);
+   buffer->nextsibling = *(uint64_t*)eina_inarray_nth(pd->present->siblingnext, index);
+   buffer->prevsibling = *(uint64_t*)eina_inarray_nth(pd->present->siblingprev, index);
+
+   #define FIELD(key, type) \
+      type##READ(&pd->present->key, &buffer->key, index);
+   STATE
+   #undef FIELD
+}
+
+EOLIAN static void
+_engineer_module_cache_write(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        Engineer_Component *buffer EINA_UNUSED, uint64_t index EINA_UNUSED)
+{
+   #define FIELD(key, type) \
+      type##WRITE(&pd->future->key, &buffer->key, index);
+   STATE
+   #undef FIELD
+}
+
+EOLIAN static Eina_Bool
+_engineer_module_component_create(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        uint64_t id, uint64_t parent, const char *name, Engineer_Component *template EINA_UNUSED)
+{
+   Engineer_Module_Frame *frame;
+   uint64_t               index;
+
+   if(engineer_module_component_lookup(obj, id) == UINT_NULL)
+   {
+      //eina_inarray_push(pd->history, eina_inarray_new(sizeof(uint64_t), 0));
+      eina_inarray_push(pd->id, &id);
+      index = eina_inarray_count(pd->id) - 1;
+      eina_hash_add(pd->lookup, &id, (void*)index);
+
+      name = eina_stringshare_printf("%s", name);
+      EINA_INARRAY_FOREACH(pd->buffer, frame)
+      {
+         eina_inarray_push(frame->name,           &name);
+         eina_inarray_push(frame->parent,         &parent);
+         eina_inarray_push(frame->siblingnext,    &id);
+         eina_inarray_push(frame->siblingprev,    &id);
+
+         #define FIELD(key, type) \
+            type##PUSH(&frame->key, &template->key)
+         STATE
+         #undef FIELD
+      }
+      engineer_module_component_parent_set(obj, id, parent);
+
+      printf("Component Create Checkpoint. CID: %ld, Parent: %ld, NextSib: %ld, PrevSib: %ld, Name: %s\n",
+         id, parent, id, id, name);
+   }
+
+   return EINA_TRUE;
+}
+
+EOLIAN static uint64_t
+_engineer_module_component_lookup(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
+        uint64_t componentid)
+{
+   return (uint64_t)eina_hash_find(pd->lookup, &componentid) - 1;
+}
+
+EOLIAN static void
+_engineer_module_component_parent_set(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
+        uint64_t target, uint64_t newparent)
+{
+   uint32_t buffer;
+   Eo *scene = efl_parent_get(obj);
+
+   target    = engineer_module_component_lookup(obj, target);
+   newparent = engineer_module_component_lookup(obj, newparent);
+
+   if (target == UINT_NULL || newparent == UINT_NULL) return;
+
+   uint64_t targetnext  = *(uint64_t*)eina_inarray_nth(pd->future->siblingnext, target);
+   uint64_t targetprev  = *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, target);
+   uint64_t oldparent   = *(uint64_t*)eina_inarray_nth(pd->future->parent,      target);
+   uint64_t oldfirstcom = engineer_scene_entity_firstcomponent_get(scene, oldparent);
+
+   // Check to see if this Entity has it's relationship data defined.
+   if (oldparent == UINT_NULL || targetnext == UINT_NULL || targetprev == UINT_NULL) return;
+
+   oldparent  = engineer_scene_entity_lookup(scene, oldparent);
+   targetnext = engineer_module_component_lookup(obj, targetnext);
+   targetprev = engineer_module_component_lookup(obj, targetprev);
+
+   // Check to see if the target is the old parents first child component.
+   // If so, reset the old parents first child to the next component sibling.
+   if (target == oldfirstcom)
+   {
+      //engineer_scene_entity_firstcomponent_set(scene,
+      eina_inarray_replace_at(pd->future->firstcomponent, oldparent,
+        eina_inarray_nth(pd->id, targetnext));
+   }
+
+   // Check to see if the old parent has only one child Component.
+   if (*(uint64_t*)eina_inarray_nth(pd->future->siblingnext, oldfirstcom) ==
+       *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, oldfirstcom)  )
+   {
+      buffer = UINT_NULL;
+      eina_inarray_replace_at(pd->future->firstcomponent, oldparent, &buffer);
+   }
+   else // relink the remaining child Entities.
+   {
+      eina_inarray_replace_at(pd->future->siblingprev, targetnext,
+         eina_inarray_nth(pd->future->siblingprev,
+         *(uint64_t*)eina_inarray_nth(pd->id, target)));
+      eina_inarray_replace_at(pd->future->siblingnext, targetprev,
+         eina_inarray_nth(pd->future->siblingnext,
+         *(uint64_t*)eina_inarray_nth(pd->id, target)));
+   }
+
+   // Set the new parent EntityID for the target Entity.
+   eina_inarray_replace_at(pd->future->parent, target,
+      eina_inarray_nth(pd->id, newparent));
+
+   // Check to see if new parent has any children. If not, set up the first child properly.
+   if (*(uint64_t*)eina_inarray_nth(pd->future->firstcomponent, newparent) == UINT_NULL)
+   {
+      eina_inarray_replace_at(pd->future->firstcomponent, newparent,
+         eina_inarray_nth(pd->id, target));
+
+      eina_inarray_replace_at(pd->future->siblingnext, target,
+         eina_inarray_nth(pd->id, target));
+      eina_inarray_replace_at(pd->future->siblingprev, target,
+         eina_inarray_nth(pd->id, target));
+   }
+   else // add the target Component to the back end of the new parent's components list.
+   {
+      targetnext = engineer_scene_entity_lookup(obj,
+                      *(uint64_t*)eina_inarray_nth(pd->future->firstcomponent, newparent));
+      targetnext = engineer_scene_entity_lookup(obj,
+                      *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, targetnext));
+
+      eina_inarray_replace_at(pd->future->siblingnext, target,
+         eina_inarray_nth(pd->future->siblingnext, targetprev));
+      eina_inarray_replace_at(pd->future->siblingprev, target,
+         eina_inarray_nth(pd->future->siblingprev, targetnext));
+
+      eina_inarray_replace_at(pd->future->siblingprev, targetnext,
+         eina_inarray_nth(pd->id, target));
+      eina_inarray_replace_at(pd->future->siblingnext, targetnext,
+         eina_inarray_nth(pd->id, target));
+   }
+ // After this, address the modules/ folder cmake file and then redo the mumur3 file. Push git commit afterwards
+}
+
+#include "engineer_module.eo.c"
 

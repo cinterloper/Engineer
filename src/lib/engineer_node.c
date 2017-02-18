@@ -309,3 +309,5 @@ _engineer_node_component_status_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    }
 }
 
+#include "engineer_node.eo.c"
+

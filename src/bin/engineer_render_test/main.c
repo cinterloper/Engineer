@@ -1,4 +1,4 @@
-#include "engineer_render_test_main.h"
+#include "main.h"
 
 static const Ecore_Getopt optdesc = {
   "engineer_render_test", "%prog [options]",

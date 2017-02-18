@@ -68,4 +68,6 @@ Eina_Bool _engineer_scene_iterate_cb(void *obj);
 #define NOTIFY(a, b, c) \
    engineer_scene_entity_notify(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED, a, b, c)
 
+#include "engineer_scene.eo.h"
+
 #endif

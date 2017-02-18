@@ -9,8 +9,8 @@
    FIELD(impulse,  Vec3) \
    FIELD(netforce, Vec3)
 
-#define RESPONSES \
-   REPSONSE(accelerate, sizeof(Vec3))
+#define EVENTS \
+   EVENT(accelerate, sizeof(Vec3))
 
 #include "../lib/engineer_module.h"
 

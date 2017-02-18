@@ -40,7 +40,6 @@ include_directories(
    )
 
 # Compilation Configuration.
-#add_definitions(-DENGINEER_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 add_definitions(-DEFL_EO_API_SUPPORT=1 -DEFL_BETA_API_SUPPORT=1)
 add_definitions(-DPACKAGE_VERSION="${CURRENT_VERSION}")
 add_definitions("-g -Wall -Wextra -Wshadow -std=gnu99")

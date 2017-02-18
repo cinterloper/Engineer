@@ -10,7 +10,7 @@
 //#endif
 
 //#include "gettext.h"
-#include "../headers/Engineer.h"
+#include "../../headers/Engineer.h"
 
 #define COPYRIGHT "Copyright © 2016 Matthew Kolar <mjkolar@charter.net> and various contributors (see AUTHORS)."
 

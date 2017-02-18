@@ -1,7 +1,7 @@
 #ifndef _ENGINEER_MATH_TEST_MAIN_H_
 #define _ENGINEER_MATH_TEST_MAIN_H_
 
-#include "../headers/Engineer.h"
+#include "../../headers/Engineer.h"
 
 extern Sclr cordic_gain_c;
 extern Sclr cordic_gain_h;

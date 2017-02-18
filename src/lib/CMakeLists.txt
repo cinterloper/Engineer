@@ -8,33 +8,33 @@ SET(EOCLASSES
    engineer_viewport
 )
 FOREACH(EOCLASS ${EOCLASSES})
-
-   LIST(APPEND EOSOURCES ${CMAKE_CURRENT_BINARY_DIR}/${EOCLASS}.eo.h)
-   LIST(APPEND EOSOURCES ${CMAKE_CURRENT_BINARY_DIR}/${EOCLASS}.eo.c)
-   LIST(APPEND EOSOURCES ${CMAKE_CURRENT_SOURCE_DIR}/${EOCLASS}.c)
+   LIST(APPEND EOSOURCES ${EOCLASS}.c)
+   LIST(APPEND EOHOUTPUT ${EOCLASS}.eo.h)
+   LIST(APPEND EOCOUTPUT ${EOCLASS}.eo.c)
    add_custom_command(
-      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${EOCLASS}.eo.h ${CMAKE_CURRENT_BINARY_DIR}/${EOCLASS}.eo.c
+      OUTPUT ${EOCLASS}.eo.h ${EOCLASS}.eo.c
       COMMAND eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl` ${CMAKE_CURRENT_SOURCE_DIR}/${EOCLASS}.eo
-      COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/${EOCLASS}.eo.* ${CMAKE_CURRENT_BINARY_DIR}
+      COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/${EOCLASS}.eo.* ${CMAKE_BINARY_DIR}/bin
+      COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/${EOCLASS}.eo.* ${CMAKE_BINARY_DIR}/lib
    )
 ENDFOREACH(EOCLASS)
+
+add_custom_target(eolian DEPENDS ${EOHOUTPUT} ${EOCOUTPUT})
 
 # Add the Engineer.so library as a compile target.
 add_library(Engineer SHARED
    ${ENGINEER_GLOBAL_CODE}
-   engineer.c
    ${EOSOURCES}
+    engineer.c
 )
 
-#target_include_directories(Engineer PRIVATE
-#   ${CMAKE_CURRENT_BINARY_DIR}
-#   ${EINA_INCLUDE_DIRS}
-#   ${EVAS_INCLUDE_DIRS}
-#   ${EFL_INCLUDE_DIRS}
-#   ${EIO_INCLUDE_DIRS}
-#   ${EO_INCLUDE_DIRS}
-#   ${ECORE_INCLUDE_DIRS}
-#)
+add_dependencies(Engineer
+   eolian
+)
+
+target_include_directories(Engineer PRIVATE
+   ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 # Link the external libraries needed to run Engineer.
 target_link_libraries(Engineer

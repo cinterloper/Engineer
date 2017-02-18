@@ -1,0 +1,96 @@
+struct @extern Engineer_Component {}
+
+class Engineer.Module(Efl.Object)
+{
+   implements
+   {
+      Efl.Object.constructor;
+      Efl.Object.finalize;
+      Efl.Object.destructor;
+   }
+
+   methods
+   {
+      efl_object_constructor
+      {
+         return: Efl.Object;
+      }
+
+      efl_object_finalize
+      {
+         return: Efl.Object;
+      }
+
+      efl_object_destructor
+      {
+      }
+
+      update
+      {
+         return: bool;
+      }
+
+      dispatch
+      {
+         params
+         {
+            @in buffer: ptr(Engineer_Component);
+            @in inbox:  ptr(Eina.Inarray);
+         }
+      }
+
+      cache_sizeof
+      {
+         return: uint64;
+      }
+
+      cache_read
+      {
+         params
+         {
+            @in buffer: ptr(Engineer_Component);
+            @in index:  uint64;
+         }
+      }
+
+      cache_write
+      {
+         params
+         {
+            @in buffer: ptr(Engineer_Component);
+            @in index:  uint64;
+         }
+      }
+
+      component_create
+      {
+         params
+         {
+            @in id:       uint64;
+            @in parent:   uint64;
+            @in name:     string;
+            @in template: ptr(Engineer_Component);
+         }
+         return: bool;
+      }
+
+      component_lookup
+      {
+         params
+         {
+            @in componentid: uint64;
+         }
+         return: uint64;
+      }
+
+      component_parent_set
+      {
+         params
+         {
+            @in target:    uint64;
+            @in newparent: uint64;
+         }
+      }
+   }
+
+}

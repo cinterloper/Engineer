@@ -13,5 +13,7 @@ Engineer_Viewport_Data;
 EOLIAN Eo *
 engineer_viewport_add(Eo *obj);
 
+#include "engineer_viewport.eo.h"
+
 #endif
 

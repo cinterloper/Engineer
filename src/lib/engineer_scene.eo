@@ -98,6 +98,60 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
+      entity_siblingnext_set
+      {
+         params
+         {
+            @in target:    uint64;
+            @in component: uint64;
+         }
+      }
+
+      entity_siblingnext_get
+      {
+         params
+         {
+            @in target: uint64;
+         }
+         return: uint64;
+      }
+
+      entity_siblingprev_set
+      {
+         params
+         {
+            @in target:    uint64;
+            @in component: uint64;
+         }
+      }
+
+      entity_siblingprev_get
+      {
+         params
+         {
+            @in target: uint64;
+         }
+         return: uint64;
+      }
+
+      entity_firstentity_set
+      {
+         params
+         {
+            @in target:    uint64;
+            @in component: uint64;
+         }
+      }
+
+      entity_firstentity_get
+      {
+         params
+         {
+            @in target: uint64;
+         }
+         return: uint64;
+      }
+
       entity_firstcomponent_set
       {
          params
@@ -141,8 +195,8 @@ class Engineer.Scene(Efl.Object)
             @in sender:   uint64;
             @in type:     uint64;
             @in entityid: uint64;
-            @in size:     uint64;
             @in payload:  void_ptr;
+            @in size:     uint64;
          }
       }
 

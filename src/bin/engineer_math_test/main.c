@@ -1,4 +1,4 @@
-#include "engineer_math_test_main.h"
+#include "main.h"
 
 int
 main()

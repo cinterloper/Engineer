@@ -512,6 +512,84 @@ _engineer_scene_entity_parent_set(Eo *obj, Engineer_Scene_Data *pd,
          eina_inarray_nth(pd->id, target));
    }
 }
+
+EOLIAN static void
+_engineer_scene_entity_siblingnext_set(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target, uint64_t siblingnext)
+{
+   target = engineer_scene_entity_lookup(obj, target);
+   eina_inarray_replace_at(pd->future->siblingnext, target, &siblingnext);
+}
+
+EOLIAN static uint64_t
+_engineer_scene_entity_siblingnext_get(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target)
+{
+   target = engineer_scene_entity_lookup(obj, target);
+   return *(uint64_t*)eina_inarray_nth(pd->future->siblingnext, target);
+}
+
+EOLIAN static void
+_engineer_scene_entity_siblingprev_set(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target, uint64_t siblingprev)
+{
+   target = engineer_scene_entity_lookup(obj, target);
+   eina_inarray_replace_at(pd->future->siblingprev, target, &siblingprev);
+}
+
+EOLIAN static uint64_t
+_engineer_scene_entity_siblingprev_get(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target)
+{
+   target = engineer_scene_entity_lookup(obj, target);
+   return *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, target);
+}
+
+EOLIAN static void
+_engineer_scene_entity_firstentity_set(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target, uint64_t component)
+{
+   target = engineer_scene_entity_lookup(obj, target);
+   eina_inarray_replace_at(pd->future->firstentity, target, &component);
+}
+
+EOLIAN static uint64_t
+_engineer_scene_entity_firstentity_get(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target)
+{
+   target = engineer_scene_entity_lookup(obj, target);
+   return *(uint64_t*)eina_inarray_nth(pd->future->firstentity, target);
+}
+
+EOLIAN static void
+_engineer_scene_entity_firstcomponent_set(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target, uint64_t component)
+{
+   target = engineer_scene_entity_lookup(obj, target);
+   eina_inarray_replace_at(pd->future->firstcomponent, target, &component);
+}
+
+EOLIAN static uint64_t
+_engineer_scene_entity_firstcomponent_get(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target)
+{
+   target = engineer_scene_entity_lookup(obj, target);
+   return *(uint64_t*)eina_inarray_nth(pd->future->firstcomponent, target);
+}
+
+EOLIAN static Eina_Inarray *
+_engineer_scene_entity_inbox_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        uint64_t entityid)
+{
+   return eina_inarray_nth(pd->present->inbox, *(uint64_t*)eina_hash_find(pd->lookup, &entityid));
+}
+
+EOLIAN static Eina_Inarray *
+_engineer_scene_entity_outbox_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        uint64_t entityid)
+{
+   return eina_inarray_nth(pd->present->outbox, *(uint64_t*)eina_hash_find(pd->lookup, &entityid));
+}
 /*
 EOLIAN static void
 _engineer_scene_entity_sibling_swap(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
@@ -573,23 +651,7 @@ _engineer_scene_entity_children_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd
 
    return results;
 }
-*/
-EOLIAN static void
-_engineer_scene_entity_firstcomponent_set(Eo *obj, Engineer_Scene_Data *pd,
-        uint64_t target, uint64_t component)
-{
-   target = engineer_scene_entity_lookup(obj, target);
-   eina_inarray_replace_at(pd->future->firstcomponent, target, &component);
-}
 
-EOLIAN static uint64_t
-_engineer_scene_entity_firstcomponent_get(Eo *obj, Engineer_Scene_Data *pd,
-        uint64_t target)
-{
-   target = engineer_scene_entity_lookup(obj, target);
-   return *(uint64_t*)eina_inarray_nth(pd->future->firstcomponent, target);
-}
-/*
 EOLIAN static Eina_Inarray *
 _engineer_scene_entity_components_get(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
         uint64_t target)
@@ -609,25 +671,11 @@ _engineer_scene_entity_components_get(Eo *obj, Engineer_Scene_Data *pd EINA_UNUS
    return results;
 }
 */
-EOLIAN static Eina_Inarray *
-_engineer_scene_entity_inbox_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
-        uint64_t entityid)
-{
-   return eina_inarray_nth(pd->present->inbox, *(uint32_t*)eina_hash_find(pd->lookup, &entityid));
-}
-
-EOLIAN static Eina_Inarray *
-_engineer_scene_entity_outbox_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
-        uint64_t entityid)
-{
-   return eina_inarray_nth(pd->present->outbox, *(uint32_t*)eina_hash_find(pd->lookup, &entityid));
-}
-
 /*** Scene Notification Requests ***/
 
 EOLIAN static void
 _engineer_scene_notice_push_event(Eo *obj, Engineer_Scene_Data *pd,
-        uint64_t target, uint64_t sender, uint64_t type,  uint64_t size, void *payload)
+        uint64_t target, uint64_t sender, uint64_t type, void *payload, uint64_t size)
 {
    Eina_Inarray *inbox;
    uint64_t     *input;
@@ -703,3 +751,4 @@ _engineer_scene_notice_push_component_create(Eo *obj, Engineer_Scene_Data *pd,
    *input += 1;
 }
 
+#include "engineer_scene.eo.c"
