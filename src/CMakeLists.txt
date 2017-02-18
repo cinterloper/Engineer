@@ -6,6 +6,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}" ${CMAKE_MODULE_PATH})
 set(CURRENT_VERSION 0.2.0)
 project(Engineer VERSION ${CURRENT_VERSION})
 
+
+### Project Configuration Phase ###
+
 # Find the location(s) of our project's prerequisite library files.
 find_package(PkgConfig REQUIRED)
 find_package(Eina REQUIRED)
@@ -36,24 +39,28 @@ include_directories(
    ${CMAKE_BINARY_DIR}/eolian
    )
 
+# Set up our Eolian generator to auto-process *.eo files into *.eo.h/*.eo.c targets at compile time.
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/eolian)
+file(GLOB_RECURSE EOPATHS RELATIVE ${CMAKE_SOURCE_DIR} *.eo)
+FOREACH(EOPATH ${EOPATHS})
+   LIST(APPEND EONAMEH ${EOPATH}.h)
+   LIST(APPEND EONAMEC ${EOPATH}.c)
+   get_filename_component(EONAME ${EOPATH} NAME)
+   add_custom_command(
+      OUTPUT ${EOPATH}.h ${EOPATH}.c
+      COMMAND eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl`
+                 -o${CMAKE_BINARY_DIR}/eolian/${EONAME} ${CMAKE_SOURCE_DIR}/${EOPATH}
+   )
+ENDFOREACH(EOPATH)
+add_custom_target(eolian_gen DEPENDS ${EONAMEH} ${EONAMEC})
+
+
+### Project Target Compile Phase ###
+
 # Compilation Configuration.
 add_definitions(-DEFL_EO_API_SUPPORT=1 -DEFL_BETA_API_SUPPORT=1)
 add_definitions(-DPACKAGE_VERSION="${CURRENT_VERSION}")
 add_definitions("-g -Wall -Wextra -Wshadow -std=gnu99")
-
-# Set up our Eolian generator to process *.eo files into *.eo.h/*.eo.c targets at compile time.
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/eolian)
-file(GLOB_RECURSE EOCLASSES RELATIVE ${CMAKE_SOURCE_DIR} *.eo)
-FOREACH(EOCLASS ${EOCLASSES})
-   LIST(APPEND EOHOUT ${EOCLASS}.h)
-   LIST(APPEND EOCOUT ${EOCLASS}.c)
-   add_custom_command(
-      OUTPUT ${EOCLASS}.h ${EOCLASS}.c
-      COMMAND eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl` ${CMAKE_SOURCE_DIR}/${EOCLASS}
-      COMMAND mv ${CMAKE_SOURCE_DIR}/${EOCLASS}.* ${CMAKE_BINARY_DIR}/eolian
-   )
-ENDFOREACH(EOCLASS)
-add_custom_target(eolian_gen DEPENDS ${EOHOUT} ${EOCOUT})
 
 # First we assemble the core library and it's toolbox.
 add_subdirectory(lib)
