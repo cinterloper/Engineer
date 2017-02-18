@@ -49,7 +49,7 @@ add_definitions("-g -Wall -Wextra -Wshadow -std=gnu99")
 add_subdirectory(lib)
 
 # Now that the main lib has been compiled, lets build all of the Modules in the modules subdir.
-add_subdirectory(modules)
+#add_subdirectory(modules)
 
 # All of our binary targets are in another castle.
 add_subdirectory(bin)

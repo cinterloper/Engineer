@@ -8,7 +8,7 @@ typedef BASE Sclr;
 
 #define SclrSOA Eina_Inarray*
 
-inline void SclrSIZE(uint32_t *counter)
+inline void SclrSIZE(uint64_t *counter)
 {
    *counter += 1;
 }
@@ -33,17 +33,17 @@ inline void SclrPOP(Eina_Inarray **key)
    eina_inarray_pop(*key);
 }
 
-inline void SclrREAD(Eina_Inarray **key, Sclr *bufferkey, uint32_t index)
+inline void SclrREAD(Eina_Inarray **key, Sclr *bufferkey, uint64_t index)
 {
    *bufferkey = *(Sclr*)eina_inarray_nth(*key, index);
 }
 
-inline void SclrWRITE(Eina_Inarray **key, Sclr *bufferkey, uint32_t index)
+inline void SclrWRITE(Eina_Inarray **key, Sclr *bufferkey, uint64_t index)
 {
    eina_inarray_replace_at(*key, index, bufferkey);
 }
 
-inline void SclrCOPY(Eina_Inarray **source, Eina_Inarray **destination, uint32_t index)
+inline void SclrCOPY(Eina_Inarray **source, Eina_Inarray **destination, uint64_t index)
 {
    eina_inarray_replace_at(*source, index, *destination);
 }
