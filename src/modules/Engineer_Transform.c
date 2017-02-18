@@ -1,4 +1,4 @@
-#include "engineer_transform.h"
+#include "Engineer_Transform.h"
 
 void awake(Engineer_Component *data)
 {
@@ -15,7 +15,7 @@ void awake(Engineer_Component *data)
    data->impulse.z = 0;
 }
 
-void start(Engineer_Component *data)
+void start(Engineer_Component *data EINA_UNUSED)
 {
 }
 

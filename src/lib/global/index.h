@@ -23,7 +23,7 @@
 #include "math/quat.h"
 #include "math/mtrx.h"
 
-#include "hash/murmur3.h"
+//#include "hash/murmur3.h"
 
 #endif
 
