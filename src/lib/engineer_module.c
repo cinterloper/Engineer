@@ -42,7 +42,7 @@ _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
       frame->siblingprev = eina_inarray_new(sizeof(uint64_t), 0);
 
       #define FIELD(key, type) \
-         type##NEW(&frame->key)
+         type##NEW(&frame->key);
       STATE
       #undef FIELD
    }
@@ -124,20 +124,27 @@ _engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
 
 EOLIAN static void
 _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
-        Engineer_Component *buffer EINA_UNUSED, Eina_Inarray *inbox)
+        Engineer_Component *buffer EINA_UNUSED, Eina_Inarray *inbox EINA_UNUSED)
 {
+   /*
    uint64_t count, offset, current, type, size;
+
+   #define EVENT(key) \
+      const uint64_t key##selector \
+         = engineer_hash_murmur3(STRINGIFY(key), sizeof(STRINGIFY(key)), 0xAAAAAAAA);
+   EVENTS
+   #undef EVENT
 
    count  = *(uint64_t*)eina_inarray_nth(inbox, 0);
    offset = 1;
    for(current = 0; current < count; current++)
    {
-      type = (*(uint64_t*)eina_inarray_nth(inbox, offset + 1));
+      type = *(uint64_t*)eina_inarray_nth(inbox, offset + 1);
+      size = *(uint64_t*)eina_inarray_nth(inbox, offset + 2);
       switch(type)
       {
-         size = *(uint64_t*)eina_inarray_nth(inbox, offset + 2);
          #define EVENT(key) \
-            case engineer_hash_murmur3(STRINGIFY(key), sizeof(STRINGIFY(key)), 0xAAAAAAAA): \
+            case key##selector: \
             event(key, buffer, eina_inarray_nth(inbox, offset + 3), size); \
             break;
          EVENTS
@@ -145,6 +152,7 @@ _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUS
       }
       offset += (size + 3);
    }
+*/
 }
 
 EOLIAN static uint64_t
@@ -152,7 +160,7 @@ _engineer_module_cache_sizeof(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA
 {
    uint64_t counter = 0;
    #define FIELD(key, type) \
-      type##SIZE(&counter)
+      type##SIZE(&counter);
    STATE
    #undef FIELD
    return counter;
@@ -185,7 +193,7 @@ _engineer_module_cache_write(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_
 }
 
 EOLIAN static Eina_Bool
-_engineer_module_component_create(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+_engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd,
         uint64_t id, uint64_t parent, const char *name, Engineer_Component *template EINA_UNUSED)
 {
    Engineer_Module_Frame *frame;
@@ -207,7 +215,7 @@ _engineer_module_component_create(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd 
          eina_inarray_push(frame->siblingprev,    &id);
 
          #define FIELD(key, type) \
-            type##PUSH(&frame->key, &template->key)
+            type##PUSH(&frame->key, &template->key);
          STATE
          #undef FIELD
       }

@@ -27,8 +27,7 @@ typedef struct
    uint64_t nextsibling;
    uint64_t prevsibling;
 
-   #define FIELD(key, type) \
-      type key;
+   #define FIELD(key, type) type key;
    STATE
    #undef FIELD
 }
@@ -42,8 +41,7 @@ typedef struct
    Eina_Inarray *siblingnext;
    Eina_Inarray *siblingprev;
 
-   #define FIELD(key, type) \
-      type##SOA key;
+   #define FIELD(key, type) type##SOA key;
    STATE
    #undef FIELD
 }
@@ -57,8 +55,7 @@ typedef struct
    Eina_Inarray *siblingnext;
    Eina_Inarray *siblingprev;
 
-   #define FIELD(key, type) \
-      type##SOA key;
+   #define FIELD(key, type) type##SOA key;
    STATE
    #undef FIELD
 }
@@ -66,6 +63,8 @@ Engineer_Module_Frame;
 
 typedef struct
 {
+   Eina_Hash    *events;
+
    Eina_Hash    *lookup;
    Eina_Inarray *id;
    Eina_Inarray *history;

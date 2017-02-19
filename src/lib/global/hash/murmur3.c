@@ -16,7 +16,7 @@ uint64_t engineer_hash_murmur3(const void *key, const int64_t len, const uint64_
   uint64_t c2 = BIG_CONSTANT(0x4cf5ad432745937f);
 
   // Body
-  const uint64_t * blocks = (const uint64_t *)(data);
+  const uint64_t *blocks = (const uint64_t*)(data);
 
   for(i = 0; i < nblocks; i++)
   {
@@ -32,7 +32,7 @@ uint64_t engineer_hash_murmur3(const void *key, const int64_t len, const uint64_
   }
 
   // Tail
-  const uint8_t * tail = (const uint8_t*)(data + nblocks*8);
+  const uint8_t *tail = (const uint8_t*)(data + nblocks * 8);
 
   uint64_t k1 = 0;
 

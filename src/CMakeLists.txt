@@ -52,7 +52,7 @@ FOREACH(EOPATH ${EOPATHS})
                  -o${CMAKE_BINARY_DIR}/eolian/${EONAME} ${CMAKE_SOURCE_DIR}/${EOPATH}
    )
 ENDFOREACH(EOPATH)
-add_custom_target(eolian_gen DEPENDS ${EONAMEH} ${EONAMEC})
+add_custom_target(eolian_gen DEPENDS ${EONAMEH})
 
 
 ### Project Target Compile Phase ###

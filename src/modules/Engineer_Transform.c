@@ -56,4 +56,3 @@ bool event(accelerate, Engineer_Component *data, void *note, uint64_t size EINA_
 
   return EINA_TRUE;
 }
-
