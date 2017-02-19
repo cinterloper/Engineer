@@ -74,6 +74,16 @@ class Engineer.Module(Efl.Object)
          return: bool;
       }
 
+      component_attach
+      {
+         params
+         {
+            @in target:    uint64;
+            @in newparent: uint64;
+         }
+         return: uint64;
+      }
+
       component_lookup
       {
          params
@@ -89,6 +99,51 @@ class Engineer.Module(Efl.Object)
          {
             @in target:    uint64;
             @in newparent: uint64;
+         }
+      }
+
+      component_parent_get
+      {
+         params
+         {
+            @in target: uint64;
+         }
+         return: uint64;
+      }
+
+      component_siblingnext_get
+      {
+         params
+         {
+            @in target: uint64;
+         }
+         return: uint64;
+      }
+
+      component_siblingnext_set
+      {
+         params
+         {
+            @in target:     uint64;
+            @in newsibling: uint64;
+         }
+      }
+
+      component_siblingprev_get
+      {
+         params
+         {
+            @in target: uint64;
+         }
+         return: uint64;
+      }
+
+      component_siblingprev_set
+      {
+         params
+         {
+            @in target:     uint64;
+            @in newsibling: uint64;
          }
       }
    }

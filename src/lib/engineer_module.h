@@ -66,15 +66,14 @@ Engineer_Module_Frame;
 
 typedef struct
 {
+   Eina_Hash    *lookup;
+   Eina_Inarray *id;
+   Eina_Inarray *history;
    Eina_Inarray *buffer;
 
    Engineer_Module_Frame *past;
    Engineer_Module_Frame *present;
    Engineer_Module_Frame *future;
-
-   Eina_Inarray *history;
-   Eina_Inarray *id;
-   Eina_Hash    *lookup;
 }
 Engineer_Module_Data;
 
@@ -82,7 +81,7 @@ void engineer_module_component_awake(Engineer_Component *data);
 void engineer_module_component_start(Engineer_Component *data);
 void engineer_module_component_update(Engineer_Component *data);
 
-#define EVENT(key, size) \
+#define EVENT(key) \
    bool engineer_module_component_event_##key(Engineer_Component *data, void *note, uint64_t size);
 EVENTS
 #undef EVENT

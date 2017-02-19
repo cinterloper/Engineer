@@ -10,7 +10,7 @@
    FIELD(netforce, Vec3)
 
 #define EVENTS \
-   EVENT(accelerate, sizeof(Vec3))
+   EVENT(accelerate)
 
 #include "../lib/engineer_module.h"
 

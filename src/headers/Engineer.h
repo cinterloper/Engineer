@@ -36,6 +36,8 @@ extern "C" {
 
 #define PROJECT Engineer
 
+#define bool Eina_Bool
+
 #include <Ecore_Getopt.h>
 
 #include "../lib/global/index.h"

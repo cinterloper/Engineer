@@ -361,7 +361,7 @@ _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
          eina_inarray_push(box, &index);
          eina_inarray_push(frame->inbox,          &box);
       }
-      engineer_scene_entity_parent_set(obj, id, parent);
+      engineer_scene_entity_attach(obj, id, parent);
 
       printf("Entity Create Checkpoint. EID: %ld, Parent: %ld, NextSib: %ld, PrevSib: %ld, Name: %s\n",
          id, parent, id, id, name);
@@ -394,14 +394,7 @@ _engineer_scene_entity_recall(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_
         uint target EINA_UNUSED)
 {
 }
-*/
-EOLIAN uint64_t
-_engineer_scene_entity_lookup(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
-        uint64_t entityid)
-{
-   return (uint64_t)eina_hash_find(pd->lookup, &entityid) - 1;
-}
-/*
+
 EOLIAN static void
 _engineer_scene_entity_data_swap(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint targeta, uint targetb)
@@ -421,96 +414,90 @@ _engineer_scene_entity_data_swap(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
    eina_hash_modify(pd->future->entitylookup, &targeta, targetblookup);
    eina_hash_modify(pd->future->entitylookup, &targetb, &lookupbuffer);
 }
-
-EOLIAN static uint64_t
-_engineer_scene_entity_parent_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
-        uint64_t target)
-{
-   target = eina_hash_find(pd->present->lookup, &target) - 1;
-   if (target == UINT_NULL) return UINT_NULL;
-
-   return *(uint64_t*)eina_inarray_nth(pd->present->parent, target);
-}
 */
 EOLIAN static void
-_engineer_scene_entity_parent_set(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_scene_entity_attach(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
         uint64_t target, uint64_t newparent)
 {
-   uint32_t buffer;
-
-   target    = engineer_scene_entity_lookup(obj, target);
-   newparent = engineer_scene_entity_lookup(obj, newparent);
+   uint64_t buffer, targetnext, targetprev, oldparent, firstentity;
 
    if (target == UINT_NULL || newparent == UINT_NULL) return;
 
-   uint64_t targetnext     = *(uint64_t*)eina_inarray_nth(pd->future->siblingnext, target);
-   uint64_t targetprev     = *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, target);
-   uint64_t oldparent      = *(uint64_t*)eina_inarray_nth(pd->future->parent,      target);
-   uint64_t oldfirstentity = *(uint64_t*)eina_inarray_nth(pd->future->firstentity, oldparent);
+   targetnext  = engineer_scene_entity_siblingnext_get(obj, target);
+   targetprev  = engineer_scene_entity_siblingprev_get(obj, target);
+   oldparent   = engineer_scene_entity_parent_get(obj, target);
+   firstentity = engineer_scene_entity_firstentity_get(obj, oldparent);
 
    // Check to see if this Entity has it's relationship data defined.
    if (oldparent == UINT_NULL || targetnext == UINT_NULL || targetprev == UINT_NULL) return;
 
-   oldparent  = engineer_scene_entity_lookup(obj, oldparent);
-   targetnext = engineer_scene_entity_lookup(obj, targetnext);
-   targetprev = engineer_scene_entity_lookup(obj, targetprev);
-
    // Check to see if the target is the old parents first child.
-   if (target == oldfirstentity)
+   if (target == firstentity)
    {
-      eina_inarray_replace_at(pd->future->firstentity, oldparent,
-        eina_inarray_nth(pd->id, targetnext));
+      engineer_scene_entity_firstentity_set(obj, oldparent, targetnext);
    }
 
    // Check to see if the old parent has only one child Entity.
-   if (*(uint64_t*)eina_inarray_nth(pd->future->siblingnext, oldfirstentity) ==
-       *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, oldfirstentity)  )
+   if (engineer_scene_entity_siblingnext_get(obj, firstentity) ==
+       engineer_scene_entity_siblingprev_get(obj, firstentity)  )
    {
       buffer = UINT_NULL;
-      eina_inarray_replace_at(pd->future->firstentity, oldparent, &buffer);
+      engineer_scene_entity_firstentity_set(obj, oldparent, buffer);
    }
    else // relink the remaining child Entities.
    {
-      eina_inarray_replace_at(pd->future->siblingprev, targetnext,
-         eina_inarray_nth(pd->future->siblingprev,
-         *(uint64_t*)eina_inarray_nth(pd->id, target)));
-      eina_inarray_replace_at(pd->future->siblingnext, targetprev,
-         eina_inarray_nth(pd->future->siblingnext,
-         *(uint64_t*)eina_inarray_nth(pd->id, target)));
+      engineer_scene_entity_siblingnext_set(obj, targetprev, targetnext);
+      engineer_scene_entity_siblingprev_set(obj, targetnext, targetprev);
    }
 
    // Set the new parent EntityID for the target Entity.
-   eina_inarray_replace_at(pd->future->parent, target,
-      eina_inarray_nth(pd->id, newparent));
+   engineer_scene_entity_parent_set(obj, target, newparent);
 
    // Check to see if new parent has any children. If not, set up the first child properly.
-   if (*(uint64_t*)eina_inarray_nth(pd->future->firstentity, newparent) == UINT_NULL)
+   if (engineer_scene_entity_firstentity_get(obj, newparent) == UINT_NULL)
    {
-      eina_inarray_replace_at(pd->future->firstentity, newparent,
-         eina_inarray_nth(pd->id, target));
+      engineer_scene_entity_firstentity_set(obj, newparent, target);
 
-      eina_inarray_replace_at(pd->future->siblingnext, target,
-         eina_inarray_nth(pd->id, target));
-      eina_inarray_replace_at(pd->future->siblingprev, target,
-         eina_inarray_nth(pd->id, target));
+      engineer_scene_entity_siblingnext_set(obj, target, target);
+      engineer_scene_entity_siblingprev_set(obj, target, target);
    }
    else // add the target Entity to the back end of the new parent's child list.
    {
-      targetnext = engineer_scene_entity_lookup(obj,
-                      *(uint64_t*)eina_inarray_nth(pd->future->firstentity, newparent));
-      targetnext = engineer_scene_entity_lookup(obj,
-                      *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, targetnext));
+      firstentity = engineer_scene_entity_firstcomponent_get(obj, newparent);
+      targetnext  = engineer_scene_entity_siblingnext_get(obj, firstentity);
+      targetprev  = engineer_scene_entity_siblingprev_get(obj, firstentity);
 
-      eina_inarray_replace_at(pd->future->siblingnext, target,
-         eina_inarray_nth(pd->future->siblingnext, targetprev));
-      eina_inarray_replace_at(pd->future->siblingprev, target,
-         eina_inarray_nth(pd->future->siblingprev, targetnext));
+      engineer_scene_entity_siblingnext_set(obj, target,
+         engineer_scene_entity_siblingnext_get(obj, targetprev));
+      engineer_scene_entity_siblingprev_set(obj, target,
+         engineer_scene_entity_siblingprev_get(obj, targetnext));
 
-      eina_inarray_replace_at(pd->future->siblingprev, targetnext,
-         eina_inarray_nth(pd->id, target));
-      eina_inarray_replace_at(pd->future->siblingnext, targetnext,
-         eina_inarray_nth(pd->id, target));
+      engineer_scene_entity_siblingnext_set(obj, targetprev, target);
+      engineer_scene_entity_siblingprev_set(obj, targetnext, target);
    }
+}
+
+EOLIAN uint64_t
+_engineer_scene_entity_lookup(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        uint64_t entityid)
+{
+   return (uint64_t)eina_hash_find(pd->lookup, &entityid) - 1;
+}
+
+EOLIAN static void
+_engineer_scene_entity_parent_set(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target, uint64_t newparent)
+{
+   target = engineer_scene_entity_lookup(obj, target);
+   eina_inarray_replace_at(pd->future->parent, target, &newparent);
+}
+
+EOLIAN static uint64_t
+_engineer_scene_entity_parent_get(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t target)
+{
+   target = engineer_scene_entity_lookup(obj, target);
+   return *(uint64_t*)eina_inarray_nth(pd->future->parent, target);
 }
 
 EOLIAN static void
@@ -547,10 +534,10 @@ _engineer_scene_entity_siblingprev_get(Eo *obj, Engineer_Scene_Data *pd,
 
 EOLIAN static void
 _engineer_scene_entity_firstentity_set(Eo *obj, Engineer_Scene_Data *pd,
-        uint64_t target, uint64_t component)
+        uint64_t target, uint64_t entity)
 {
    target = engineer_scene_entity_lookup(obj, target);
-   eina_inarray_replace_at(pd->future->firstentity, target, &component);
+   eina_inarray_replace_at(pd->future->firstentity, target, &entity);
 }
 
 EOLIAN static uint64_t

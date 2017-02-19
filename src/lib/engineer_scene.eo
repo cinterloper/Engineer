@@ -80,6 +80,15 @@ class Engineer.Scene(Efl.Object)
          return: bool;
       }
 
+      entity_attach
+      {
+         params
+         {
+            @in target:    uint64;
+            @in newparent: uint64;
+         }
+      }
+
       entity_lookup
       {
          params
@@ -93,9 +102,18 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in target: uint64;
-            @in parent: uint64;
+            @in target:    uint64;
+            @in newparent: uint64;
          }
+      }
+
+      entity_parent_get
+      {
+         params
+         {
+            @in target: uint64;
+         }
+         return: uint64;
       }
 
       entity_siblingnext_set
@@ -138,8 +156,8 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in target:    uint64;
-            @in component: uint64;
+            @in target: uint64;
+            @in entity: uint64;
          }
       }
 

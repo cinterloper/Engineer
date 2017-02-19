@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <db.h>
 #include <Ecore_Getopt.h>
 #include <Elementary.h>
 
@@ -23,7 +22,7 @@
 #include "math/quat.h"
 #include "math/mtrx.h"
 
-//#include "hash/murmur3.h"
+#include "hash/murmur3.h"
 
 #endif
 
