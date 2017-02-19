@@ -81,7 +81,6 @@ class Engineer.Module(Efl.Object)
             @in target:    uint64;
             @in newparent: uint64;
          }
-         return: uint64;
       }
 
       component_lookup

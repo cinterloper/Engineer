@@ -123,10 +123,9 @@ _engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
 }
 
 EOLIAN static void
-_engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
+_engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
         Engineer_Component *buffer EINA_UNUSED, Eina_Inarray *inbox EINA_UNUSED)
 {
-   /*
    uint64_t count, offset, current, type, size;
 
    #define EVENT(key) \
@@ -152,7 +151,6 @@ _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUS
       }
       offset += (size + 3);
    }
-*/
 }
 
 EOLIAN static uint64_t
@@ -229,7 +227,7 @@ _engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd,
 }
 
 EOLIAN static void
-_engineer_module_component_attach(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
+_engineer_module_component_attach(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
         uint64_t target, uint64_t newparent)
 {
    uint64_t buffer, targetnext, targetprev, oldparent, firstcom;
@@ -301,7 +299,7 @@ _engineer_module_component_lookup(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
 }
 
 EOLIAN static void
-_engineer_module_component_parent_set(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_module_component_parent_set(Eo *obj, Engineer_Module_Data *pd,
         uint64_t target, uint64_t newparent)
 {
    target = engineer_module_component_lookup(obj, target);
@@ -309,7 +307,7 @@ _engineer_module_component_parent_set(Eo *obj, Engineer_Scene_Data *pd,
 }
 
 EOLIAN static uint64_t
-_engineer_module_component_parent_get(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_module_component_parent_get(Eo *obj, Engineer_Module_Data *pd,
         uint64_t target)
 {
    target = engineer_module_component_lookup(obj, target);
@@ -317,7 +315,7 @@ _engineer_module_component_parent_get(Eo *obj, Engineer_Scene_Data *pd,
 }
 
 EOLIAN static void
-_engineer_module_component_siblingnext_set(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_module_component_siblingnext_set(Eo *obj, Engineer_Module_Data *pd,
         uint64_t target, uint64_t newsibling)
 {
    target = engineer_module_component_lookup(obj, target);
@@ -325,7 +323,7 @@ _engineer_module_component_siblingnext_set(Eo *obj, Engineer_Scene_Data *pd,
 }
 
 EOLIAN static uint64_t
-_engineer_module_component_siblingnext_get(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_module_component_siblingnext_get(Eo *obj, Engineer_Module_Data *pd,
         uint64_t target)
 {
    target = engineer_module_component_lookup(obj, target);
@@ -333,7 +331,7 @@ _engineer_module_component_siblingnext_get(Eo *obj, Engineer_Scene_Data *pd,
 }
 
 EOLIAN static void
-_engineer_module_component_siblingprev_set(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_module_component_siblingprev_set(Eo *obj, Engineer_Module_Data *pd,
         uint64_t target, uint64_t newsibling)
 {
    target = engineer_module_component_lookup(obj, target);
@@ -341,7 +339,7 @@ _engineer_module_component_siblingprev_set(Eo *obj, Engineer_Scene_Data *pd,
 }
 
 EOLIAN static uint64_t
-_engineer_module_component_siblingprev_get(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_module_component_siblingprev_get(Eo *obj, Engineer_Module_Data *pd,
         uint64_t target)
 {
    target = engineer_module_component_lookup(obj, target);
