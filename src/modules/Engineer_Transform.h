@@ -12,6 +12,6 @@
 #define EVENTS \
    EVENT(accelerate)
 
-#include "../lib/engineer_module.h"
+#include "engineer_module.h"
 
 #endif

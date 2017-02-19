@@ -124,58 +124,57 @@ _engineer_node_scene_flush(Eo *obj, Engineer_Node_Data *pd EINA_UNUSED,
 */
 EOLIAN static Eina_Stringshare *
 _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        const char *class)
+        const char *symbol)
 {
-   Engineer_Module_Class *module, buffer;
-   module = &buffer;
+   Engineer_Module_Class *class = malloc(sizeof(Engineer_Module_Class));
 
    // Make sure our module file exists before loading it.
-   Eina_Stringshare *file = eina_stringshare_printf("lib/modules/lib%s.so", class);
+   Eina_Stringshare *file = eina_stringshare_printf("modules/lib%s.so", symbol);
    if (!ecore_file_exists(file)) {eina_stringshare_del(file); return NULL;}
 
    // Check to see if the module class is already registered.
-   Eina_Stringshare *test = eina_hash_find(pd->classes, class);
+   Eina_Stringshare *test = eina_hash_find(pd->classes, symbol);
    if (test != NULL) return test;
 
    // Create our eina_module reference handle.
-   module->eina  = eina_module_new(file);
-   if (module->eina == NULL) {eina_stringshare_del(file); return NULL;}
-   eina_module_load(module->eina);
+   class->eina  = eina_module_new(file);
+   if (class->eina == NULL) {eina_stringshare_del(file); return NULL;}
+   eina_module_load(class->eina);
 
-   #define RETURN {eina_module_free(module->eina); eina_stringshare_del(file); return NULL;}
+   #define RETURN {eina_module_free(class->eina); eina_stringshare_del(file); return NULL;}
 
-   module->factory = eina_module_symbol_get(module->eina, "engineer_module_new");
-   if (module->factory == NULL) RETURN;
+   class->new = eina_module_symbol_get(class->eina, "engineer_module_new");
+   if (class->new == NULL) RETURN;
 
-   module->iterate = eina_module_symbol_get(module->eina, "engineer_module_iterate");
-   if (module->iterate == NULL) RETURN;
+   class->update = eina_module_symbol_get(class->eina, "engineer_module_update");
+   if (class->update == NULL) RETURN;
 
-
-   module->component_create  = eina_module_symbol_get(module->eina,
+   class->component_create  = eina_module_symbol_get(class->eina,
                                   "engineer_module_component_create");
-   if (module->component_create  == NULL) RETURN;
+   if (class->component_create  == NULL) RETURN;
    /*
-   module->component_destroy = eina_module_symbol_get(module->eina,
+   class->component_destroy = eina_module_symbol_get(class->eina,
                                   "engineer_module_component_destroy");
-   if (module->component_destroy == NULL) RETURN;
-   module->component_archive = eina_module_symbol_get(module->eina,
+   if (class->component_destroy == NULL) RETURN;
+   module->component_archive = eina_module_symbol_get(class->eina,
                                   "engineer_module_component_archive");
-   if (module->component_archive == NULL) RETURN;
-   module->component_recall  = eina_module_symbol_get(module->eina,
+   if (class->component_archive == NULL) RETURN;
+   module->component_recall  = eina_module_symbol_get(class->eina,
                                   "engineer_module_component_recall");
-   if (module->component_recall  == NULL) RETURN;
+   if (class->component_recall  == NULL) RETURN;
    */
-   module->component_lookup  = eina_module_symbol_get(module->eina,
+   class->component_lookup  = eina_module_symbol_get(class->eina,
                                   "engineer_module_component_lookup");
-   if (module->component_lookup  == NULL) RETURN;
+   if (class->component_lookup  == NULL) RETURN;
 
    #undef RETURN
 
    // Set up our module class lookup data.
-   class = eina_stringshare_add(class);
-   eina_hash_add(pd->classes, class, module);
+   symbol = eina_stringshare_add(symbol);
+   class->id = symbol;
+   eina_hash_add(pd->classes, &symbol, class);
 
-   return class;
+   return symbol;
 }
 /*
 EOLIAN static void

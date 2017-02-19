@@ -44,17 +44,16 @@ typedef struct
 
    Efl_Loop_Timer *iterator;      // Triggers our frame update, the frequency can be changed.
    uint            clockrate;     // This value controls the FPS the scene is set to run at.
+   Eina_Inarray   *timecard;      // Stores the completion time for the present and past frames.
 
+   Eina_Hash    *lookup;          // Entity index lookup by ID.
+   Eina_Inarray *id;              // EntityID reverse lookup table.
+   Eina_Inarray *history;         // Stores all changes made to our Entity data frame-by-frame.
    Eina_Inarray *buffer;          // The buffer that the most recent 3 frames are stored in.
 
    Engineer_Scene_Frame *past;    // Used for interpolation. Is the frame before the present one.
    Engineer_Scene_Frame *present; // Points to the current frame data.
    Engineer_Scene_Frame *future;  // Points to the frame currently receiving the iterator update.
-
-   Eina_Inarray *timecard;        // Stores the completion time for the present and past frames.
-   Eina_Inarray *history;         // Stores all changes made to our Entity data frame-by-frame.
-   Eina_Inarray *id;              // EntityID reverse lookup table.
-   Eina_Hash    *lookup;          // Entity index lookup by ID.
 
    Eina_Hash *modules;            // Module Data Eo lookup hash, using stringshare pointers as keys.
 }

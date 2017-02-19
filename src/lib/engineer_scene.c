@@ -1,8 +1,5 @@
 #include "engineer_scene.h"
 
-// eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl` -I . -g h engineer_scene.eo
-// eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl` -I . -g c engineer_scene.eo
-
 Eo *
 engineer_scene_new(Eo *parent, const char *name EINA_UNUSED)
 {
@@ -29,7 +26,7 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    Engineer_Scene_Frame  blank;
    Engineer_Scene_Frame *frame;
    Engineer_Node_Data   *nodepd;
-   uint32_t count;
+   //uint32_t count;
 
    // The Scene size is in units of (2^x)/(2^16) meters where x is the setting. Max: bitwidth--.
    pd->size = 63;
@@ -67,22 +64,27 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    pd->id       = eina_inarray_new(sizeof(uint64_t), 0);
    pd->lookup   = eina_hash_int64_new(NULL);
 
-   // Create and fill our pd->scenecache array with a new Eo instance for each registered module.
    pd->modules = eina_hash_pointer_new(eng_free_cb);
-   nodepd = efl_data_scope_get(efl_parent_get(obj), ENGINEER_NODE_CLASS);
-   count  = eina_hash_population(nodepd->classes);
-   if (count != 0)
+
+   printf("Scene Finalize Checkpoint 1.\n");
+
+   // Create and fill our pd->modules array with a new Eo instance for each registered module.
+   Eina_Bool
+   module_fill(const Eina_Hash *hash EINA_UNUSED, const void *key EINA_UNUSED, void *data,
+        void *fdata EINA_UNUSED)
    {
-      Engineer_Module_Class *module;
+      Engineer_Module_Class *class = data;
       Eo *(*module_new)(Eo *obj);
-      uint32_t current;
-      for (current = 0; current < count; current++)
-      {
-         module = eina_hash_find(nodepd->classes, &current);
-         module_new = module->factory;
-         eina_hash_add(pd->modules, &module->id, module_new(obj));
-      }
+
+      module_new = class->new;
+      eina_hash_add(pd->modules, &class->id, module_new(obj));
+
+      return EINA_TRUE;
    }
+   nodepd = efl_data_scope_get(efl_parent_get(obj), ENGINEER_NODE_CLASS);
+   eina_hash_foreach(nodepd->classes, module_fill, NULL);
+
+   printf("Scene Finalize Checkpoint 2.\n");
 
    pd->iterator = ecore_timer_add((double)1/pd->clockrate, _engineer_scene_iterate_cb, obj);
    //ecore_timer_freeze(pd->iterator);
@@ -144,7 +146,6 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
    uint32_t index, count;
 
    Engineer_Scene_Frame  *buffer;
-   Engineer_Module_Class *class;
 
    // Store the timestamp for when this Sector's clock tick begins.
    timestamp = ecore_time_get();
@@ -204,19 +205,18 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
    }
 
    // Iterate thru each component's data in the scene for every attached module.
-   printf("Scene Iterate Module Tasks Start Checkpoint.\n");
-   Eo *(*iterate)(Eo *obj);
-
-   Eina_Iterator   *iterator;
-   Eina_Hash_Tuple *tuple;
-   iterator = eina_hash_iterator_tuple_new(pd->modules);
-   while (eina_iterator_next(iterator, (void**)&tuple))
+   Eina_Bool
+   module_update(const Eina_Hash *hash EINA_UNUSED, const void *key, void *data,
+        void *fdata EINA_UNUSED)
    {
-      class   = engineer_node_module_class_lookup(efl_parent_get(obj), (uint64_t)tuple->key);
-      iterate = class->iterate;
-      iterate(tuple->data);
+      Engineer_Module_Class *class = engineer_node_module_class_lookup(efl_parent_get(obj), *(uint64_t*)key);
+      Eo *module = data;
+      Eina_Bool (*update)(Eo *obj);
+
+      update = class->update;
+      return update(module);
    }
-   eina_iterator_free(iterator);
+   eina_hash_foreach(pd->modules, module_update, NULL);
 
    // Check to see if we are taking more than 85% of our tick time, if so, decrease the clock rate.
    timestamp -= ecore_time_get();
