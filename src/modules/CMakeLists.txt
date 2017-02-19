@@ -6,7 +6,7 @@ foreach(MODULE ${MODULES})
 
    add_library(${NAME} MODULE
       ${NAME}.c
-      ${CMAKE_SOURCE_DIR}/lib/engineer_module.c
+      ../lib/engineer_module.c
    )
 
    # Link the external libraries needed to run Engineer.
