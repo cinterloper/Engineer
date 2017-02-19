@@ -63,8 +63,6 @@ Engineer_Module_Frame;
 
 typedef struct
 {
-   Eina_Hash    *events;
-
    Eina_Hash    *lookup;
    Eina_Inarray *id;
    Eina_Inarray *history;
@@ -76,6 +74,7 @@ typedef struct
 }
 Engineer_Module_Data;
 
+Eo*  engineer_module_new(Eo *parent);
 void engineer_module_component_awake(Engineer_Component *data);
 void engineer_module_component_start(Engineer_Component *data);
 void engineer_module_component_update(Engineer_Component *data);

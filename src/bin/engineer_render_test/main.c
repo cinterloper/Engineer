@@ -104,7 +104,7 @@ engineer_render_test_game_init(Eo *root)
                  "Engineer_Render_Test");
 
    // Load our component modules here.
-   // engineer_node_module_load(node, eina_stringshare_add("Engineer_Transform.so"));
+   engineer_node_module_load(node, "Engineer_Transform");
    // engineer_node_module_load(node, eina_stringshare_add("Engineer_Collider.so"));
    // engineer_node_module_load(node, eina_stringshare_add("Engineer_Actor.so"));
    // engineer_node_module_load(node, eina_stringshare_add("Engineer_Camera.so"));

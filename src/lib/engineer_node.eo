@@ -5,9 +5,9 @@ struct Engineer_Module_Class
    id:    stringshare;
    size:  uint64;
 
-   factory: void_ptr;
+   new: void_ptr;
 
-   iterate: void_ptr;
+   update: void_ptr;
 
    component_create:  void_ptr;
    component_destroy: void_ptr;

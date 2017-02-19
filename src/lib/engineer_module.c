@@ -67,6 +67,7 @@ _engineer_module_efl_object_destructor(Eo *obj, Engineer_Module_Data *pd EINA_UN
 EOLIAN static Eina_Bool
 _engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
 {
+   printf("Engineer Module Update Checkpoint. \n");
    Engineer_Component     buffer;
    Engineer_Module_Frame *frame;
    uint64_t               index;
@@ -99,26 +100,25 @@ _engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
       #undef METADATA
    }
 
-   // Set up our buffer here.
-   engineer_module_cache_read(obj, &buffer, index);
-
    // Alter the Scenegraph according to the present Entities' outboxen.
    index = 0;
    Eina_Inarray *inbox;
    uint64_t     *parent;
    EINA_INARRAY_FOREACH(pd->present->parent, parent)
    {
+      // Set up our buffer here.
+      engineer_module_cache_read(obj, &buffer, index);
+
       inbox = engineer_scene_entity_inbox_get(efl_parent_get(obj), *parent);
       engineer_module_dispatch(obj, &buffer, inbox);
+
+      // Invoke engineer_module_component_update() here.
+      engineer_module_component_update(&buffer);
+
+      // Flush our buffer here
+      engineer_module_cache_write(obj, &buffer, index);
       index += 1;
    }
-
-   // Invoke engineer_module_component_update() here.
-   engineer_module_component_update(&buffer);
-
-   // Flush our buffer here
-   engineer_module_cache_write(obj, &buffer, index);
-
    return ECORE_CALLBACK_RENEW;
 }
 
@@ -168,16 +168,18 @@ EOLIAN static void
 _engineer_module_cache_read(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
         Engineer_Component *buffer, uint64_t index)
 {
+   printf("Engineer Module Cache Read Checkpoint 1. \n");
    buffer->name = *(char**)eina_inarray_nth(pd->present->name, index);
-
+   printf("Engineer Module Cache Read Checkpoint 2. \n");
    buffer->parent      = *(uint64_t*)eina_inarray_nth(pd->present->parent,      index);
    buffer->nextsibling = *(uint64_t*)eina_inarray_nth(pd->present->siblingnext, index);
    buffer->prevsibling = *(uint64_t*)eina_inarray_nth(pd->present->siblingprev, index);
-
+   printf("Engineer Module Cache Read Checkpoint 3. \n");
    #define FIELD(key, type) \
       type##READ(&pd->present->key, &buffer->key, index);
    STATE
    #undef FIELD
+   printf("Engineer Module Cache Read Checkpoint 4. \n");
 }
 
 EOLIAN static void
