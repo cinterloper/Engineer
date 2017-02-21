@@ -1,11 +1,10 @@
-#ifndef TYPE
-   #include "sclr.h"
-   #define TYPE Vec2
-#endif
+#ifndef _ENGINEER_TYPE_H_
+#define _ENGINEER_TYPE_H_
 
-#ifndef SUBTYPES
-   #define SUBTYPES FIELD(x, Sclr) FIELD(y, Sclr)
-#endif
+#ifdef TYPE
+#ifdef SUBTYPES
+
+#define SUBSTRUCT(type) type##SOA
 
 #define FIELD(key, type) type key;
 #define DEFINE(type) \
@@ -18,9 +17,7 @@
 #undef DEFINE
 #undef FIELD
 
-#define SUBSTRUCT(type) type##SOA
-
-#define FIELD(key, type) type##SOA key;
+#define FIELD(key, type) SUBSTRUCT(type) key;
 #define DEFINE(type) \
    typedef struct \
    { \
@@ -32,10 +29,11 @@
 #undef FIELD
 
 
-#define SYMBOL(type) type##SIZE
+
+#define SYMBOL(type) inline void type##SIZE
 #define FIELD(key, type) type##SIZE(counter);
 #define DEFINE(type) \
-   inline void SYMBOL(type)(uint64_t *counter) \
+   SYMBOL(type)(uint64_t *counter) \
    { \
       SUBTYPES \
    }
@@ -44,10 +42,10 @@
 #undef FIELD
 #undef SYMBOL
 
-#define SYMBOL(type) type##NEW
+#define SYMBOL(type) inline void type##NEW
 #define FIELD(subkey, type) type##NEW(&key->subkey);
 #define DEFINE(type) \
-   inline void SYMBOL(type)(SUBSTRUCT(type) *key) \
+   SYMBOL(type)(SUBSTRUCT(type) *key) \
    { \
       SUBTYPES \
    }
@@ -56,10 +54,10 @@
 #undef FIELD
 #undef SYMBOL
 
-#define SYMBOL(type) type##FREE
+#define SYMBOL(type) inline void type##FREE
 #define FIELD(subkey, type) type##FREE(&key->subkey);
 #define DEFINE(type) \
-   inline void SYMBOL(type)(SUBSTRUCT(type) *key) \
+   SYMBOL(type)(SUBSTRUCT(type) *key) \
    { \
       SUBTYPES \
    }
@@ -68,10 +66,10 @@
 #undef FIELD
 #undef SYMBOL
 
-#define SYMBOL(type) type##PUSH
+#define SYMBOL(type) inline void type##PUSH
 #define FIELD(subkey, type) type##PUSH(&key->subkey, &input->subkey);
 #define DEFINE(type) \
-   inline void SYMBOL(type)(SUBSTRUCT(type) *key, type *input) \
+   SYMBOL(type)(SUBSTRUCT(type) *key, type *input) \
    { \
       SUBTYPES \
    }
@@ -80,10 +78,10 @@
 #undef FIELD
 #undef SYMBOL
 
-#define SYMBOL(type) type##POP
+#define SYMBOL(type) inline void type##POP
 #define FIELD(subkey, type) type##POP(&key->subkey);
 #define DEFINE(type) \
-   inline void SYMBOL(type)(SUBSTRUCT(type) *key) \
+   SYMBOL(type)(SUBSTRUCT(type) *key) \
    { \
       SUBTYPES \
    }
@@ -92,10 +90,10 @@
 #undef FIELD
 #undef SYMBOL
 
-#define SYMBOL(type) type##READ
+#define SYMBOL(type) inline void type##READ
 #define FIELD(subkey, type) type##READ(&key->subkey, &buffer->subkey, index);
 #define DEFINE(type) \
-   inline void SYMBOL(type)(SUBSTRUCT(type) *key, type *buffer, uint64_t index) \
+   SYMBOL(type)(SUBSTRUCT(type) *key, type *buffer, uint64_t index) \
    { \
       SUBTYPES \
    }
@@ -104,10 +102,10 @@
 #undef FIELD
 #undef SYMBOL
 
-#define SYMBOL(type) type##WRITE
+#define SYMBOL(type) inline void type##WRITE
 #define FIELD(subkey, type) type##WRITE(&key->subkey, &buffer->subkey, index);
 #define DEFINE(type) \
-   inline void SYMBOL(type)(SUBSTRUCT(type) *key, type *buffer, uint64_t index) \
+   SYMBOL(type)(SUBSTRUCT(type) *key, type *buffer, uint64_t index) \
    { \
       SUBTYPES \
    }
@@ -116,10 +114,10 @@
 #undef FIELD
 #undef SYMBOL
 
-#define SYMBOL(type) type##COPY
+#define SYMBOL(type) inline void type##COPY
 #define FIELD(subkey, type) type##COPY(&key->subkey, &target->subkey, index);
 #define DEFINE(type) \
-   inline void SYMBOL(type)(SUBSTRUCT(type) *key, SUBSTRUCT(type) *target, uint64_t index) \
+   SYMBOL(type)(SUBSTRUCT(type) *key, SUBSTRUCT(type) *target, uint64_t index) \
    { \
       SUBTYPES \
    }
@@ -128,6 +126,13 @@
 #undef FIELD
 #undef SYMBOL
 
-#undef SUBSTRUCT
-#undef SUBTYPES
-#undef TYPE
+#ifdef SWITCH
+  #undef SUBTYPES
+  #undef TYPE
+#endif
+
+#endif
+#endif
+
+#endif
+

@@ -1,13 +1,15 @@
 #ifndef _ENGINEER_MATH_ANGL_H_
 #define _ENGINEER_MATH_ANGL_H_
 
+#define SWITCH
+
 #include <Ecore_Getopt.h>
 #include <math.h>
 #include "../const.h"
 #include "../type/angl.h"
-#include "../math/sclr.h"
-#include "../math/vec2.h"
-#include "../math/cordic.h"
+#include "vec2.h"
+#include "vec3.h"
+#include "cordic.h"
 
 #define ANGLMULT(a, b) engineer_math_angl_mult(a, b)
 #define ANGLDIVD(a, b) engineer_math_angl_divd(a, b)

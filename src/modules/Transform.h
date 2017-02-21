@@ -1,7 +1,7 @@
-#ifndef _ENGINEER_TRANSFORM_H_
-#define _ENGINEER_TRANSFORM_H_
+#ifndef _TRANSFORM_H_
+#define _TRANSFORM_H_
 
-#define COMPONENT Transform
+#include "../headers/Engineer.h"
 
 #define STATE \
    FIELD(position, Vec3) \

@@ -22,6 +22,7 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 {
    obj = efl_finalize(efl_super(obj, ENGINEER_SCENE_CLASS));
 
+   Eo *node = efl_parent_get(obj);
    static const
    Engineer_Scene_Frame  blank;
    Engineer_Scene_Frame *frame;
@@ -74,20 +75,22 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
         void *fdata EINA_UNUSED)
    {
       Engineer_Module_Class *class = data;
+      Eo *scene = fdata;
+
       Eo *(*module_new)(Eo *obj);
 
       module_new = class->new;
-      eina_hash_add(pd->modules, &class->id, module_new(obj));
+      eina_hash_add(pd->modules, &class->id, module_new(scene));
 
       return EINA_TRUE;
    }
-   nodepd = efl_data_scope_get(efl_parent_get(obj), ENGINEER_NODE_CLASS);
-   eina_hash_foreach(nodepd->classes, module_fill, NULL);
+   nodepd = efl_data_scope_get(node, ENGINEER_NODE_CLASS);
+   eina_hash_foreach(nodepd->classes, module_fill, obj);
 
    printf("Scene Finalize Checkpoint 2.\n");
 
    pd->iterator = ecore_timer_add((double)1/pd->clockrate, _engineer_scene_iterate_cb, obj);
-   //ecore_timer_freeze(pd->iterator);
+   ecore_timer_freeze(pd->iterator);
 
    // If our Scene is new, create a root Entity and set it up.
    if (eina_inarray_count(pd->id) == 0)
@@ -209,14 +212,15 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
    module_update(const Eina_Hash *hash EINA_UNUSED, const void *key, void *data,
         void *fdata EINA_UNUSED)
    {
-      Engineer_Module_Class *class = engineer_node_module_class_lookup(efl_parent_get(obj), *(uint64_t*)key);
-      Eo *module = data;
+      Eo *module = data, *node = efl_parent_get(obj);
+      Engineer_Module_Class *class = engineer_node_module_class_lookup(node, *(uint64_t*)key);
+
       Eina_Bool (*update)(Eo *obj);
 
       update = class->update;
       return update(module);
    }
-   eina_hash_foreach(pd->modules, module_update, NULL);
+   eina_hash_foreach(pd->modules, module_update, obj);
 
    // Check to see if we are taking more than 85% of our tick time, if so, decrease the clock rate.
    timestamp -= ecore_time_get();

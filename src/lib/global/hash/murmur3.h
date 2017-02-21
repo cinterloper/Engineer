@@ -4,6 +4,7 @@
 #include <Ecore_Getopt.h>
 #include <stdint.h>
 
-uint64_t engineer_hash_murmur3(const void *key, const int64_t len, const uint64_t seed);
+uint64_t
+engineer_hash_murmur3(const void *key, const int32_t len, const uint32_t seed);
 
 #endif

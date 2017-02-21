@@ -1,13 +1,8 @@
-# Set up our project's cmake global configuration.
-cmake_minimum_required(VERSION 3.6)
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}" ${CMAKE_MODULE_PATH})
+### Project Configuration Phase ###
 
 # Remember to update the version number after a significant update!
 set(CURRENT_VERSION 0.2.0)
 project(Engineer VERSION ${CURRENT_VERSION})
-
-
-### Project Configuration Phase ###
 
 # Find the location(s) of our project's prerequisite library files.
 find_package(PkgConfig REQUIRED)
@@ -36,6 +31,7 @@ include_directories(
    ${ECORE_INCLUDE_DIRS}
    ${ELEMENTARY_INCLUDE_DIRS}
    ${EDI_INCLUDE_DIRS}
+   ${CMAKE_SOURCE_DIR}/headers
    ${CMAKE_BINARY_DIR}/eolian
    )
 
@@ -54,6 +50,10 @@ FOREACH(EOPATH ${EOPATHS})
 ENDFOREACH(EOPATH)
 add_custom_target(eolian_gen DEPENDS ${EONAMEH})
 
+# We need to make a list of our library global code file paths.
+FILE(GLOB_RECURSE ENGINEER_GLOBAL_MATH_CODE ${CMAKE_SOURCE_DIR}/src/lib/global/math/*.c)
+FILE(GLOB_RECURSE ENGINEER_GLOBAL_TYPE_CODE ${CMAKE_SOURCE_DIR}/src/lib/global/type/*.c)
+LIST(REMOVE_ITEM ENGINEER_GLOBAL_TYPE_CODE type.c)
 
 ### Project Target Compile Phase ###
 

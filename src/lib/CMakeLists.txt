@@ -1,9 +1,6 @@
-# We need to make a list of our library global code file paths.
-FILE(GLOB_RECURSE ENGINEER_GLOBAL_CODE global/*.c)
-
 # Add the Engineer.so library as a compile target.
 add_library(Engineer SHARED
-   ${ENGINEER_GLOBAL_CODE}
+   ${ENGINEER_GLOBAL_MATH_CODE}
     engineer.c
     engineer_node.c
     engineer_scene.c

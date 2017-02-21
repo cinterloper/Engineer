@@ -1,11 +1,14 @@
 #ifndef _ENGINEER_MATH_SCLR_H_
 #define _ENGINEER_MATH_SCLR_H_
 
+#define SWITCH
+
 #include <Ecore_Getopt.h>
 #include <math.h>
 #include "../const.h"
 #include "../type/sclr.h"
-#include "../math/cordic.h"
+#include "vec3.h"
+#include "cordic.h"
 
 #define MULT(a, b)     engineer_math_mult(a, b)
 #define DIVD(a, b)     engineer_math_divd(a, b)

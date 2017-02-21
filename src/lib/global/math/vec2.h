@@ -1,11 +1,13 @@
 #ifndef _ENGINEER_MATH_VEC2_H_
 #define _ENGINEER_MATH_VEC2_H_
 
+#define SWITCH
+
 #include <Ecore_Getopt.h>
 #include <math.h>
 #include "../const.h"
 #include "../type/vec2.h"
-#include "../math/sclr.h"
+#include "sclr.h"
 
 //#define VEC2MULT(a, b)   engineer_math_vec2_mult(a, b)
 //#define VEC2DIVD(a, b)   engineer_math_vec2_divd(a, b)

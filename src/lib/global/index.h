@@ -6,7 +6,7 @@
 #include <string.h>
 #include <Ecore_Getopt.h>
 #include <Elementary.h>
-
+/*
 #include "type/sclr.h"
 #include "type/angl.h"
 #include "type/vec2.h"
@@ -21,7 +21,7 @@
 #include "math/vec3.h"
 #include "math/quat.h"
 #include "math/mtrx.h"
-
+*/
 #include "hash/murmur3.h"
 
 #endif

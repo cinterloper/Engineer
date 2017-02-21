@@ -1,11 +1,13 @@
 #ifndef _ENGINEER_MATH_VEC3_H_
 #define _ENGINEER_MATH_VEC3_H_
 
+#define SWITCH
+
 #include <Ecore_Getopt.h>
 #include <math.h>
 #include "../const.h"
 #include "../type/vec3.h"
-#include "../math/sclr.h"
+#include "sclr.h"
 
 #define VEC3SCLE(a, b)   engineer_math_vec_scale(a, b)
 #define VEC3DOT(a, b)    engineer_math_vec3_dot(a, b)

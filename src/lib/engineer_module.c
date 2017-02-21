@@ -9,6 +9,13 @@ engineer_module_new(Eo *parent)
    return module;
 }
 
+uint64_t
+engineer_module_classid(void)
+{
+   printf("Engineer Module ClassID Check: "STRINGIFY(COMPONENT)".\n");
+   return engineer_hash_murmur3(STRINGIFY(COMPONENT), strlen(STRINGIFY(COMPONENT)), 242424);
+}
+
 /*** Constructors ***/
 
 EOLIAN static Efl_Object *
@@ -25,6 +32,15 @@ _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
    static const
    Engineer_Module_Frame  blank;
    Engineer_Module_Frame *frame;
+   uint64_t hash EINA_UNUSED, eventid EINA_UNUSED;
+
+   // Create the Event Enumeration Hash Lookup Table.
+   pd->events = eina_hash_int64_new(NULL);
+   #define EVENT(key) \
+      hash    = engineer_hash_murmur3(STRINGIFY(key), strlen(STRINGIFY(key)), 242424); \
+      eventid = key; \
+      eina_hash_add(pd->events, &hash, (uint64_t*)eventid);
+   #undef EVENT
 
    // Create and initialize the space (3 frames) needed to iterate our timeline.
    pd->buffer = eina_inarray_new(sizeof(Engineer_Module_Frame), 3);
@@ -67,7 +83,8 @@ _engineer_module_efl_object_destructor(Eo *obj, Engineer_Module_Data *pd EINA_UN
 EOLIAN static Eina_Bool
 _engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
 {
-   printf("Engineer Module Update Checkpoint. \n");
+   printf("Engineer Module Update Checkpoint.\n");
+   printf("Murmur3 Test Hash Output 3: %ld.\n", engineer_module_classid());
    Engineer_Component     buffer;
    Engineer_Module_Frame *frame;
    uint64_t               index;
@@ -128,22 +145,17 @@ _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNU
 {
    uint64_t count, offset, current, type, size;
 
-   #define EVENT(key) \
-      const uint64_t key##selector \
-         = engineer_hash_murmur3(STRINGIFY(key), sizeof(STRINGIFY(key)), 0xAAAAAAAA);
-   EVENTS
-   #undef EVENT
-
    count  = *(uint64_t*)eina_inarray_nth(inbox, 0);
    offset = 1;
    for(current = 0; current < count; current++)
    {
       type = *(uint64_t*)eina_inarray_nth(inbox, offset + 1);
+      type =  (uint64_t)eina_hash_find(pd->events, (uint64_t*)type);
       size = *(uint64_t*)eina_inarray_nth(inbox, offset + 2);
       switch(type)
       {
          #define EVENT(key) \
-            case key##selector: \
+            case key: \
             event(key, buffer, eina_inarray_nth(inbox, offset + 3), size); \
             break;
          EVENTS

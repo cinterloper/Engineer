@@ -2,22 +2,17 @@
 #define _ENGINEER_MODULE_H_
 
 #include "../headers/Engineer.h"
+#define TARGET(target) ../modules/target.h
+   #include STRINGIFY(TARGET(COMPONENT))
 
-#ifndef PROJECT
-   #define PROJECT
-#endif
-
-#ifndef MODULE
-   #define MODULE
-#endif
-
-#ifndef STATE
-   #define STATE
-#endif
-
-#ifndef EVENTS
-   #define EVENTS
-#endif
+typedef enum
+{
+   #define EVENT(key) key,
+   EVENTS
+   #undef EVENT
+   null = 0
+}
+Component_Events;
 
 typedef struct
 {
@@ -63,6 +58,8 @@ Engineer_Module_Frame;
 
 typedef struct
 {
+   Eina_Hash    *events;
+
    Eina_Hash    *lookup;
    Eina_Inarray *id;
    Eina_Inarray *history;
@@ -74,7 +71,8 @@ typedef struct
 }
 Engineer_Module_Data;
 
-Eo*  engineer_module_new(Eo *parent);
+Eo*      engineer_module_new(Eo *parent);
+uint64_t engineer_module_classid(void);
 void engineer_module_component_awake(Engineer_Component *data);
 void engineer_module_component_start(Engineer_Component *data);
 void engineer_module_component_update(Engineer_Component *data);
@@ -84,13 +82,13 @@ void engineer_module_component_update(Engineer_Component *data);
 EVENTS
 #undef EVENT
 
+#include "engineer_module.eo.h"
+
 #define awake(data)  engineer_module_component_awake(data)
 #define start(data)  engineer_module_component_start(data)
 #define update(data) engineer_module_component_update(data)
 
 #define event(key, data, note, size) engineer_module_component_event_##key(data, note, size)
-
-#include "engineer_module.eo.h"
 
 #endif
 

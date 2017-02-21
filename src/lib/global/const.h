@@ -1,8 +1,8 @@
 #ifndef _ENGINEER_GLOBAL_CONSTANTS_H_
 #define _ENGINEER_GLOBAL_CONSTANTS_H_
 
-#define STRINGIFY(X)  STRINGIFY2(X)
-#define STRINGIFY2(X) #X
+#define STRINGIFY(x)  STRINGIFY2(x)
+#define STRINGIFY2(x) #x
 
 // This sets the base word size/data type for all number storage.
 //    It should be set equal in size to the native bitwidth of the target CPU arch.

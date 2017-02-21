@@ -5,12 +5,19 @@ foreach(MODULE ${MODULES})
    get_filename_component(NAME ${MODULE} NAME_WE)
 
    add_library(${NAME} MODULE
+      ${ENGINEER_GLOBAL_TYPE_CODE}
+      ${ENGINEER_GLOBAL_MATH_CODE}
       ${NAME}.c
-      ../lib/engineer_module.c
+      ${CMAKE_SOURCE_DIR}/src/lib/engineer_module.c
+   )
+
+   target_compile_definitions(${NAME}
+      PRIVATE COMPONENT=${NAME}
    )
 
    target_include_directories(${NAME}
-      PRIVATE ${CMAKE_SOURCE_DIR}/lib
+      PRIVATE ${CMAKE_SOURCE_DIR}/src/lib
+      #PRIVATE ${CMAKE_SOURCE_DIR}/src/modules
    )
 
    # Link the external libraries needed to run Engineer.

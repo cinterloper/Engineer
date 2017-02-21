@@ -1,4 +1,5 @@
 struct @extern Engineer_Component {}
+struct @extern Engineer_Component_History {}
 
 class Engineer.Module(Efl.Object)
 {

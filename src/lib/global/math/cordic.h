@@ -1,7 +1,8 @@
 #ifndef _ENGINEER_MATH_CORDIC_H_
 #define _ENGINEER_MATH_CORDIC_H_
 
-//#define EFL_BETA_API_SUPPORT
+#define SWITCH
+
 #include <Ecore_Getopt.h>
 #include <math.h>
 #include "../const.h"
@@ -28,5 +29,6 @@ void cordic_hyperbolic_init();
 Vec3 cordic_hyperbolic_ymode(Vec3 input);
 Vec3 cordic_hyperbolic_zmode(Vec3 input);
 
+#undef SWITCH
 #endif
 
