@@ -6,13 +6,17 @@
 #include <string.h>
 #include <Ecore_Getopt.h>
 #include <Elementary.h>
-/*
+
+#define SWITCH
+
 #include "type/sclr.h"
 #include "type/angl.h"
 #include "type/vec2.h"
 #include "type/vec3.h"
 #include "type/quat.h"
 #include "type/mtrx.h"
+
+#undef SWITCH
 
 #include "math/cordic.h"
 #include "math/sclr.h"
@@ -21,7 +25,7 @@
 #include "math/vec3.h"
 #include "math/quat.h"
 #include "math/mtrx.h"
-*/
+
 #include "hash/murmur3.h"
 
 #endif

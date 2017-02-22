@@ -1,6 +1,6 @@
 # Add the Engineer.so library as a compile target.
 add_library(Engineer SHARED
-   ${ENGINEER_GLOBAL_MATH_CODE}
+   ${ENGINEER_GLOBAL_CODE}
     engineer.c
     engineer_node.c
     engineer_scene.c

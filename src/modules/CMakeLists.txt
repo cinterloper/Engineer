@@ -5,8 +5,7 @@ foreach(MODULE ${MODULES})
    get_filename_component(NAME ${MODULE} NAME_WE)
 
    add_library(${NAME} MODULE
-      ${ENGINEER_GLOBAL_TYPE_CODE}
-      ${ENGINEER_GLOBAL_MATH_CODE}
+      ${ENGINEER_GLOBAL_CODE}
       ${NAME}.c
       ${CMAKE_SOURCE_DIR}/src/lib/engineer_module.c
    )

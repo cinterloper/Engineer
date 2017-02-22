@@ -1,5 +1,4 @@
 #ifndef _ENGINEER_TYPE_H_
-#define _ENGINEER_TYPE_H_
 
 #ifdef TYPE
 #ifdef SUBTYPES
@@ -27,8 +26,6 @@
    DEFINE(TYPE)
 #undef DEFINE
 #undef FIELD
-
-
 
 #define SYMBOL(type) inline void type##SIZE
 #define FIELD(key, type) type##SIZE(counter);
@@ -127,8 +124,11 @@
 #undef SYMBOL
 
 #ifdef SWITCH
-  #undef SUBTYPES
-  #undef TYPE
+   #undef SUBSTRUCT
+   #undef SUBTYPES
+   #undef TYPE
+#else
+   #define _ENGINEER_TYPE_H_
 #endif
 
 #endif

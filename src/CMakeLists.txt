@@ -51,9 +51,8 @@ ENDFOREACH(EOPATH)
 add_custom_target(eolian_gen DEPENDS ${EONAMEH})
 
 # We need to make a list of our library global code file paths.
-FILE(GLOB_RECURSE ENGINEER_GLOBAL_MATH_CODE ${CMAKE_SOURCE_DIR}/src/lib/global/math/*.c)
-FILE(GLOB_RECURSE ENGINEER_GLOBAL_TYPE_CODE ${CMAKE_SOURCE_DIR}/src/lib/global/type/*.c)
-LIST(REMOVE_ITEM ENGINEER_GLOBAL_TYPE_CODE type.c)
+FILE(GLOB_RECURSE ENGINEER_GLOBAL_CODE ${CMAKE_SOURCE_DIR}/src/lib/global/*.c)
+LIST(REMOVE_ITEM ENGINEER_GLOBAL_CODE type.c)
 
 ### Project Target Compile Phase ###
 
