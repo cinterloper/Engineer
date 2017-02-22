@@ -32,14 +32,15 @@ _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
    static const
    Engineer_Module_Frame  blank;
    Engineer_Module_Frame *frame;
-   uint64_t hash EINA_UNUSED, eventid EINA_UNUSED;
+   Engineer_Component     eventid EINA_UNUSED;
+   uint64_t               hash    EINA_UNUSED;
 
    // Create the Event Enumeration Hash Lookup Table.
    pd->events = eina_hash_int64_new(NULL);
    #define EVENT(key) \
-      hash    = engineer_hash_murmur3(STRINGIFY(key), strlen(STRINGIFY(key)), 242424); \
-      eventid = key; \
-      eina_hash_add(pd->events, &hash, (uint64_t*)eventid);
+      hash  = engineer_hash_murmur3(STRINGIFY(key), strlen(STRINGIFY(key)), 242424); \
+      index = key; \
+      eina_hash_add(pd->events, &hash, (uint64_t*)index);
    #undef EVENT
 
    // Create and initialize the space (3 frames) needed to iterate our timeline.
@@ -143,15 +144,16 @@ EOLIAN static void
 _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
         Engineer_Component *buffer EINA_UNUSED, Eina_Inarray *inbox EINA_UNUSED)
 {
-   uint64_t count, offset, current, type, size;
+   uint64_t count, offset, current, event, size;
+   Component_Events type;
 
    count  = *(uint64_t*)eina_inarray_nth(inbox, 0);
    offset = 1;
    for(current = 0; current < count; current++)
    {
-      type = *(uint64_t*)eina_inarray_nth(inbox, offset + 1);
-      type =  (uint64_t)eina_hash_find(pd->events, (uint64_t*)type);
-      size = *(uint64_t*)eina_inarray_nth(inbox, offset + 2);
+      event = *(uint64_t*)eina_inarray_nth(inbox, offset + 1);
+      type  =  (uint64_t)eina_hash_find(pd->events, (uint64_t*)event);
+      size  = *(uint64_t*)eina_inarray_nth(inbox, offset + 2);
       switch(type)
       {
          #define EVENT(key) \
@@ -359,6 +361,13 @@ _engineer_module_component_siblingprev_get(Eo *obj, Engineer_Module_Data *pd,
    target = engineer_module_component_lookup(obj, target);
    return *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, target);
 }
+/*
+EOLIAN static uint64_t
+_engineer_module_component_state_get(Eo *obj, Engineer_Module_Data *pd,
+        uint64_t target, uint64_t key)
+{
 
+}
+*/
 #include "engineer_module.eo.c"
 

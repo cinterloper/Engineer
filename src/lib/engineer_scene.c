@@ -67,8 +67,6 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
 
    pd->modules = eina_hash_pointer_new(eng_free_cb);
 
-   printf("Scene Finalize Checkpoint 1.\n");
-
    // Create and fill our pd->modules array with a new Eo instance for each registered module.
    Eina_Bool
    module_fill(const Eina_Hash *hash EINA_UNUSED, const void *key EINA_UNUSED, void *data,
@@ -87,10 +85,8 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    nodepd = efl_data_scope_get(node, ENGINEER_NODE_CLASS);
    eina_hash_foreach(nodepd->classes, module_fill, obj);
 
-   printf("Scene Finalize Checkpoint 2.\n");
-
    pd->iterator = ecore_timer_add((double)1/pd->clockrate, _engineer_scene_iterate_cb, obj);
-   ecore_timer_freeze(pd->iterator);
+   //ecore_timer_freeze(pd->iterator);
 
    // If our Scene is new, create a root Entity and set it up.
    if (eina_inarray_count(pd->id) == 0)
@@ -212,7 +208,8 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
    module_update(const Eina_Hash *hash EINA_UNUSED, const void *key, void *data,
         void *fdata EINA_UNUSED)
    {
-      Eo *module = data, *node = efl_parent_get(obj);
+      Eo *node = efl_parent_get(obj);
+      Eo *module = data;
       Engineer_Module_Class *class = engineer_node_module_class_lookup(node, *(uint64_t*)key);
 
       Eina_Bool (*update)(Eo *obj);

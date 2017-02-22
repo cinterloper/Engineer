@@ -5,6 +5,14 @@
 #define TARGET(target) ../modules/target.h
    #include STRINGIFY(TARGET(COMPONENT))
 
+#ifndef STATE
+   #define STATE
+#endif
+
+#ifndef EVENTS
+   #define EVENTS
+#endif
+
 typedef enum
 {
    #define EVENT(key) key,

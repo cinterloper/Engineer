@@ -103,11 +103,6 @@ engineer_render_test_game_init(Eo *root)
                  "/home/brokenshakles/Projects/SoftwareEngines/Engineer/build",
                  "Engineer_Render_Test");
 
-   printf("Murmur3 Test Hash Output 1: %ld\n",
-      engineer_hash_murmur3("Transform", strlen("Transform"), 242424));
-   printf("Murmur3 Test Hash Output 2: %ld\n",
-      engineer_hash_murmur3("Transform", strlen("Transform"), 242424));
-
    // Load our component modules here.
    engineer_node_module_load(node, "Transform");
    // engineer_node_module_load(node, "Collider");

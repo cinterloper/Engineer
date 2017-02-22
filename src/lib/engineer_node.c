@@ -122,42 +122,37 @@ _engineer_node_scene_flush(Eo *obj, Engineer_Node_Data *pd EINA_UNUSED,
 {
 }
 */
-EOLIAN static Eina_Stringshare *
+EOLIAN static uint64_t
 _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
         const char *symbol)
 {
    Engineer_Module_Class *class = malloc(sizeof(Engineer_Module_Class));
+   uint64_t classid = engineer_hash_murmur3(symbol, strlen(symbol), 242424);
 
    // Make sure our module file exists before loading it.
    Eina_Stringshare *file = eina_stringshare_printf("../modules/lib%s.so", symbol);
-   if (!ecore_file_exists(file)) {eina_stringshare_del(file); return NULL;}
+   if (!ecore_file_exists(file)) {eina_stringshare_del(file); return ULONG_NULL;}
 
-   printf("Node Module Load Checkpoint 1. File: %s\n", file);
+   printf("Node Module Class Load Checkpoint 1. File:    %s\n", file);
 
    // Check to see if the module class is already registered.
-   Eina_Stringshare *test = eina_hash_find(pd->classes, symbol);
-   if (test != NULL) return test;
+   uint64_t *test = eina_hash_find(pd->classes, &classid);
+   if (test != NULL) return *test;
 
-   printf("Node Module Load Checkpoint 2. Test: %s\n", test);
+   printf("Node Module Class Load Checkpoint 2. ClassId: %"PRId64"\n", classid);
 
    // Create our eina_module reference handle.
    class->eina = eina_module_new(file);
-   if (class->eina == NULL) {eina_stringshare_del(file); return NULL;}
+   if (class->eina == NULL) {eina_stringshare_del(file); return ULONG_NULL;}
    eina_module_load(class->eina);
 
-   printf("Node Module Load Checkpoint 3. %p\n", class->eina);
-
-   #define RETURN {eina_module_free(class->eina); eina_stringshare_del(file); return NULL;}
+   #define RETURN {eina_module_free(class->eina); eina_stringshare_del(file); return ULONG_NULL;}
 
    class->new = eina_module_symbol_get(class->eina, "engineer_module_new");
    if (class->new == NULL) RETURN;
 
-   printf("Node Module Load Checkpoint 4.\n");
-
    class->update = eina_module_symbol_get(class->eina, "engineer_module_update");
    if (class->update == NULL) RETURN;
-
-   printf("Node Module Load Checkpoint 5.\n");
 
    class->component_create  = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_create");
@@ -173,22 +168,18 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
                                  "engineer_module_component_recall");
    if (class->component_recall  == NULL) RETURN;
    */
-     printf("Node Module Load Checkpoint 6.\n");
-
    class->component_lookup  = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_lookup");
    if (class->component_lookup  == NULL) RETURN;
 
    #undef RETURN
 
-   printf("Node Module Load Checkpoint 7.\n");
-
    // Set up our module class lookup data.
-   symbol = eina_stringshare_add(symbol);
-   class->id = symbol;
-   eina_hash_add(pd->classes, &symbol, class);
+   //eina_stringshare_add(symbol);
+   class->id = classid;
+   eina_hash_add(pd->classes, &classid, class);
 
-   return symbol;
+   return classid;
 }
 /*
 EOLIAN static void

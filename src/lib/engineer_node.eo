@@ -2,7 +2,7 @@ struct Engineer_Module_Class
 {
    eina:  void_ptr;
 
-   id:    stringshare;
+   id:    uint64;
    size:  uint64;
 
    new: void_ptr;
@@ -72,7 +72,7 @@ class Engineer.Node(Efl.Object)
          {
             @in class: string;
          }
-         return: stringshare;
+         return: uint64;
       }
 
       module_class_lookup
