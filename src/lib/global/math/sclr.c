@@ -10,7 +10,7 @@ engineer_math_mult(Sclr multiplicand, Sclr multiplier)
    Sclr output;
 
    output   = multiplicand * multiplier;
-   output  += (output & (1 << (RADIX - 1))) << 1;
+   output  += (output & (2 * (RADIX - 1))) * 2;
    output >>= RADIX;
 
    return output;
@@ -45,9 +45,9 @@ engineer_math_clamp(Sclr input, Sclr min, Sclr max)
    max <<= 1;
 
    buffer = input - min;
-   input  = ((input + min) - ABS(buffer)) >> 1;
+   input  = ((input + min) - ABS(buffer)) / 2;
    buffer = input - max;
-   output = ((input + max) + ABS(buffer)) >> 1;
+   output = ((input + max) + ABS(buffer)) / 2;
 
    return output;
 }
@@ -80,7 +80,7 @@ engineer_math_ln(Sclr input) // Fixme //
    buffer.z = 0;
 
    buffer = cordic_hyperbolic_ymode(buffer);
-   output = buffer.z << 1;
+   output = buffer.z * 2;
 
    return output;
 }
@@ -104,8 +104,8 @@ engineer_math_sqrt(Sclr input)
       mask     = (buffer.x - output) >> (SCALE - 1);
       buffer.x =  buffer.x         - ((           output) & ~mask);
       buffer.z = (buffer.z & mask) + ((buffer.y + output) & ~mask);
-      buffer.x =  buffer.x << 1;
-      buffer.y =  buffer.y >> 1;
+      buffer.x =  buffer.x * 2;
+      buffer.y =  buffer.y / 2;
    }
    output = buffer.z >> 8;
 

@@ -15,12 +15,22 @@
 
 typedef enum
 {
-   #define EVENT(key) key,
+   nullSTATE
+   #define FIELD(key, type) ,key##STATE
+   STATE
+   #undef FIELD
+
+}
+Component_State;
+
+typedef enum
+{
+   nullEVENT
+   #define EVENT(key) ,key##EVENT
    EVENTS
    #undef EVENT
-   null = 0
 }
-Component_Events;
+Component_Event;
 
 typedef struct
 {
@@ -66,6 +76,7 @@ Engineer_Module_Frame;
 
 typedef struct
 {
+   Eina_Hash    *fields;
    Eina_Hash    *events;
 
    Eina_Hash    *lookup;
@@ -81,9 +92,9 @@ Engineer_Module_Data;
 
 Eo*      engineer_module_new(Eo *parent);
 uint64_t engineer_module_classid(void);
-void engineer_module_component_awake(Engineer_Component *data);
-void engineer_module_component_start(Engineer_Component *data);
-void engineer_module_component_update(Engineer_Component *data);
+void engineer_module_component_awake(Eo *module, uint64_t index, Engineer_Component *data);
+void engineer_module_component_start(Eo *module, uint64_t index, Engineer_Component *data);
+void engineer_module_component_update(Eo *module, uint64_t index, Engineer_Component *data);
 
 #define EVENT(key) \
    bool engineer_module_component_event_##key(Engineer_Component *data, void *note, uint64_t size);
@@ -92,11 +103,45 @@ EVENTS
 
 #include "engineer_module.eo.h"
 
-#define awake(data)  engineer_module_component_awake(data)
-#define start(data)  engineer_module_component_start(data)
-#define update(data) engineer_module_component_update(data)
+/*** Component stub macros ***/
 
-#define event(key, data, note, size) engineer_module_component_event_##key(data, note, size)
+#define awake(data) \
+   engineer_module_component_awake(Eo *module EINA_UNUSED, uint64_t index EINA_UNUSED, data)
+
+#define start(data) \
+   engineer_module_component_start(Eo *module EINA_UNUSED, uint64_t index EINA_UNUSED, data)
+
+#define update(data) \
+   engineer_module_component_update(Eo *module EINA_UNUSED, uint64_t index EINA_UNUSED, data)
+
+#define event(key, data, payload, size) \
+   engineer_module_component_event_##key(data, payload, size)
+
+/** Component method macros ***/
+
+// Valid Keys: all single keys:F1-F12:arrowup:arrowdown:arrowleft:arrowright:num0-9,:
+//    tab, capslock, lshift, rshift, lctrl, rctrl, alt, altgr, window, lshift, rshift
+#define keypressed(key)  engineer_module_keypressed_get(key)
+#define keyheld(key)
+#define keyreleased(key)
+
+#define mousedelta(key)
+#define mouseclicked(button)       engineer_module_mouseclicked_get(button)
+#define mousedoubleclicked(button)
+#define mousedragged(button)
+#define mousereleased(button)
+
+#define componentsearch(target, class) \
+   engineer_scene_entity_component_search(efl_parent_get(obj), target, class)
+
+#define componentquery(target, key) \
+   engineer_module_component_state_get(module, target, key)
+   
+#define entitynotify(target, event, payload, size) \
+   engineer_module_notify(target, index, event, payload, size)
+
+//#define entity_create
+//#define component_create
 
 #endif
 

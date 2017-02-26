@@ -16,3 +16,9 @@ Finally, if any of those children are octree nodes containing objects, enqueue a
 
 If the first step evaluated to true, for each successful intersection, perform the last 4 steps
    using the next parent up as the new target.
+
+
+Things to do:
+
+Set up user input system.
+Write basic raytracer on cpu.

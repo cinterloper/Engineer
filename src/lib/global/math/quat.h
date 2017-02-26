@@ -8,10 +8,8 @@
 #include "../const.h"
 #include "../type/quat.h"
 #include "sclr.h"
-#include "mtrx.h"
 
 Quat engineer_math_quat_multiply(Quat multiplicand, Quat multiplier);
-Mtrx engineer_math_quat_matrixify(Quat input);
 Quat engineer_math_quat_normalize(Quat input);
 
 #endif

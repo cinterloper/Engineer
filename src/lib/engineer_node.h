@@ -29,6 +29,7 @@ typedef struct
    Eina_Inarray *componentqueue;  // Stores (presently) available Component ID's.
    Eina_Hash    *componentlocate; // Stores where all Components originated by this Node are currently stored.
    Eina_Hash    *componentstatus; // (Living/Locked/Dead/Free). Also stores refcount.
+   Eina_Hash    *componentclass;
 }
 Engineer_Node_Data;
 

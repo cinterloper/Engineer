@@ -479,6 +479,37 @@ _engineer_scene_entity_attach(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
 }
 
 EOLIAN uint64_t
+_engineer_scene_entity_component_search(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+        uint64_t entityid, const char *target)
+{
+   Engineer_Module_Class *class;
+   Eo *module, *node = efl_parent_get(obj);
+   uint64_t first, component, classid, currentid;
+
+   uint64_t (*siblingnext_get)(Eo *obj, uint64_t component);
+
+   first   = engineer_scene_entity_firstcomponent_get(obj, entityid);
+   classid = engineer_hash_murmur3(target, strlen(target), 242424);
+   if (classid == engineer_node_component_class_get(node, first)) return first;
+   class   = engineer_node_module_class_lookup(node, classid);
+   siblingnext_get = class->siblingnext_get;
+
+   module    = engineer_scene_module_get(obj, &classid);
+   component = siblingnext_get(module, first);
+   while(component != first)
+   {
+      currentid = engineer_node_component_class_get(node, component);
+      if (currentid == classid) return component;
+      class     = engineer_node_module_class_lookup(node, currentid);
+      siblingnext_get = class->siblingnext_get;
+
+      module    = engineer_scene_module_get(obj, &currentid);
+      component = siblingnext_get(module, component);
+   }
+   return ULONG_NULL;
+}
+
+EOLIAN uint64_t
 _engineer_scene_entity_lookup(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         uint64_t entityid)
 {

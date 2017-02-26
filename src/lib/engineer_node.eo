@@ -15,6 +15,9 @@ struct Engineer_Module_Class
    component_recall:  void_ptr;
    component_sizeof:  void_ptr;
    component_lookup:  void_ptr;
+
+   component_siblingnext_get: void_ptr;
+   component_state_get:       void_ptr;
 }
 
 struct Engineer_Node_Peer
@@ -179,6 +182,24 @@ class Engineer.Node(Efl.Object)
          {
             @in target: uint64;
             @in mode:   char;
+         }
+      }
+
+      component_class_get
+      {
+         params
+         {
+            @in target: uint64;
+         }
+         return: uint64;
+      }
+
+      component_class_set
+      {
+         params
+         {
+            @in target: uint64;
+            @in class:  uint64;
          }
       }
    }

@@ -1,3 +1,4 @@
+struct @extern Engineer_Module_Class {}
 struct @extern Engineer_Component {}
 struct @extern Engineer_Component_History {}
 
@@ -37,6 +38,18 @@ class Engineer.Module(Efl.Object)
          {
             @in buffer: ptr(Engineer_Component);
             @in inbox:  ptr(Eina.Inarray);
+         }
+      }
+
+      notify
+      {
+         params
+         {
+            @in target:  uint64;
+            @in sender:  uint64;
+            @in type:    string;
+            @in payload: void_ptr;
+            @in size:    uint64;
          }
       }
 
@@ -145,6 +158,16 @@ class Engineer.Module(Efl.Object)
             @in target:     uint64;
             @in newsibling: uint64;
          }
+      }
+
+      component_state_get
+      {
+         params
+         {
+            @in target: uint64;
+            @in key:    string;
+         }
+         return: void_ptr;
       }
    }
 

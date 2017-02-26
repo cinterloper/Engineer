@@ -45,6 +45,7 @@ _engineer_node_efl_object_finalize(Eo *obj, Engineer_Node_Data *pd)
    pd->componentqueue  = eina_inarray_new(sizeof(uint64_t), 0);
    pd->componentlocate = eina_hash_int32_new(eng_free_cb);
    pd->componentstatus = eina_hash_int64_new(eng_free_cb);
+   pd->componentclass  = eina_hash_int64_new(NULL);
 
    printf("Finalize Path: %s, Title: %s\n", pd->path, pd->game);
 
@@ -171,6 +172,14 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    class->component_lookup  = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_lookup");
    if (class->component_lookup  == NULL) RETURN;
+
+   class->component_siblingnext_get  = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_siblingnext_get");
+   if (class->component_siblingnext_get  == NULL) RETURN;
+
+   class->component_state_get  = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_state_get");
+   if (class->component_state_get  == NULL) RETURN;
 
    #undef RETURN
 
@@ -311,6 +320,20 @@ _engineer_node_component_status_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    {
       eina_hash_set(pd->componentstatus, &target, &mode);
    }
+}
+
+EOLIAN static uint64_t
+_engineer_node_component_class_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        uint64_t target)
+{
+   return (uint64_t)eina_hash_find(pd->componentclass, &target);
+}
+
+EOLIAN static void
+_engineer_node_component_class_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        uint64_t target, uint64_t class)
+{
+   eina_hash_set(pd->componentclass, &target, (uint64_t*)class);
 }
 
 #include "engineer_node.eo.c"

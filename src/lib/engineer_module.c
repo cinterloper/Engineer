@@ -34,13 +34,24 @@ _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
    Engineer_Module_Frame *frame;
    Engineer_Component     eventid EINA_UNUSED;
    uint64_t               hash    EINA_UNUSED;
+   uint64_t               index   EINA_UNUSED;
+
+   // Create the State Field Enumeration Hash Lookup Table.
+   pd->fields = eina_hash_int64_new(NULL);
+   #define FIELD(key, type) \
+      hash  = engineer_hash_murmur3(STRINGIFY(key), strlen(STRINGIFY(key)), 242424); \
+      index = key##STATE; \
+      eina_hash_add(pd->fields, &hash, (uint64_t*)index);
+   STATE
+   #undef FIELD
 
    // Create the Event Enumeration Hash Lookup Table.
    pd->events = eina_hash_int64_new(NULL);
    #define EVENT(key) \
       hash  = engineer_hash_murmur3(STRINGIFY(key), strlen(STRINGIFY(key)), 242424); \
-      index = key; \
+      index = key##EVENT; \
       eina_hash_add(pd->events, &hash, (uint64_t*)index);
+   EVENTS
    #undef EVENT
 
    // Create and initialize the space (3 frames) needed to iterate our timeline.
@@ -130,8 +141,8 @@ _engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
       inbox = engineer_scene_entity_inbox_get(efl_parent_get(obj), *parent);
       engineer_module_dispatch(obj, &buffer, inbox);
 
-      // Invoke engineer_module_component_update() here.
-      engineer_module_component_update(&buffer);
+      // Run our modules update() method here.
+      engineer_module_component_update(obj, index, &buffer);
 
       // Flush our buffer here
       engineer_module_cache_write(obj, &buffer, index);
@@ -145,7 +156,7 @@ _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNU
         Engineer_Component *buffer EINA_UNUSED, Eina_Inarray *inbox EINA_UNUSED)
 {
    uint64_t count, offset, current, event, size;
-   Component_Events type;
+   Component_Event type;
 
    count  = *(uint64_t*)eina_inarray_nth(inbox, 0);
    offset = 1;
@@ -157,14 +168,29 @@ _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNU
       switch(type)
       {
          #define EVENT(key) \
-            case key: \
+            case key##EVENT: \
             event(key, buffer, eina_inarray_nth(inbox, offset + 3), size); \
             break;
          EVENTS
          #undef EVENT
+         case nullEVENT:
+         break;
       }
       offset += (size + 3);
    }
+}
+
+EOLIAN static void
+_engineer_module_notify(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        uint64_t target, uint64_t sender, const char *type, void *payload, uint64_t size)
+{
+   Eo *scene;
+   uint64_t eventid;
+
+   scene = efl_parent_get(obj);
+   sender = *(uint64_t*)eina_inarray_nth(pd->id, sender);
+   eventid = engineer_hash_murmur3(type, strlen(type), 242424);
+   engineer_scene_notice_push_event(scene, target, sender, eventid, payload, size);
 }
 
 EOLIAN static uint64_t
@@ -361,13 +387,57 @@ _engineer_module_component_siblingprev_get(Eo *obj, Engineer_Module_Data *pd,
    target = engineer_module_component_lookup(obj, target);
    return *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, target);
 }
-/*
-EOLIAN static uint64_t
-_engineer_module_component_state_get(Eo *obj, Engineer_Module_Data *pd,
-        uint64_t target, uint64_t key)
-{
 
+EOLIAN static void *
+_engineer_module_component_state_get(Eo *obj, Engineer_Module_Data *pd,
+        uint64_t target, const char *key)
+{
+   uint64_t classid, fieldid, index EINA_UNUSED;
+   Eo *scene, *node;
+   void *result;
+
+   scene = efl_parent_get(obj);
+   node  = efl_parent_get(scene);
+
+   classid = engineer_node_component_class_get(node, target);
+   if(classid == engineer_module_classid())
+   {
+      Component_State field;
+
+      fieldid = engineer_hash_murmur3(key, strlen(key), 242424);
+      field = (Component_State)eina_hash_find(pd->fields, (uint64_t*)fieldid);
+      index = engineer_module_component_lookup(obj, target);
+      switch(field)
+      {
+         #define FIELD(key, type) \
+            case key##STATE: \
+            result = malloc(sizeof(type)); \
+            type##READ(&pd->present->key, result, index); \
+            break;
+         STATE
+         #undef FIELD
+         case nullSTATE:
+           result = NULL;
+         break;
+         default:
+           result = NULL;
+      }
+
+      return result;
+   }
+   else
+   {
+      Engineer_Module_Class *class;
+      Eo *module;
+      void *(*component_state_get)(Eo *obj, uint64_t target, const char *key);
+
+      class = engineer_node_module_class_lookup(node, classid);
+      module = engineer_scene_module_get(scene, &classid);
+      component_state_get = class->component_state_get;
+
+      return component_state_get(module, target, key);
+   }
 }
-*/
+
 #include "engineer_module.eo.c"
 

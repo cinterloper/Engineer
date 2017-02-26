@@ -89,6 +89,16 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
+      entity_component_search
+      {
+         params
+         {
+            @in entityid: uint64;
+            @in target:   string;
+         }
+         return: uint64;
+      }
+
       entity_lookup
       {
          params

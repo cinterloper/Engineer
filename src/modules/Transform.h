@@ -4,13 +4,15 @@
 #include "../headers/Engineer.h"
 
 #define STATE \
-   FIELD(position, Vec3) \
-   FIELD(velocity, Vec3) \
-   FIELD(impulse,  Vec3) \
-   FIELD(netforce, Vec3)
+   FIELD(position,    Vec3) \
+   FIELD(orientation, Quat) \
+   FIELD(telelock,    Sclr)
 
 #define EVENTS \
-   EVENT(accelerate)
+   EVENT(move) \
+   EVENT(teleport) \
+   EVENT(rotate) \
+   EVENT(reorient) \
 
 #include "engineer_module.h"
 
