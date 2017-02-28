@@ -42,7 +42,7 @@ typedef struct
    uint64_t      size;            // Diameter, in the quantum unit.
    uint32_t      shape;           // 0 for a cube, 1 for a sphere
 
-   Efl_Loop_Timer *iterator;      // Triggers our frame update, the frequency can be changed.
+   Ecore_Timer    *iterator;      // Triggers our frame update, the frequency can be changed.
    uint            clockrate;     // This value controls the FPS the scene is set to run at.
    Eina_Inarray   *timecard;      // Stores the completion time for the present and past frames.
 

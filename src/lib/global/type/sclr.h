@@ -7,7 +7,26 @@
 typedef BASE Sclr;
 
 #define SclrSOA Eina_Inarray*
+/*
+inline void
+SclrFACTORY(Sclr *target, uint64_t subtype)
+{
+   if(subtype)
+   {
+      if(!target) target = (Sclr*)eina_inarray_new(sizeof(Sclr), subtype);
+   }
+   else *target = 0;
+}
 
+inline void
+SclrDISPOSAL(Sclr *target, uint64_t subtype)
+{
+   if(subtype)
+   {
+     if(target) eina_inarray_free((Eina_Inarray*)target);
+   }
+}
+*/
 inline void
 SclrSIZE(uint64_t *counter)
 {

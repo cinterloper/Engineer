@@ -180,18 +180,39 @@ _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNU
    }
 }
 
+/*** Module Notification Wrappers ***/
+
 EOLIAN static void
-_engineer_module_notify(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+_engineer_module_notify_event(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
         uint64_t target, uint64_t sender, const char *type, void *payload, uint64_t size)
 {
    Eo *scene;
    uint64_t eventid;
 
-   scene = efl_parent_get(obj);
-   sender = *(uint64_t*)eina_inarray_nth(pd->id, sender);
+   scene   = efl_parent_get(obj);
+   sender  = *(uint64_t*)eina_inarray_nth(pd->id, sender);
    eventid = engineer_hash_murmur3(type, strlen(type), 242424);
-   engineer_scene_notice_push_event(scene, target, sender, eventid, payload, size);
+   engineer_scene_notify_event(scene, target, sender, eventid, payload, size);
 }
+
+EOLIAN static uint64_t
+_engineer_module_notify_entity_create(Eo *obj, Engineer_Module_Data *pd,
+        uint64_t parent, uint64_t senderindex)
+{
+   Eo *scene = efl_parent_get(obj);
+   Eo *node  = efl_parent_get(scene);
+   uint64_t senderid, entityid;
+
+   senderid = *(uint64_t*)eina_inarray_nth(pd->future->parent, senderindex);
+   entityid = engineer_node_entity_id_use(node);
+
+   engineer_scene_notify_entity_create(scene, senderid, entityid, parent);
+
+   return entityid;
+}
+
+
+/*** Module Cache Access Methods ***/
 
 EOLIAN static uint64_t
 _engineer_module_cache_sizeof(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED)
@@ -232,8 +253,11 @@ _engineer_module_cache_write(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_
    #undef FIELD
 }
 
+
+/*** Component Methods ***/
+
 EOLIAN static Eina_Bool
-_engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd,
+_engineer_module_component_factory(Eo *obj, Engineer_Module_Data *pd,
         uint64_t id, uint64_t parent, const char *name, Engineer_Component *template EINA_UNUSED)
 {
    Engineer_Module_Frame *frame;
@@ -405,8 +429,8 @@ _engineer_module_component_state_get(Eo *obj, Engineer_Module_Data *pd,
       Component_State field;
 
       fieldid = engineer_hash_murmur3(key, strlen(key), 242424);
-      field = (Component_State)eina_hash_find(pd->fields, (uint64_t*)fieldid);
-      index = engineer_module_component_lookup(obj, target);
+      field   = (Component_State)eina_hash_find(pd->fields, (uint64_t*)fieldid);
+      index   = engineer_module_component_lookup(obj, target);
       switch(field)
       {
          #define FIELD(key, type) \

@@ -94,7 +94,7 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
       uint64_t id;
 
       id = engineer_node_entity_id_use(efl_parent_get(obj));
-      engineer_scene_entity_create(obj, id, ULONG_NULL, "Scenegraph Root");
+      engineer_scene_entity_factory(obj, id, ULONG_NULL, "Scene Root");
 
       printf("Root Entity Create Checkpoint. EID: %ld\n", id);
    }
@@ -198,8 +198,8 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
    Eina_Inarray **outbox;
    EINA_INARRAY_FOREACH(pd->present->outbox, outbox)
    {
-      printf("Scene Iterator Response Checkpoint.\n");
-      engineer_scene_respond(obj, *outbox);
+      printf("Scene Iterator Dispatch Checkpoint.\n");
+      engineer_scene_dispatch(obj, *outbox);
       index += 1;
    }
 
@@ -250,7 +250,7 @@ Eina_Bool _engineer_scene_iterate_cb(void *obj)
 }
 
 EOLIAN static void
-_engineer_scene_respond(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_scene_dispatch(Eo *obj, Engineer_Scene_Data *pd,
         Eina_Inarray *outbox)
 {
    uint64_t count, offset, current, type, size, target, parent;
@@ -271,7 +271,7 @@ _engineer_scene_respond(Eo *obj, Engineer_Scene_Data *pd,
          target = *(uint64_t*)eina_inarray_nth(outbox, offset + 2);
          parent = *(uint64_t*)eina_inarray_nth(outbox, offset + 3);
 
-         engineer_scene_entity_create(obj, target, parent, NULL);
+         engineer_scene_entity_factory(obj, target, parent, NULL);
          break;
 
          case 1: // Respond by creating a Component and attaching it to a parent Entity.
@@ -288,11 +288,11 @@ _engineer_scene_respond(Eo *obj, Engineer_Scene_Data *pd,
             eina_inarray_push(input, eina_inarray_nth(outbox, offset + count + 5));
 
          // Invoke our module's component_create method.
-         uint64_t (*component_create)(Eo *module, uint64_t target, uint64_t parent, void *input);
-         component_create = class->component_create;
+         uint64_t (*component_factory)(Eo *module, uint64_t target, uint64_t parent, void *input);
+         component_factory = class->component_factory;
          target = *(uint64_t*)eina_inarray_nth(pd->id, target);
 
-         component_create(module, target, parent, input);
+         component_factory(module, target, parent, input);
 
          eina_inarray_free(input);
          break;
@@ -329,7 +329,7 @@ _engineer_scene_respond(Eo *obj, Engineer_Scene_Data *pd,
 /*** Entity Methods ***/
 
 EOLIAN static Eina_Bool
-_engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_scene_entity_factory(Eo *obj, Engineer_Scene_Data *pd,
         uint64_t id, uint64_t parent, const char *name)
 {
    Engineer_Scene_Frame *frame;
@@ -370,6 +370,21 @@ _engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
 
    return EINA_TRUE;
 }
+
+EOLIAN static uint64_t
+_engineer_scene_entity_create(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t parent, const char *name EINA_UNUSED)
+{
+   uint64_t rootid, entityid;
+   Eo *node = efl_parent_get(obj);
+
+   rootid   = *(uint64_t*)eina_inarray_nth(pd->id, 0);
+   entityid = engineer_node_entity_id_use(node);
+   engineer_scene_notify_entity_create(obj, rootid, entityid, parent);
+
+   return entityid;
+}
+
 /*
 EOLIAN static void
 _engineer_scene_entity_destroy(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
@@ -479,7 +494,7 @@ _engineer_scene_entity_attach(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
 }
 
 EOLIAN uint64_t
-_engineer_scene_entity_component_search(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
+_engineer_scene_entity_component_search(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd EINA_UNUSED,
         uint64_t entityid, const char *target)
 {
    Engineer_Module_Class *class;
@@ -492,7 +507,7 @@ _engineer_scene_entity_component_search(Eo *obj EINA_UNUSED, Engineer_Scene_Data
    classid = engineer_hash_murmur3(target, strlen(target), 242424);
    if (classid == engineer_node_component_class_get(node, first)) return first;
    class   = engineer_node_module_class_lookup(node, classid);
-   siblingnext_get = class->siblingnext_get;
+   siblingnext_get = class->component_siblingnext_get;
 
    module    = engineer_scene_module_get(obj, &classid);
    component = siblingnext_get(module, first);
@@ -501,7 +516,7 @@ _engineer_scene_entity_component_search(Eo *obj EINA_UNUSED, Engineer_Scene_Data
       currentid = engineer_node_component_class_get(node, component);
       if (currentid == classid) return component;
       class     = engineer_node_module_class_lookup(node, currentid);
-      siblingnext_get = class->siblingnext_get;
+      siblingnext_get = class->component_siblingnext_get;
 
       module    = engineer_scene_module_get(obj, &currentid);
       component = siblingnext_get(module, component);
@@ -690,10 +705,27 @@ _engineer_scene_entity_components_get(Eo *obj, Engineer_Scene_Data *pd EINA_UNUS
    return results;
 }
 */
+
+/*** Component External Access Wrappers ***/
+
+EOLIAN static uint64_t
+_engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd,
+        uint64_t classid, uint64_t parent, void *payload)
+{
+   uint64_t rootid, componentid;
+   Eo *node = efl_parent_get(obj);
+
+   rootid   = *(uint64_t*)eina_inarray_nth(pd->id, 0);
+   componentid = engineer_node_entity_id_use(node);
+   engineer_scene_notify_component_create(obj, rootid, classid, componentid, parent, payload);
+
+   return componentid;
+}
+
 /*** Scene Notification Requests ***/
 
 EOLIAN static void
-_engineer_scene_notice_push_event(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_scene_notify_event(Eo *obj, Engineer_Scene_Data *pd,
         uint64_t target, uint64_t sender, uint64_t type, void *payload, uint64_t size)
 {
    Eina_Inarray *inbox;
@@ -714,19 +746,19 @@ _engineer_scene_notice_push_event(Eo *obj, Engineer_Scene_Data *pd,
 }
 /*
 EOLIAN static void
-_engineer_scene_notice_push_event_ancestors(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_scene_notify_event_ancestors(Eo *obj, Engineer_Scene_Data *pd,
         uint64_t entityid, uint32_t response, uint32_t size, void *payload)
 {
 }
 
 EOLIAN static void
-_engineer_scene_notice_push_event_descendants(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_scene_notify_event_descendants(Eo *obj, Engineer_Scene_Data *pd,
         uint64_t entityid, uint64_t response, uint32_t size, void *payload)
 {
 }
 */
 EOLIAN static void
-_engineer_scene_notice_push_entity_create(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_scene_notify_entity_create(Eo *obj, Engineer_Scene_Data *pd,
         uint64_t sender, uint64_t entityid, uint64_t parent)
 {
    Eina_Inarray *outbox;
@@ -746,7 +778,7 @@ _engineer_scene_notice_push_entity_create(Eo *obj, Engineer_Scene_Data *pd,
 }
 
 EOLIAN static void
-_engineer_scene_notice_push_component_create(Eo *obj, Engineer_Scene_Data *pd,
+_engineer_scene_notify_component_create(Eo *obj, Engineer_Scene_Data *pd,
         uint64_t sender, uint64_t classid, uint64_t componentid, uint64_t parent, uint64_t *payload)
 {
    Engineer_Module_Class *class;

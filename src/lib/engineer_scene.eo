@@ -61,7 +61,7 @@ class Engineer.Scene(Efl.Object)
          return: bool;
       }
 
-      respond
+      dispatch
       {
          params
          {
@@ -69,7 +69,7 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
-      entity_create
+      entity_factory
       {
          params
          {
@@ -78,6 +78,16 @@ class Engineer.Scene(Efl.Object)
             @in name:   string;
          }
          return: bool;
+      }
+
+      entity_create
+      {
+         params
+         {
+            @in parent: uint64;
+            @in name:   string;
+         }
+         return: uint64;
       }
 
       entity_attach
@@ -216,7 +226,18 @@ class Engineer.Scene(Efl.Object)
          return: ptr(Eina.Inarray);
       }
 
-      notice_push_event
+      component_create
+      {
+         params
+         {
+            @in classid: uint64;
+            @in parent:  uint64;
+            @in payload: void_ptr;
+         }
+         return: uint64;
+      }
+
+      notify_event
       {
          params
          {
@@ -228,7 +249,7 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
-      notice_push_entity_create
+      notify_entity_create
       {
          params
          {
@@ -238,7 +259,7 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
-      notice_push_component_create
+      notify_component_create
       {
          params
          {

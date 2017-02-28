@@ -9,7 +9,7 @@ struct Engineer_Module_Class
 
    update: void_ptr;
 
-   component_create:  void_ptr;
+   component_factory: void_ptr;
    component_destroy: void_ptr;
    component_archive: void_ptr;
    component_recall:  void_ptr;

@@ -41,7 +41,7 @@ class Engineer.Module(Efl.Object)
          }
       }
 
-      notify
+      notify_event
       {
          params
          {
@@ -51,6 +51,16 @@ class Engineer.Module(Efl.Object)
             @in payload: void_ptr;
             @in size:    uint64;
          }
+      }
+
+      notify_entity_create
+      {
+         params
+         {
+            @in parent:      uint64;
+            @in senderindex: uint64;
+         }
+         return: uint64;
       }
 
       cache_sizeof
@@ -76,7 +86,7 @@ class Engineer.Module(Efl.Object)
          }
       }
 
-      component_create
+      component_factory
       {
          params
          {

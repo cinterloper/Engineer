@@ -155,9 +155,9 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    class->update = eina_module_symbol_get(class->eina, "engineer_module_update");
    if (class->update == NULL) RETURN;
 
-   class->component_create  = eina_module_symbol_get(class->eina,
-                                 "engineer_module_component_create");
-   if (class->component_create  == NULL) RETURN;
+   class->component_factory  = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_factory");
+   if (class->component_factory  == NULL) RETURN;
    /*
    class->component_destroy = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_destroy");

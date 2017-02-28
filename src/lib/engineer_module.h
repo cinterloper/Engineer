@@ -121,27 +121,32 @@ EVENTS
 
 // Valid Keys: all single keys:F1-F12:arrowup:arrowdown:arrowleft:arrowright:num0-9,:
 //    tab, capslock, lshift, rshift, lctrl, rctrl, alt, altgr, window, lshift, rshift
-#define keypressed(key)  engineer_module_keypressed_get(key)
-#define keyheld(key)
-#define keyreleased(key)
+//#define keypressed(key)  engineer_module_keypressed_get(key)
+//#define keyheld(key)
+//#define keyreleased(key)
 
-#define mousedelta(key)
-#define mouseclicked(button)       engineer_module_mouseclicked_get(button)
-#define mousedoubleclicked(button)
-#define mousedragged(button)
-#define mousereleased(button)
+//#define mousedelta(key)
+//#define mouseclicked(button)       engineer_module_mouseclicked_get(button)
+//#define mousedoubleclicked(button)
+//#define mousedragged(button)
+//#define mousereleased(button)
 
-#define componentsearch(target, class) \
-   engineer_scene_entity_component_search(efl_parent_get(obj), target, class)
+#define entity_notify(target, event, payload, size) \
+   engineer_module_notify_event(target, index, event, payload, size)
 
-#define componentquery(target, key) \
+#define entity_create(parent) \
+   engineer_module_notify_entity_create(module, parent, index)
+
+//#define componentcreate()
+//   engineer_scene_notify_component_create
+
+#define component_search(target, class) \
+   engineer_scene_entity_component_search(efl_parent_get(module), target, class)
+
+#define component_query(target, key) \
    engineer_module_component_state_get(module, target, key)
-   
-#define entitynotify(target, event, payload, size) \
-   engineer_module_notify(target, index, event, payload, size)
 
-//#define entity_create
-//#define component_create
+
 
 #endif
 

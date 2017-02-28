@@ -26,7 +26,19 @@
    DEFINE(TYPE)
 #undef DEFINE
 #undef FIELD
-
+/*
+#define SYMBOL(type) inline void type##FACTORY
+#define FIELD(key, type, subtype) type##FACTORY(&key->subkey, subtype);
+#define DEFINE(type) \
+   SYMBOL(type)(type *input) \
+   { \
+      SUBTYPES \
+   }
+   DEFINE(TYPE)
+#undef DEFINE
+#undef FIELD
+#undef SYMBOL
+*/
 #define SYMBOL(type) inline void type##SIZE
 #define FIELD(key, type) type##SIZE(counter);
 #define DEFINE(type) \

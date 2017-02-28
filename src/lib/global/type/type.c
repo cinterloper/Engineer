@@ -2,7 +2,13 @@
 #ifdef SUBTYPES
 
 #include "type.h"
-
+/*
+#define SYMBOL(type) extern inline void type##FACTORY
+#define DEFINE(type) SYMBOL(type)(type *input);
+DEFINE(TYPE)
+#undef DEFINE
+#undef SYMBOL
+*/
 #define SYMBOL(type) extern inline void type##SIZE
 #define DEFINE(type) SYMBOL(type)(uint64_t *counter);
 DEFINE(TYPE)
