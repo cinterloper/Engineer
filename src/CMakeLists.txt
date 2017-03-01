@@ -37,6 +37,7 @@ include_directories(
 
 # Set up our Eolian generator to auto-process *.eo files into *.eo.h/*.eo.c targets at compile time.
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/eolian)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/shaders)
 file(GLOB_RECURSE EOPATHS RELATIVE ${CMAKE_SOURCE_DIR} *.eo)
 FOREACH(EOPATH ${EOPATHS})
    LIST(APPEND EONAMEH ${EOPATH}.h)
@@ -46,6 +47,7 @@ FOREACH(EOPATH ${EOPATHS})
       OUTPUT ${EOPATH}.h ${EOPATH}.c
       COMMAND eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl`
                  -o${CMAKE_BINARY_DIR}/eolian/${EONAME} ${CMAKE_SOURCE_DIR}/${EOPATH}
+      COMMAND cp ${CMAKE_SOURCE_DIR}/src/lib/shaders/* ${CMAKE_BINARY_DIR}/shaders
    )
 ENDFOREACH(EOPATH)
 add_custom_target(eolian_gen DEPENDS ${EONAMEH})

@@ -715,7 +715,7 @@ _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd,
    uint64_t rootid, componentid;
    Eo *node = efl_parent_get(obj);
 
-   rootid   = *(uint64_t*)eina_inarray_nth(pd->id, 0);
+   rootid      = *(uint64_t*)eina_inarray_nth(pd->id, 0);
    componentid = engineer_node_entity_id_use(node);
    engineer_scene_notify_component_create(obj, rootid, classid, componentid, parent, payload);
 

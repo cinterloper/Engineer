@@ -131,11 +131,11 @@ EVENTS
 //#define mousedragged(button)
 //#define mousereleased(button)
 
-#define entity_notify(target, event, payload, size) \
-   engineer_module_notify_event(target, index, event, payload, size)
-
 #define entity_create(parent) \
    engineer_module_notify_entity_create(module, parent, index)
+
+#define entity_notify(target, event, payload, size) \
+   engineer_module_notify_event(target, index, event, payload, size)
 
 //#define componentcreate()
 //   engineer_scene_notify_component_create
