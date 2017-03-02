@@ -49,6 +49,7 @@ elm_main(int argc, char **argv)
       goto engineer_render_test_error;
    }
    elm_app_info_set(elm_main, "engineer_render_test", "images/engineer_render_test.png");
+   elm_config_accel_preference_set("opengl");
 
    printf("Name: %s, Version: %s\n", argv[0], PACKAGE_VERSION);
    printf("UINT_NULL %d, ULONG_NULL %ld\n", UINT_NULL, ULONG_NULL);
@@ -75,7 +76,6 @@ ELM_MAIN()
 Eo *
 engineer_render_test_window_init()
 {
-   elm_config_accel_preference_set("opengl");
    Evas_Object *window = elm_win_util_standard_add("main", "Engineer Render Test");
    elm_win_focus_highlight_enabled_set(window, EINA_TRUE);
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
@@ -123,7 +123,6 @@ struct _GL_Data
    GLuint       vtx_shader;
    GLuint       fgmt_shader;
    GLuint       vbo;
-   GLuint       ubo;
 
    GLuint       resolution_location;
    GLuint       time_location;
@@ -315,7 +314,7 @@ _draw_gl(Evas_Object *obj)
 
    gld->resolution[0] = w;
    gld->resolution[1] = h;
-   gld->time = ecore_time_get();
+   gld->time += (float)1/30;
 
    // Draw a Triangle
    gl->glEnable(GL_BLEND);
@@ -366,6 +365,8 @@ engineer_render_test_viewport_init(Eo *window)
    GL_Data *gld = NULL;
 
    if (!(gld = calloc(1, sizeof(GL_Data)))) return NULL;
+
+   gld->time = 0;
 
    evas_object_event_callback_add(window, EVAS_CALLBACK_FREE, _win_free_cb, gld);
 

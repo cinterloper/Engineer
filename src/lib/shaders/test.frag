@@ -2,8 +2,6 @@
 precision highp float;
 #endif
 
-#extension GL_OES_standard_derivatives : enable
-
 uniform vec2  resolution;
 uniform float time;
 
@@ -138,5 +136,4 @@ void main( void )
    }
 
    gl_FragColor = vec4(col, 1.0);
-   //gl_FragColor = vec4( 0.0, 0.0, 1.0, 1.0 );
 }
