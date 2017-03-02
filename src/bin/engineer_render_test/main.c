@@ -314,6 +314,7 @@ _draw_gl(Evas_Object *obj)
 
    gld->resolution[0] = w;
    gld->resolution[1] = h;
+   if(gld->time > (2 * 3.141592653589793238462643383)) gld->time = 0;
    gld->time += (float)1/30;
 
    // Draw a Triangle
