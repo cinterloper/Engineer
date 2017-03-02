@@ -155,20 +155,20 @@ load_shader(GL_Data *gld, GLenum type, const char *shader_src)
    gl->glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
 
    if (!compiled)
-     {
-        GLint info_len = 0;
-        gl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_len);
-        if (info_len > 1)
-          {
-             char* info_log = malloc(sizeof(char) * info_len);
+   {
+      GLint info_len = 0;
+      gl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_len);
+      if (info_len > 1)
+      {
+         char* info_log = malloc(sizeof(char) * info_len);
 
-             gl->glGetShaderInfoLog(shader, info_len, NULL, info_log);
-             printf("Error compiling shader:\n%s\n======\n%s\n======\n", info_log, shader_src );
-             free(info_log);
-          }
-        gl->glDeleteShader(shader);
-        return 0;
-     }
+         gl->glGetShaderInfoLog(shader, info_len, NULL, info_log);
+         printf("Error compiling shader:\n%s\n======\n%s\n======\n", info_log, shader_src );
+         free(info_log);
+      }
+      gl->glDeleteShader(shader);
+      return 0;
+   }
 
    return shader;
 }
@@ -224,20 +224,20 @@ init_shaders(GL_Data *gld)
    gld->time_location       = gl->glGetUniformLocation(gld->program, "time");
 
    if (!linked)
-     {
-        GLint info_len = 0;
-        gl->glGetProgramiv(gld->program, GL_INFO_LOG_LENGTH, &info_len);
-        if (info_len > 1)
-          {
-             char* info_log = malloc(sizeof(char) * info_len);
+   {
+      GLint info_len = 0;
+      gl->glGetProgramiv(gld->program, GL_INFO_LOG_LENGTH, &info_len);
+      if (info_len > 1)
+      {
+         char* info_log = malloc(sizeof(char) * info_len);
 
-             gl->glGetProgramInfoLog(gld->program, info_len, NULL, info_log);
-             printf("Error linking program:\n%s\n", info_log);
-             free(info_log);
-          }
-        gl->glDeleteProgram(gld->program);
-        return 0;
-     }
+         gl->glGetProgramInfoLog(gld->program, info_len, NULL, info_log);
+         printf("Error linking program:\n%s\n", info_log);
+         free(info_log);
+      }
+      gl->glDeleteProgram(gld->program);
+      return 0;
+   }
    return 1;
 }
 
@@ -253,10 +253,10 @@ _init_gl(Evas_Object *obj)
                             1.0f, -1.0f, 0.0f };
 
    if (!init_shaders(gld))
-     {
-        printf("Error Initializing Shaders\n");
-        return;
-     }
+   {
+      printf("Error Initializing Shaders\n");
+      return;
+   }
 
    gl->glGenBuffers(1, &gld->vbo);
    gl->glBindBuffer(GL_ARRAY_BUFFER, gld->vbo);
@@ -271,10 +271,10 @@ _del_gl(Evas_Object *obj)
 {
    GL_Data *gld = evas_object_data_get(obj, "gld");
    if (!gld)
-     {
-        printf("Unable to get GL_Data. \n");
-        return;
-     }
+   {
+      printf("Unable to get GL_Data. \n");
+      return;
+   }
    Evas_GL_API *gl = gld->glapi;
 
    gl->glDeleteShader(gld->vtx_shader);
@@ -378,49 +378,47 @@ engineer_render_test_viewport_init(Eo *window)
 
    gl = elm_glview_add(window);
    if (gl)
-     {
-        evas_object_size_hint_align_set(gl, EVAS_HINT_FILL, EVAS_HINT_FILL);
-        evas_object_size_hint_weight_set(gl, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-        elm_glview_mode_set(gl, ELM_GLVIEW_ALPHA | ELM_GLVIEW_DEPTH);
-        elm_glview_resize_policy_set(gl, ELM_GLVIEW_RESIZE_POLICY_RECREATE);
-        elm_glview_render_policy_set(gl, ELM_GLVIEW_RENDER_POLICY_ON_DEMAND);
-        elm_glview_mode_set(gl, 0
-           | ELM_GLVIEW_ALPHA
-           | ELM_GLVIEW_DEPTH
-           | ELM_GLVIEW_DIRECT
-        );
-        elm_glview_init_func_set(gl, _init_gl);
-        elm_glview_del_func_set(gl, _del_gl);
-        elm_glview_resize_func_set(gl, _resize_gl);
-        elm_glview_render_func_set(gl, _draw_gl);
-        elm_box_pack_end(bx, gl);
-        evas_object_show(gl);
+   {
+      evas_object_size_hint_align_set(gl, EVAS_HINT_FILL, EVAS_HINT_FILL);
+      evas_object_size_hint_weight_set(gl, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+      elm_glview_mode_set(gl, ELM_GLVIEW_ALPHA | ELM_GLVIEW_DEPTH);
+      elm_glview_resize_policy_set(gl, ELM_GLVIEW_RESIZE_POLICY_RECREATE);
+      elm_glview_render_policy_set(gl, ELM_GLVIEW_RENDER_POLICY_ON_DEMAND);
+      elm_glview_mode_set(gl, 0
+         | ELM_GLVIEW_ALPHA
+         | ELM_GLVIEW_DEPTH
+         | ELM_GLVIEW_DIRECT
+      );
+      elm_glview_init_func_set(gl, _init_gl);
+      elm_glview_del_func_set(gl, _del_gl);
+      elm_glview_resize_func_set(gl, _resize_gl);
+      elm_glview_render_func_set(gl, _draw_gl);
+      elm_box_pack_end(bx, gl);
+      evas_object_show(gl);
 
-        elm_object_focus_set(gl, EINA_TRUE);
+      elm_object_focus_set(gl, EINA_TRUE);
 
-        ani = ecore_animator_add(_anim, gl);
+      ani = ecore_animator_add(_anim, gl);
 
-        printf("Animator Frametime Checkpoint: %f\n", ecore_animator_frametime_get());
-
-        gld->glapi = elm_glview_gl_api_get(gl);
-        evas_object_data_set(gl, "gld", gld);
-        evas_object_event_callback_add(gl, EVAS_CALLBACK_DEL, _gl_del_cb, ani);
-     }
+      gld->glapi = elm_glview_gl_api_get(gl);
+      evas_object_data_set(gl, "gld", gld);
+      evas_object_event_callback_add(gl, EVAS_CALLBACK_DEL, _gl_del_cb, ani);
+   }
    else
-     {
-        lb = elm_label_add(bx);
-        elm_object_text_set(lb, "<align=left> GL backend engine is not supported.<br/>"
-                            " 1. Check your back-end engine or<br/>"
-                            " 2. Run elementary_test with engine option or<br/>"
-                            "    ex) $ <b>ELM_ACCEL=gl</b> elementary_test<br/>"
-                            " 3. Change your back-end engine from elementary_config.<br/></align>");
-        evas_object_size_hint_weight_set(lb, 0.0, 0.0);
-        evas_object_size_hint_align_set(lb, EVAS_HINT_FILL, EVAS_HINT_FILL);
-        elm_box_pack_end(bx, lb);
-        evas_object_show(lb);
-     }
+   {
+      lb = elm_label_add(bx);
+      elm_object_text_set(lb,
+         "<align=left> GL backend engine is not supported.<br/>"
+         " 1. Check your back-end engine or<br/>"
+         " 2. Run elementary_test with engine option or<br/>"
+         "    ex) $ <b>ELM_ACCEL=gl</b> elementary_test<br/>"
+         " 3. Change your back-end engine from elementary_config.<br/></align>");
+      evas_object_size_hint_weight_set(lb, 0.0, 0.0);
+      evas_object_size_hint_align_set(lb, EVAS_HINT_FILL, EVAS_HINT_FILL);
+      elm_box_pack_end(bx, lb);
+      evas_object_show(lb);
+   }
 
    return gl;
-
 }
 
