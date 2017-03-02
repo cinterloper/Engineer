@@ -86,7 +86,7 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    eina_hash_foreach(nodepd->classes, module_fill, obj);
 
    pd->iterator = ecore_timer_add((double)1/pd->clockrate, _engineer_scene_iterate_cb, obj);
-   //ecore_timer_freeze(pd->iterator);
+   ecore_timer_freeze(pd->iterator);
 
    // If our Scene is new, create a root Entity and set it up.
    if (eina_inarray_count(pd->id) == 0)

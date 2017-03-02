@@ -4,7 +4,7 @@ precision highp float;
 
 #extension GL_OES_standard_derivatives : enable
 
-uniform vec2 resolution;
+uniform vec2  resolution;
 uniform float time;
 
 float iSphere(in vec3 ro, in vec3 rd, in vec4 sph)
@@ -138,5 +138,5 @@ void main( void )
    }
 
    gl_FragColor = vec4(col, 1.0);
+   //gl_FragColor = vec4( 0.0, 0.0, 1.0, 1.0 );
 }
-

@@ -1,12 +1,6 @@
-#ifdef GL_ES
-   precision mediump float;
-#endif
-
-attribute vec4 a_position;
-uniform   mat4 u_mvp_mat;
+attribute vec4 position;
 
 void main()
 {
-   gl_Position = u_mvp_mat * a_position;
+   gl_Position = position;
 }
-
