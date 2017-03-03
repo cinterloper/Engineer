@@ -22,22 +22,17 @@ struct Collision
    vec3  deflection;
 };
 
-Collision iSphere(in vec3 ro, in vec3 rd, in Collider sph)
+Collision iSphere(in vec3 ray_origin, in vec3 ray_direction, in Collider sph)
 {
-   // So, a Sphere centered at the origin has equation |xyz| = r
-   //    meaning, |xyz|^2 = r^2, meaning <xyz, xyz> = r^2, now
-   //    xyz = ro + t*rd, therefore |ro|^2 + t^2 + 2<ro, rd>t - r^2 = 0
-   //    which is a quadratic equation, so:
-
-   vec3 oc = ro - sph.location;
-   float b = 2.0 * dot(oc, rd);
+   vec3 oc = ray_origin - sph.location;
+   float b = 2.0 * dot(oc, ray_direction);
    float c = dot(oc, oc) - sph.size * sph.size;
    float h = b * b - 4.0 * c;
 
    if(h < 0.0) return Collision(-1, -1.0, vec3(0.0, 0.0, 0.0));
 
    float distance = (-b -sqrt(h)) / 2.0;
-   vec3  normal   = ((ro + distance * rd) - sph.location) / sph.size;
+   vec3  normal   = ((ray_origin + distance * ray_direction) - sph.location) / sph.size;
 
    return Collision(-1, distance, normal);
 }
@@ -147,19 +142,14 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider objects[])
 
    if(interval == 1000.0) return Collision(-1, -1.0, vec3(0.0, 0.0, 0.0));
 
-   Collision output;
-   output.subject    = nearest;
-   output.distance   = tests[nearest].distance;
-   output.deflection = tests[nearest].deflection;
-
-   return output;
+   tests[nearest].subject = nearest;
+   return tests[nearest];
 }
 
 void main(void)
 {
    // For the new input, we will need a list of objects to be displayed.
    // In this list, we must include each objects type, origin, orientation, size/scale.
-
    // Lets set up some test objects.
    Collider objects[4];
    objects[0] = Collider(1, vec3( 1.0,  1.0,  0.0), 1.0, vec3(0.0, 0.0, 1.0));
@@ -171,6 +161,7 @@ void main(void)
    objects[0].location.x = 8.0 * cos(time);
    objects[0].location.z = 8.0 * sin(time);
 
+   // Some constant light from a constant direction for all objects, no shadows yet.
    vec3 light_direction = normalize(vec3(.57703));
 
    // uv are the pixel co-ordinates from 0 to 1.
@@ -186,8 +177,14 @@ void main(void)
    // We draw black by default.
    vec3 pixel = vec3(0.0);
 
-   // Apply some simple lighting to our surfaces.
-   pixel = objects[collision.subject].color * dot(collision.deflection, light_direction);
+   if(collision.subject > -1)
+   {
+      // Apply our object color to the pixel.
+      pixel = objects[collision.subject].color;
+
+      // Apply some simple lighting to our object surfaces.
+      pixel *= dot(collision.deflection, light_direction);
+   }
 
    gl_FragColor = vec4(pixel, 1.0);
 }
