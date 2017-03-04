@@ -140,7 +140,7 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider objects[])
       interval  = selector ? tests[count].distance : interval;
    }
 
-   if(interval == 1000.0) return Collision(-1, -1.0, vec3(0.0, 0.0, 0.0));
+   if(interval == 10000.0) return Collision(-1, -1.0, vec3(0.0, 0.0, 0.0));
 
    tests[nearest].subject = nearest;
    return tests[nearest];
@@ -152,8 +152,8 @@ void main(void)
    // In this list, we must include each objects type, origin, orientation, size/scale.
    // Lets set up some test objects.
    Collider objects[4];
-   objects[0] = Collider(1, vec3( 1.0,  1.0,  0.0), 1.0, vec3(0.0, 0.0, 1.0));
-   objects[1] = Collider(1, vec3( 0.0,  5.0,  0.0), 1.0, vec3(0.0, 1.0, 1.0));
+   objects[0] = Collider(1, vec3( 1.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 1.0));
+   objects[1] = Collider(1, vec3( 0.0,  5.0,  0.0), 1.0, vec3(0.0, 0.0, 1.0));
    objects[2] = Collider(2, vec3( 0.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 0.0));
    objects[3] = Collider(3, vec3( 0.0, -1.0,  0.0), 1.0, vec3(1.0, 0.8, 0.6));
 
