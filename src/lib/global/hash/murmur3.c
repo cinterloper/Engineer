@@ -59,3 +59,9 @@ engineer_hash_murmur3(const void *key, const int32_t len, const uint32_t seed)
   return h1 + ((uint64_t)seed << 32);
 }
 
+uint64_t
+engineer_hash_from_string(const void *key, uint32_t seed)
+{
+   return engineer_hash_murmur3(key, strlen(key), seed);
+}
+

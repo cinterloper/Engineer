@@ -1,6 +1,15 @@
-struct @extern Engineer_Module_Class {}
-struct @extern Engineer_Entity_History {}
-struct @extern Engineer_Scene_Frame {}
+struct @extern Engineer_Component_Class {}
+struct @extern Engineer_Entity_History  {}
+struct @extern Engineer_Scene_Frame     {}
+
+type   @extern Index:       uint64;
+type   @extern ClassID:     uint64;
+type   @extern EntityID:    uint64;
+type   @extern ComponentID: uint64;
+type   @extern EventID:     uint64;
+type   @extern ClassLabel:  string;
+type   @extern EventLabel:  string;
+type   @extern StateLabel:  string;
 
 class Engineer.Scene(Efl.Object)
 {
@@ -50,10 +59,19 @@ class Engineer.Scene(Efl.Object)
          {
             values
             {
-               classid: uint64;
+               class: Engineer_Component_Class;
             }
             return: Efl.Object;
          }
+      }
+
+      module_new
+      {
+         params
+         {
+            @in class: ptr(Engineer_Component_Class);
+         }
+         return: bool;
       }
 
       iterate
@@ -73,9 +91,8 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in id:     uint64;
-            @in parent: uint64;
-            @in name:   string;
+            @in id:     EntityID;
+            @in parent: EntityID;
          }
          return: bool;
       }
@@ -84,18 +101,18 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in parent: uint64;
-            @in name:   string;
+            @in sender: EntityID;
+            @in parent: EntityID;
          }
-         return: uint64;
+         return: EntityID;
       }
 
       entity_attach
       {
          params
          {
-            @in target:    uint64;
-            @in newparent: uint64;
+            @in target:    EntityID;
+            @in newparent: EntityID;
          }
       }
 
@@ -103,27 +120,27 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in entityid: uint64;
-            @in target:   string;
+            @in entityid: EntityID;
+            @in target:   ClassLabel;
          }
-         return: uint64;
+         return: ComponentID;
       }
 
       entity_lookup
       {
          params
          {
-            @in target: uint64;
+            @in target: EntityID;
          }
-         return: uint64;
+         return: Index;
       }
 
       entity_parent_set
       {
          params
          {
-            @in target:    uint64;
-            @in newparent: uint64;
+            @in target:    EntityID;
+            @in newparent: EntityID;
          }
       }
 
@@ -131,17 +148,17 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: EntityID;
          }
-         return: uint64;
+         return: EntityID;
       }
 
       entity_siblingnext_set
       {
          params
          {
-            @in target:    uint64;
-            @in component: uint64;
+            @in target:      EntityID;
+            @in siblingnext: EntityID;
          }
       }
 
@@ -149,17 +166,17 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: EntityID;
          }
-         return: uint64;
+         return: EntityID;
       }
 
       entity_siblingprev_set
       {
          params
          {
-            @in target:    uint64;
-            @in component: uint64;
+            @in target:      EntityID;
+            @in siblingprev: EntityID;
          }
       }
 
@@ -167,17 +184,17 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: EntityID;
          }
-         return: uint64;
+         return: EntityID;
       }
 
       entity_firstentity_set
       {
          params
          {
-            @in target: uint64;
-            @in entity: uint64;
+            @in target: EntityID;
+            @in entity: EntityID;
          }
       }
 
@@ -185,17 +202,17 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: EntityID;
          }
-         return: uint64;
+         return: EntityID;
       }
 
       entity_firstcomponent_set
       {
          params
          {
-            @in target:    uint64;
-            @in component: uint64;
+            @in target:    EntityID;
+            @in component: ComponentID;
          }
       }
 
@@ -203,16 +220,16 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: EntityID;
          }
-         return: uint64;
+         return: ComponentID;
       }
 
       entity_inbox_get
       {
          params
          {
-            @in entityid: uint64;
+            @in entityid: EntityID;
          }
          return: ptr(Eina.Inarray);
       }
@@ -221,29 +238,52 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in entityid: uint64;
+            @in entityid: EntityID;
          }
          return: ptr(Eina.Inarray);
+      }
+
+      component_factory
+      {
+         params
+         {
+            @in target:  ComponentID;
+            @in classid: ClassID;
+            @in parent:  EntityID;
+            @in payload: void_ptr;
+         }
+         return: bool;
       }
 
       component_create
       {
          params
          {
-            @in classid: uint64;
-            @in parent:  uint64;
+            @in sender:  EntityID;
+            @in class:   ptr(Engineer_Component_Class);
+            @in parent:  EntityID;
             @in payload: void_ptr;
          }
-         return: uint64;
+         return: ComponentID;
+      }
+
+      component_state_get
+      {
+         params
+         {
+            @in target: ComponentID;
+            @in key:    StateLabel;
+         }
+         return: void_ptr;
       }
 
       notify_event
       {
          params
          {
-            @in sender:   uint64;
-            @in type:     uint64;
-            @in entityid: uint64;
+            @in sender:   EntityID;
+            @in type:     EventID;
+            @in entityid: EntityID;
             @in payload:  void_ptr;
             @in size:     uint64;
          }
@@ -253,9 +293,9 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in sender:   uint64;
-            @in entityid: uint64;
-            @in parent:   uint64;
+            @in sender:   EntityID;
+            @in entityid: EntityID;
+            @in parent:   EntityID;
          }
       }
 
@@ -263,11 +303,11 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in sender:      uint64;
-            @in classid:     uint64;
-            @in componentid: uint64;
-            @in parent:      uint64;
-            @in payload:     ptr(uint64);
+            @in sender:      EntityID;
+            @in class:       ptr(Engineer_Component_Class);
+            @in componentid: ComponentID;
+            @in parent:      EntityID;
+            @in payload:     void_ptr;
          }
       }
 

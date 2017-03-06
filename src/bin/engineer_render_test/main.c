@@ -183,7 +183,7 @@ init_shaders(GL_Data *gld)
    FILE *file;
    uint64_t size;
 
-   file = fopen("../../shaders/test.vert", "r");
+   file = fopen("../shaders/test.vert", "r");
    fseek(file, 0, SEEK_END);
    size = ftell(file);
    fseek(file, 0, SEEK_SET);
@@ -192,7 +192,7 @@ init_shaders(GL_Data *gld)
    fread(vertbuffer, 1, size, file);
    fclose(file);
 
-   file = fopen("../../shaders/test.frag", "r");
+   file = fopen("../shaders/test.frag", "r");
    fseek(file, 0, SEEK_END);
    size = ftell(file);
    fseek(file, 0, SEEK_SET);

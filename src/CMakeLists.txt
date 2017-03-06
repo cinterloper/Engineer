@@ -4,6 +4,10 @@
 set(CURRENT_VERSION 0.2.0)
 project(Engineer VERSION ${CURRENT_VERSION})
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 # Find the location(s) of our project's prerequisite library files.
 find_package(PkgConfig REQUIRED)
 find_package(Eina REQUIRED)

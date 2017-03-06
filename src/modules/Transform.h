@@ -5,8 +5,10 @@
 
 #define STATE \
    FIELD(position,    Vec3) \
+   FIELD(poslock,     Sclr) \
    FIELD(orientation, Quat) \
-   FIELD(telelock,    Sclr)
+   FIELD(orilock,     Sclr) \
+   FIELD(bounds,      Vec3)
 
 #define EVENTS \
    EVENT(move) \

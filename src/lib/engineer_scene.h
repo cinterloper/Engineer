@@ -55,7 +55,8 @@ typedef struct
    Engineer_Scene_Frame *present; // Points to the current frame data.
    Engineer_Scene_Frame *future;  // Points to the frame currently receiving the iterator update.
 
-   Eina_Hash *modules;            // Module Data Eo lookup hash, using stringshare pointers as keys.
+ //Engineer_Octspace *broadphase; // Our broadphase "Octspace" type octree, used by Transform.
+   Eina_Hash         *modules;    // Module Data Eo lookup hash, using murmur3 hashes as keys.
 }
 Engineer_Scene_Data;
 

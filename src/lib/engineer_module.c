@@ -181,10 +181,10 @@ _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNU
 }
 
 /*** Module Notification Wrappers ***/
-
+/*
 EOLIAN static void
-_engineer_module_notify_event(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        uint64_t target, uint64_t sender, const char *type, void *payload, uint64_t size)
+_engineer_module_notify_event(Eo *obj, Engineer_Module_Data *pd,
+        EntityID target, EntityID sender, EventLabel *type, void *payload, uint64_t size)
 {
    Eo *scene;
    uint64_t eventid;
@@ -195,23 +195,23 @@ _engineer_module_notify_event(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA
    engineer_scene_notify_event(scene, target, sender, eventid, payload, size);
 }
 
-EOLIAN static uint64_t
+EOLIAN static EntityID
 _engineer_module_notify_entity_create(Eo *obj, Engineer_Module_Data *pd,
-        uint64_t parent, uint64_t senderindex)
+        EntityID parent, Index senderindex)
 {
    Eo *scene = efl_parent_get(obj);
    Eo *node  = efl_parent_get(scene);
    uint64_t senderid, entityid;
 
-   senderid = *(uint64_t*)eina_inarray_nth(pd->future->parent, senderindex);
+   senderid = *(EntityID*)eina_inarray_nth(pd->future->parent, senderindex);
    entityid = engineer_node_entity_id_use(node);
 
-   engineer_scene_notify_entity_create(scene, senderid, entityid, parent);
+   engineer_scene_entity_create(scene, senderid, entityid, parent);
 
    return entityid;
 }
 
-
+*/
 /*** Module Cache Access Methods ***/
 
 EOLIAN static uint64_t
@@ -227,7 +227,7 @@ _engineer_module_cache_sizeof(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA
 
 EOLIAN static void
 _engineer_module_cache_read(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
-        Engineer_Component *buffer, uint64_t index)
+        Engineer_Component *buffer, Index index)
 {
    printf("Engineer Module Cache Read Checkpoint 1. \n");
    buffer->name = *(char**)eina_inarray_nth(pd->present->name, index);
@@ -245,7 +245,7 @@ _engineer_module_cache_read(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
 
 EOLIAN static void
 _engineer_module_cache_write(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        Engineer_Component *buffer EINA_UNUSED, uint64_t index EINA_UNUSED)
+        Engineer_Component *buffer EINA_UNUSED, Index index EINA_UNUSED)
 {
    #define FIELD(key, type) \
       type##WRITE(&pd->future->key, &buffer->key, index);
@@ -258,43 +258,54 @@ _engineer_module_cache_write(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_
 
 EOLIAN static Eina_Bool
 _engineer_module_component_factory(Eo *obj, Engineer_Module_Data *pd,
-        uint64_t id, uint64_t parent, const char *name, Engineer_Component *template EINA_UNUSED)
+        ComponentID newid, EntityID parent, Engineer_Component *template)
 {
    Engineer_Module_Frame *frame;
-   uint64_t               index;
+   Index                  index;
 
-   if(engineer_module_component_lookup(obj, id) == UINT_NULL)
+   if(engineer_module_component_lookup(obj, newid) == UINT_NULL)
    {
       //eina_inarray_push(pd->history, eina_inarray_new(sizeof(uint64_t), 0));
-      eina_inarray_push(pd->id, &id);
+      eina_inarray_push(pd->id, &newid);
       index = eina_inarray_count(pd->id) - 1;
-      eina_hash_add(pd->lookup, &id, (void*)index);
+      eina_hash_add(pd->lookup, &newid, (void*)index);
 
-      name = eina_stringshare_printf("%s", name);
+      template->name = eina_stringshare_printf("%s", template->name);
       EINA_INARRAY_FOREACH(pd->buffer, frame)
       {
-         eina_inarray_push(frame->name,           &name);
+         eina_inarray_push(frame->name,           &template->name);
          eina_inarray_push(frame->parent,         &parent);
-         eina_inarray_push(frame->siblingnext,    &id);
-         eina_inarray_push(frame->siblingprev,    &id);
+         eina_inarray_push(frame->siblingnext,    &newid);
+         eina_inarray_push(frame->siblingprev,    &newid);
 
          #define FIELD(key, type) \
             type##PUSH(&frame->key, &template->key);
          STATE
          #undef FIELD
       }
-      engineer_module_component_attach(obj, id, parent);
+      engineer_module_component_attach(obj, newid, parent);
 
       printf("Component Create Checkpoint. CID: %ld, Parent: %ld, NextSib: %ld, PrevSib: %ld, Name: %s\n",
-         id, parent, id, id, name);
+         newid, parent, newid, newid, template->name);
    }
 
    return EINA_TRUE;
 }
 
+EOLIAN static Eina_Bool
+_engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
+        EntityID sender, Engineer_Component_Class *class, ComponentID newid, EntityID parent, void *payload)
+{
+   Eo *scene = efl_parent_get(obj);
+
+   engineer_scene_notify_component_create(scene, sender, class, newid, parent, payload);
+
+   return EINA_TRUE;
+}
+
 EOLIAN static void
-_engineer_module_component_attach(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        uint64_t target, uint64_t newparent)
+_engineer_module_component_attach(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
+       ComponentID target, EntityID newparent)
 {
    uint64_t buffer, targetnext, targetprev, oldparent, firstcom;
    Eo *scene = efl_parent_get(obj);
@@ -311,7 +322,7 @@ _engineer_module_component_attach(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd 
 
    // Check to see if the target is the old parents first child component.
    // If so, reset the old parents first child to the next component sibling.
-   if (target == firstcom)
+   if ((uint64_t)target == firstcom)
    {
       engineer_scene_entity_firstcomponent_set(scene, oldparent, targetnext);
    }
@@ -357,24 +368,24 @@ _engineer_module_component_attach(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd 
    }
 }
 
-EOLIAN static uint64_t
+EOLIAN static Index
 _engineer_module_component_lookup(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
-        uint64_t componentid)
+        ComponentID componentid)
 {
-   return (uint64_t)eina_hash_find(pd->lookup, &componentid) - 1;
+   return (Index)eina_hash_find(pd->lookup, &componentid) - 1;
 }
 
 EOLIAN static void
 _engineer_module_component_parent_set(Eo *obj, Engineer_Module_Data *pd,
-        uint64_t target, uint64_t newparent)
+        ComponentID target, EntityID newparent)
 {
    target = engineer_module_component_lookup(obj, target);
    eina_inarray_replace_at(pd->future->parent, target, &newparent);
 }
 
-EOLIAN static uint64_t
+EOLIAN static EntityID
 _engineer_module_component_parent_get(Eo *obj, Engineer_Module_Data *pd,
-        uint64_t target)
+        ComponentID target)
 {
    target = engineer_module_component_lookup(obj, target);
    return *(uint64_t*)eina_inarray_nth(pd->future->parent, target);
@@ -382,15 +393,15 @@ _engineer_module_component_parent_get(Eo *obj, Engineer_Module_Data *pd,
 
 EOLIAN static void
 _engineer_module_component_siblingnext_set(Eo *obj, Engineer_Module_Data *pd,
-        uint64_t target, uint64_t newsibling)
+        ComponentID target, ComponentID newsibling)
 {
    target = engineer_module_component_lookup(obj, target);
    eina_inarray_replace_at(pd->future->siblingnext, target, &newsibling);
 }
 
-EOLIAN static uint64_t
+EOLIAN static ComponentID
 _engineer_module_component_siblingnext_get(Eo *obj, Engineer_Module_Data *pd,
-        uint64_t target)
+        ComponentID target)
 {
    target = engineer_module_component_lookup(obj, target);
    return *(uint64_t*)eina_inarray_nth(pd->future->siblingnext, target);
@@ -398,15 +409,15 @@ _engineer_module_component_siblingnext_get(Eo *obj, Engineer_Module_Data *pd,
 
 EOLIAN static void
 _engineer_module_component_siblingprev_set(Eo *obj, Engineer_Module_Data *pd,
-        uint64_t target, uint64_t newsibling)
+        ComponentID target, ComponentID newsibling)
 {
    target = engineer_module_component_lookup(obj, target);
    eina_inarray_replace_at(pd->future->siblingprev, target, &newsibling);
 }
 
-EOLIAN static uint64_t
+EOLIAN static ComponentID
 _engineer_module_component_siblingprev_get(Eo *obj, Engineer_Module_Data *pd,
-        uint64_t target)
+        ComponentID target)
 {
    target = engineer_module_component_lookup(obj, target);
    return *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, target);
@@ -414,17 +425,16 @@ _engineer_module_component_siblingprev_get(Eo *obj, Engineer_Module_Data *pd,
 
 EOLIAN static void *
 _engineer_module_component_state_get(Eo *obj, Engineer_Module_Data *pd,
-        uint64_t target, const char *key)
+        ComponentID target, StateLabel key)
 {
-   uint64_t classid, fieldid, index EINA_UNUSED;
+   uint64_t fieldid, index EINA_UNUSED;
    Eo *scene, *node;
    void *result;
 
    scene = efl_parent_get(obj);
    node  = efl_parent_get(scene);
 
-   classid = engineer_node_component_class_get(node, target);
-   if(classid == engineer_module_classid())
+   if((uint64_t)engineer_node_component_classid_get(node, target) == engineer_module_classid())
    {
       Component_State field;
 
@@ -449,18 +459,7 @@ _engineer_module_component_state_get(Eo *obj, Engineer_Module_Data *pd,
 
       return result;
    }
-   else
-   {
-      Engineer_Module_Class *class;
-      Eo *module;
-      void *(*component_state_get)(Eo *obj, uint64_t target, const char *key);
-
-      class = engineer_node_module_class_lookup(node, classid);
-      module = engineer_scene_module_get(scene, &classid);
-      component_state_get = class->component_state_get;
-
-      return component_state_get(module, target, key);
-   }
+   else return engineer_scene_component_state_get(scene, target, key);
 }
 
 #include "engineer_module.eo.c"

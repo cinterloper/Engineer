@@ -1,24 +1,6 @@
-struct Engineer_Module_Class
-{
-   eina:  void_ptr;
-
-   id:    uint64;
-   size:  uint64;
-
-   new: void_ptr;
-
-   update: void_ptr;
-
-   component_factory: void_ptr;
-   component_destroy: void_ptr;
-   component_archive: void_ptr;
-   component_recall:  void_ptr;
-   component_sizeof:  void_ptr;
-   component_lookup:  void_ptr;
-
-   component_siblingnext_get: void_ptr;
-   component_state_get:       void_ptr;
-}
+struct @extern Engineer_Component_Class {}
+type   @extern ClassID:     uint64;
+type   @extern ComponentID: uint64;
 
 struct Engineer_Node_Peer
 {
@@ -76,15 +58,6 @@ class Engineer.Node(Efl.Object)
             @in class: string;
          }
          return: uint64;
-      }
-
-      module_class_lookup
-      {
-         params
-         {
-            @in target: uint64;
-         }
-         return: ptr(Engineer_Module_Class);
       }
 
       entity_id_use
@@ -153,7 +126,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: ComponentID;
          }
          return: uint64;
       }
@@ -162,7 +135,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in target:   uint64;
+            @in target:   ComponentID;
             @in location: uint64;
          }
       }
@@ -171,7 +144,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: ComponentID;
          }
          return: uint32;
       }
@@ -180,7 +153,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: ComponentID;
             @in mode:   char;
          }
       }
@@ -189,18 +162,28 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: ClassID;
          }
-         return: uint64;
+         return: ptr(Engineer_Component_Class);
       }
 
-      component_class_set
+      component_classid_get
       {
          params
          {
-            @in target: uint64;
-            @in class:  uint64;
+            @in target: ComponentID;
+         }
+         return: ClassID;
+      }
+
+      component_classid_set
+      {
+         params
+         {
+            @in target: ComponentID;
+            @in class:  ClassID;
          }
       }
+
    }
 }

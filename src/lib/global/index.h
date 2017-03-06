@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <Ecore_Getopt.h>
-#include <Elementary.h>
 
 #define SWITCH
 
@@ -27,6 +25,8 @@
 #include "math/mtrx.h"
 
 #include "hash/murmur3.h"
+
+#include "struct.h"
 
 #endif
 

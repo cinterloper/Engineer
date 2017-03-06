@@ -127,7 +127,7 @@ EOLIAN static uint64_t
 _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
         const char *symbol)
 {
-   Engineer_Module_Class *class = malloc(sizeof(Engineer_Module_Class));
+   Engineer_Component_Class *class = malloc(sizeof(Engineer_Component_Class));
    uint64_t classid = engineer_hash_murmur3(symbol, strlen(symbol), 242424);
 
    // Make sure our module file exists before loading it.
@@ -149,15 +149,18 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
 
    #define RETURN {eina_module_free(class->eina); eina_stringshare_del(file); return ULONG_NULL;}
 
-   class->new = eina_module_symbol_get(class->eina, "engineer_module_new");
-   if (class->new == NULL) RETURN;
+   class->module_new = eina_module_symbol_get(class->eina, "engineer_module_new");
+   if (class->module_new == NULL) RETURN;
 
-   class->update = eina_module_symbol_get(class->eina, "engineer_module_update");
-   if (class->update == NULL) RETURN;
+   class->module_update = eina_module_symbol_get(class->eina, "engineer_module_update");
+   if (class->module_update == NULL) RETURN;
 
    class->component_factory  = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_factory");
-   if (class->component_factory  == NULL) RETURN;
+   if (class->component_factory == NULL) RETURN;
+   class->component_create  = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_create");
+   if (class->component_create  == NULL) RETURN;
    /*
    class->component_destroy = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_destroy");
@@ -169,6 +172,10 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
                                  "engineer_module_component_recall");
    if (class->component_recall  == NULL) RETURN;
    */
+   class->component_attach = eina_module_symbol_get(class->eina,
+                                "engineer_module_component_attach");
+   if (class->component_attach == NULL) RETURN;
+
    class->component_lookup  = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_lookup");
    if (class->component_lookup  == NULL) RETURN;
@@ -197,16 +204,6 @@ _engineer_node_module_flush(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd EINA_UNU
 {
 }
 */
-EOLIAN static Engineer_Module_Class *
-_engineer_node_module_class_lookup(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        uint64_t target)
-{
-   Engineer_Module_Class *module;
-
-   module = eina_hash_find(pd->classes, &target);
-
-   return module;
-}
 
 EOLIAN static uint64_t
 _engineer_node_entity_id_use(Eo *obj, Engineer_Node_Data *pd)
@@ -291,21 +288,21 @@ _engineer_node_component_id_free(Eo *obj, Engineer_Node_Data *pd,
 
 EOLIAN static uint64_t
 _engineer_node_component_location_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        uint64_t target)
+        ComponentID target)
 {
   return (uint64_t)eina_hash_find(pd->componentlocate, &target);
 }
 
 EOLIAN static void
 _engineer_node_component_location_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        uint64_t target, uint64_t location)
+        ComponentID target, uint64_t location)
 {
    eina_hash_set(pd->componentlocate, &target, &location);
 }
 
 EOLIAN static uint32_t
 _engineer_node_component_status_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        uint64_t target)
+        ComponentID target)
 {
    uint32_t *status = eina_hash_find(pd->componentstatus, &target);
    if (status == NULL) return 0;
@@ -314,7 +311,7 @@ _engineer_node_component_status_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
 
 EOLIAN static void
 _engineer_node_component_status_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        uint64_t target, char mode)
+        ComponentID target, char mode)
 {
    if (mode < 4) // Make sure that our mode is either zero, one, two, or three.
    {
@@ -322,18 +319,28 @@ _engineer_node_component_status_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    }
 }
 
-EOLIAN static uint64_t
+// Takes in a ClassID and returns the associated Class interface pointer.
+EOLIAN static Engineer_Component_Class *
 _engineer_node_component_class_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        uint64_t target)
+        ClassID target)
 {
-   return (uint64_t)eina_hash_find(pd->componentclass, &target);
+   return eina_hash_find(pd->classes, &target);
 }
 
-EOLIAN static void
-_engineer_node_component_class_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        uint64_t target, uint64_t class)
+// Takes in a ComponentID and returns it's ClassID.
+EOLIAN static ClassID
+_engineer_node_component_classid_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        ComponentID target)
 {
-   eina_hash_set(pd->componentclass, &target, (uint64_t*)class);
+   return (ClassID)eina_hash_find(pd->componentclass, &target);
+}
+
+// Set a Component's Class to the Class type indicated by the classid;
+EOLIAN static void
+_engineer_node_component_classid_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        ComponentID target, ClassID classid)
+{
+   eina_hash_set(pd->componentclass, &target, (ClassID*)classid);
 }
 
 #include "engineer_node.eo.c"

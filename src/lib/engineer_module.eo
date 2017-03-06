@@ -1,6 +1,15 @@
-struct @extern Engineer_Module_Class {}
-struct @extern Engineer_Component {}
+struct @extern Engineer_Component         {}
+struct @extern Engineer_Component_Class   {}
 struct @extern Engineer_Component_History {}
+
+type   @extern Index:       uint64;
+type   @extern ClassID:     uint64;
+type   @extern EntityID:    uint64;
+type   @extern ComponentID: uint64;
+type   @extern EventID:     uint64;
+type   @extern ClassLabel:  string;
+type   @extern EventLabel:  string;
+type   @extern StateLabel:  string;
 
 class Engineer.Module(Efl.Object)
 {
@@ -41,28 +50,6 @@ class Engineer.Module(Efl.Object)
          }
       }
 
-      notify_event
-      {
-         params
-         {
-            @in target:  uint64;
-            @in sender:  uint64;
-            @in type:    string;
-            @in payload: void_ptr;
-            @in size:    uint64;
-         }
-      }
-
-      notify_entity_create
-      {
-         params
-         {
-            @in parent:      uint64;
-            @in senderindex: uint64;
-         }
-         return: uint64;
-      }
-
       cache_sizeof
       {
          return: uint64;
@@ -73,7 +60,7 @@ class Engineer.Module(Efl.Object)
          params
          {
             @in buffer: ptr(Engineer_Component);
-            @in index:  uint64;
+            @in index:  Index;
          }
       }
 
@@ -82,7 +69,7 @@ class Engineer.Module(Efl.Object)
          params
          {
             @in buffer: ptr(Engineer_Component);
-            @in index:  uint64;
+            @in index:  Index;
          }
       }
 
@@ -90,10 +77,22 @@ class Engineer.Module(Efl.Object)
       {
          params
          {
-            @in id:       uint64;
-            @in parent:   uint64;
-            @in name:     string;
+            @in newid:    ComponentID;
+            @in parent:   EntityID;
             @in template: ptr(Engineer_Component);
+         }
+         return: bool;
+      }
+
+      component_create
+      {
+         params
+         {
+            @in sender:  EntityID;
+            @in class:   ptr(Engineer_Component_Class);
+            @in newid:   ComponentID;
+            @in parent:  EntityID;
+            @in payload: void_ptr;
          }
          return: bool;
       }
@@ -102,8 +101,8 @@ class Engineer.Module(Efl.Object)
       {
          params
          {
-            @in target:    uint64;
-            @in newparent: uint64;
+            @in target:    ComponentID;
+            @in newparent: EntityID;
          }
       }
 
@@ -111,17 +110,17 @@ class Engineer.Module(Efl.Object)
       {
          params
          {
-            @in componentid: uint64;
+            @in componentid: ComponentID;
          }
-         return: uint64;
+         return: Index;
       }
 
       component_parent_set
       {
          params
          {
-            @in target:    uint64;
-            @in newparent: uint64;
+            @in target:    ComponentID;
+            @in newparent: EntityID;
          }
       }
 
@@ -129,26 +128,26 @@ class Engineer.Module(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: ComponentID;
          }
-         return: uint64;
+         return: EntityID;
       }
 
       component_siblingnext_get
       {
          params
          {
-            @in target: uint64;
+            @in target: ComponentID;
          }
-         return: uint64;
+         return: ComponentID;
       }
 
       component_siblingnext_set
       {
          params
          {
-            @in target:     uint64;
-            @in newsibling: uint64;
+            @in target:     ComponentID;
+            @in newsibling: ComponentID;
          }
       }
 
@@ -156,17 +155,17 @@ class Engineer.Module(Efl.Object)
       {
          params
          {
-            @in target: uint64;
+            @in target: ComponentID;
          }
-         return: uint64;
+         return: ComponentID;
       }
 
       component_siblingprev_set
       {
          params
          {
-            @in target:     uint64;
-            @in newsibling: uint64;
+            @in target:     ComponentID;
+            @in newsibling: ComponentID;
          }
       }
 
@@ -174,8 +173,8 @@ class Engineer.Module(Efl.Object)
       {
          params
          {
-            @in target: uint64;
-            @in key:    string;
+            @in target: ComponentID;
+            @in key:    StateLabel;
          }
          return: void_ptr;
       }

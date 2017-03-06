@@ -39,6 +39,7 @@ extern "C" {
 #define bool Eina_Bool
 
 #include <Ecore_Getopt.h>
+#include <Elementary.h>
 
 #include "../lib/global/index.h"
 

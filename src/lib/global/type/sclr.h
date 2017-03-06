@@ -6,6 +6,14 @@
 
 typedef BASE Sclr;
 
+typedef Sclr Index;
+
+typedef Sclr ClassID;
+typedef Sclr EntityID;
+typedef Sclr ComponentID;
+typedef Sclr StateID;
+typedef Sclr EventID;
+
 #define SclrSOA Eina_Inarray*
 /*
 inline void

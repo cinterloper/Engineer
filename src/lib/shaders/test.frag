@@ -125,6 +125,9 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider objects[])
          case 3: // Plane Collider.
             tests[count] = iPlane(ray_origin, ray_direction, objects[count]);
          break;
+
+         //case 4: // ***Incoming*** Mass/SVO collider.
+         //break;
       }
    }
 

@@ -19,7 +19,7 @@ bool event(move, Engineer_Component *data, void *payload, uint64_t size EINA_UNU
 {
   Vec3 position;
 
-  if (data->telelock == EINA_FALSE)
+  if (data->poslock == EINA_FALSE)
   {
      position = *(Vec3*)payload;
 
@@ -39,7 +39,7 @@ bool event(teleport, Engineer_Component *data, void *payload, uint64_t size EINA
 {
    Vec3 position;
 
-   if (data->telelock == EINA_FALSE)
+   if (data->poslock == EINA_FALSE)
    {
       position = *(Vec3*)payload;
 
@@ -47,7 +47,7 @@ bool event(teleport, Engineer_Component *data, void *payload, uint64_t size EINA
       data->position.y = position.y;
       data->position.z = position.z;
 
-      data->telelock = EINA_TRUE;
+      data->poslock = EINA_TRUE;
 
       return EINA_TRUE;
    }
