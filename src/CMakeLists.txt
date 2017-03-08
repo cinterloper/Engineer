@@ -49,7 +49,7 @@ FOREACH(EOPATH ${EOPATHS})
    get_filename_component(EONAME ${EOPATH} NAME)
    add_custom_command(
       OUTPUT ${EOPATH}.h ${EOPATH}.c
-      COMMAND eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl`
+      COMMAND eolian_gen `pkg-config --variable=eolian_flags ecore eo evas efl edje elementary`
                  -o${CMAKE_BINARY_DIR}/eolian/${EONAME} ${CMAKE_SOURCE_DIR}/${EOPATH}
       COMMAND cp ${CMAKE_SOURCE_DIR}/src/lib/shaders/* ${CMAKE_BINARY_DIR}/shaders
    )

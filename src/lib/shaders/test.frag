@@ -1,4 +1,4 @@
-//#version 130
+//#version 430
 
 #ifdef GL_ES
 precision highp float;
@@ -21,6 +21,14 @@ struct Collision
    float distance;
    vec3  deflection;
 };
+
+//layout (std430, binding=0) buffer shader_data
+//{
+//  uint type;
+//  vec3 location;
+//  float size;
+//  vec3 color;
+//};
 
 Collision iSphere(in vec3 ray_origin, in vec3 ray_direction, in Collider sph)
 {
@@ -155,6 +163,7 @@ void main(void)
    // In this list, we must include each objects type, origin, orientation, size/scale.
    // Lets set up some test objects.
    Collider objects[4];
+   //                    Type,    Location,         Size,   Color
    objects[0] = Collider(1, vec3( 1.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 1.0));
    objects[1] = Collider(1, vec3( 0.0,  5.0,  0.0), 1.0, vec3(0.0, 0.0, 1.0));
    objects[2] = Collider(2, vec3( 0.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 0.0));

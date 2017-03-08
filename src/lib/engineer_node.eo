@@ -162,7 +162,7 @@ class Engineer.Node(Efl.Object)
       {
          params
          {
-            @in target: ClassID;
+            @in target: ComponentID;
          }
          return: ptr(Engineer_Component_Class);
       }

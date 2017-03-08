@@ -131,36 +131,59 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    uint64_t classid = engineer_hash_murmur3(symbol, strlen(symbol), 242424);
 
    // Make sure our module file exists before loading it.
-   Eina_Stringshare *file = eina_stringshare_printf("../modules/lib%s.so", symbol);
-   if (!ecore_file_exists(file)) {eina_stringshare_del(file); return ULONG_NULL;}
+   Eina_Stringshare *file = eina_stringshare_printf("../lib/lib%s.so", symbol);
+   if(!ecore_file_exists(file)) {eina_stringshare_del(file); return ULONG_NULL;}
 
    printf("Node Module Class Load Checkpoint 1. File:    %s\n", file);
 
    // Check to see if the module class is already registered.
    uint64_t *test = eina_hash_find(pd->classes, &classid);
-   if (test != NULL) return *test;
+   if(test != NULL) return *test;
 
    printf("Node Module Class Load Checkpoint 2. ClassId: %"PRId64"\n", classid);
 
    // Create our eina_module reference handle.
    class->eina = eina_module_new(file);
-   if (class->eina == NULL) {eina_stringshare_del(file); return ULONG_NULL;}
+   if(class->eina == NULL) {eina_stringshare_del(file); return ULONG_NULL;}
    eina_module_load(class->eina);
 
    #define RETURN {eina_module_free(class->eina); eina_stringshare_del(file); return ULONG_NULL;}
 
    class->module_new = eina_module_symbol_get(class->eina, "engineer_module_new");
-   if (class->module_new == NULL) RETURN;
-
+   if(class->module_new == NULL) RETURN;
    class->module_update = eina_module_symbol_get(class->eina, "engineer_module_update");
-   if (class->module_update == NULL) RETURN;
+   if(class->module_update == NULL) RETURN;
 
-   class->component_factory  = eina_module_symbol_get(class->eina,
+
+   class->component_lookup     = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_lookup");
+   if(class->component_lookup == NULL) RETURN;
+   class->component_parent_set = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_parent_set");
+   if(class->component_parent_set == NULL) RETURN;
+   class->component_parent_get = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_parent_get");
+   if(class->component_parent_get == NULL) RETURN;
+   class->component_siblingnext_set = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_siblingnext_set");
+   if(class->component_siblingnext_set  == NULL) RETURN;
+   class->component_siblingnext_get = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_siblingnext_get");
+   if(class->component_siblingnext_get  == NULL) RETURN;
+   class->component_siblingprev_set = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_siblingprev_set");
+   if(class->component_siblingprev_set  == NULL) RETURN;
+   class->component_siblingprev_get = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_siblingprev_get");
+   if(class->component_siblingprev_get  == NULL) RETURN;
+
+
+   class->component_factory = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_factory");
-   if (class->component_factory == NULL) RETURN;
+   if(class->component_factory == NULL) RETURN;
    class->component_create  = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_create");
-   if (class->component_create  == NULL) RETURN;
+   if(class->component_create  == NULL) RETURN;
    /*
    class->component_destroy = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_destroy");
@@ -174,19 +197,10 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    */
    class->component_attach = eina_module_symbol_get(class->eina,
                                 "engineer_module_component_attach");
-   if (class->component_attach == NULL) RETURN;
-
-   class->component_lookup  = eina_module_symbol_get(class->eina,
-                                 "engineer_module_component_lookup");
-   if (class->component_lookup  == NULL) RETURN;
-
-   class->component_siblingnext_get  = eina_module_symbol_get(class->eina,
-                                 "engineer_module_component_siblingnext_get");
-   if (class->component_siblingnext_get  == NULL) RETURN;
-
+   if(class->component_attach == NULL) RETURN;
    class->component_state_get  = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_state_get");
-   if (class->component_state_get  == NULL) RETURN;
+   if(class->component_state_get  == NULL) RETURN;
 
    #undef RETURN
 
@@ -194,6 +208,8 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    //eina_stringshare_add(symbol);
    class->id = classid;
    eina_hash_add(pd->classes, &classid, class);
+
+   printf("Node Module Class Load Checkpoint 3.\n");
 
    return classid;
 }
@@ -322,9 +338,12 @@ _engineer_node_component_status_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
 // Takes in a ClassID and returns the associated Class interface pointer.
 EOLIAN static Engineer_Component_Class *
 _engineer_node_component_class_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
-        ClassID target)
+        ComponentID target)
 {
-   return eina_hash_find(pd->classes, &target);
+   ClassID classid;
+
+   classid = (ClassID)eina_hash_find(pd->componentclass, &target);
+   return eina_hash_find(pd->classes, &classid);
 }
 
 // Takes in a ComponentID and returns it's ClassID.

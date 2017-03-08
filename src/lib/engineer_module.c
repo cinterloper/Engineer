@@ -253,8 +253,64 @@ _engineer_module_cache_write(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_
    #undef FIELD
 }
 
+/*** Component Metadata Getters/Setters ***/
 
-/*** Component Methods ***/
+EOLIAN static Index
+_engineer_module_component_lookup(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
+        ComponentID componentid)
+{
+   return (Index)eina_hash_find(pd->lookup, &componentid) - 1;
+}
+
+EOLIAN static void
+_engineer_module_component_parent_set(Eo *obj, Engineer_Module_Data *pd,
+        ComponentID target, EntityID newparent)
+{
+   target = engineer_module_component_lookup(obj, target);
+   eina_inarray_replace_at(pd->future->parent, target, &newparent);
+}
+
+EOLIAN static EntityID
+_engineer_module_component_parent_get(Eo *obj, Engineer_Module_Data *pd,
+        ComponentID target)
+{
+   target = engineer_module_component_lookup(obj, target);
+   return *(EntityID*)eina_inarray_nth(pd->future->parent, target);
+}
+
+EOLIAN static void
+_engineer_module_component_siblingnext_set(Eo *obj, Engineer_Module_Data *pd,
+        ComponentID target, ComponentID newsibling)
+{
+   target = engineer_module_component_lookup(obj, target);
+   eina_inarray_replace_at(pd->future->siblingnext, target, &newsibling);
+}
+
+EOLIAN static ComponentID
+_engineer_module_component_siblingnext_get(Eo *obj, Engineer_Module_Data *pd,
+        ComponentID target)
+{
+   target = engineer_module_component_lookup(obj, target);
+   return *(ComponentID*)eina_inarray_nth(pd->future->siblingnext, target);
+}
+
+EOLIAN static void
+_engineer_module_component_siblingprev_set(Eo *obj, Engineer_Module_Data *pd,
+        ComponentID target, ComponentID newsibling)
+{
+   target = engineer_module_component_lookup(obj, target);
+   eina_inarray_replace_at(pd->future->siblingprev, target, &newsibling);
+}
+
+EOLIAN static ComponentID
+_engineer_module_component_siblingprev_get(Eo *obj, Engineer_Module_Data *pd,
+        ComponentID target)
+{
+   target = engineer_module_component_lookup(obj, target);
+   return *(ComponentID*)eina_inarray_nth(pd->future->siblingprev, target);
+}
+
+/*** Component Services ***/
 
 EOLIAN static Eina_Bool
 _engineer_module_component_factory(Eo *obj, Engineer_Module_Data *pd,
@@ -292,15 +348,15 @@ _engineer_module_component_factory(Eo *obj, Engineer_Module_Data *pd,
    return EINA_TRUE;
 }
 
-EOLIAN static Eina_Bool
+/*** Component Methods ***/
+
+EOLIAN static ComponentID
 _engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
-        EntityID sender, Engineer_Component_Class *class, ComponentID newid, EntityID parent, void *payload)
+        EntityID sender, Engineer_Component_Class *class, EntityID parent, void *payload)
 {
    Eo *scene = efl_parent_get(obj);
 
-   engineer_scene_notify_component_create(scene, sender, class, newid, parent, payload);
-
-   return EINA_TRUE;
+   return engineer_scene_component_create(scene, sender, class, parent, payload);
 }
 
 EOLIAN static void
@@ -366,61 +422,6 @@ _engineer_module_component_attach(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
       engineer_module_component_siblingnext_set(obj, targetprev, target);
       engineer_module_component_siblingprev_set(obj, targetnext, target);
    }
-}
-
-EOLIAN static Index
-_engineer_module_component_lookup(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
-        ComponentID componentid)
-{
-   return (Index)eina_hash_find(pd->lookup, &componentid) - 1;
-}
-
-EOLIAN static void
-_engineer_module_component_parent_set(Eo *obj, Engineer_Module_Data *pd,
-        ComponentID target, EntityID newparent)
-{
-   target = engineer_module_component_lookup(obj, target);
-   eina_inarray_replace_at(pd->future->parent, target, &newparent);
-}
-
-EOLIAN static EntityID
-_engineer_module_component_parent_get(Eo *obj, Engineer_Module_Data *pd,
-        ComponentID target)
-{
-   target = engineer_module_component_lookup(obj, target);
-   return *(uint64_t*)eina_inarray_nth(pd->future->parent, target);
-}
-
-EOLIAN static void
-_engineer_module_component_siblingnext_set(Eo *obj, Engineer_Module_Data *pd,
-        ComponentID target, ComponentID newsibling)
-{
-   target = engineer_module_component_lookup(obj, target);
-   eina_inarray_replace_at(pd->future->siblingnext, target, &newsibling);
-}
-
-EOLIAN static ComponentID
-_engineer_module_component_siblingnext_get(Eo *obj, Engineer_Module_Data *pd,
-        ComponentID target)
-{
-   target = engineer_module_component_lookup(obj, target);
-   return *(uint64_t*)eina_inarray_nth(pd->future->siblingnext, target);
-}
-
-EOLIAN static void
-_engineer_module_component_siblingprev_set(Eo *obj, Engineer_Module_Data *pd,
-        ComponentID target, ComponentID newsibling)
-{
-   target = engineer_module_component_lookup(obj, target);
-   eina_inarray_replace_at(pd->future->siblingprev, target, &newsibling);
-}
-
-EOLIAN static ComponentID
-_engineer_module_component_siblingprev_get(Eo *obj, Engineer_Module_Data *pd,
-        ComponentID target)
-{
-   target = engineer_module_component_lookup(obj, target);
-   return *(uint64_t*)eina_inarray_nth(pd->future->siblingprev, target);
 }
 
 EOLIAN static void *

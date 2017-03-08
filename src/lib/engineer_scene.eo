@@ -248,7 +248,6 @@ class Engineer.Scene(Efl.Object)
          params
          {
             @in target:  ComponentID;
-            @in classid: ClassID;
             @in parent:  EntityID;
             @in payload: void_ptr;
          }
@@ -265,6 +264,15 @@ class Engineer.Scene(Efl.Object)
             @in payload: void_ptr;
          }
          return: ComponentID;
+      }
+
+      component_attach
+      {
+         params
+         {
+            @in target:    ComponentID;
+            @in newparent: EntityID;
+         }
       }
 
       component_state_get

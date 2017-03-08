@@ -90,11 +90,10 @@ class Engineer.Module(Efl.Object)
          {
             @in sender:  EntityID;
             @in class:   ptr(Engineer_Component_Class);
-            @in newid:   ComponentID;
             @in parent:  EntityID;
             @in payload: void_ptr;
          }
-         return: bool;
+         return: ComponentID;
       }
 
       component_attach
