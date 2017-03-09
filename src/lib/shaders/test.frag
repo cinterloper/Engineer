@@ -1,8 +1,10 @@
-//#version 430
+#version 430
 
 #ifdef GL_ES
 precision highp float;
 #endif
+
+out vec4 FragColor;
 
 uniform vec2  resolution;
 uniform float time;
@@ -22,13 +24,10 @@ struct Collision
    vec3  deflection;
 };
 
-//layout (std430, binding=0) buffer shader_data
-//{
-//  uint type;
-//  vec3 location;
-//  float size;
-//  vec3 color;
-//};
+layout (std430, binding = 0) buffer shader_data // Not used yet.
+{
+   Collider objects[];
+};
 
 Collision iSphere(in vec3 ray_origin, in vec3 ray_direction, in Collider sph)
 {
@@ -47,15 +46,15 @@ Collision iSphere(in vec3 ray_origin, in vec3 ray_direction, in Collider sph)
 
 Collision iBox(in vec3 ro, in vec3 rd, in Collider box)
 {
-    float buffer;
+    float tbuffer;
     float tmin = ((box.location.x - box.size) - ro.x) / rd.x;
     float tmax = ((box.location.x + box.size) - ro.x) / rd.x;
 
     if (tmin > tmax)
     {
-       buffer = tmin;
-       tmin  = tmax;
-       tmax  = buffer;
+       tbuffer = tmin;
+       tmin    = tmax;
+       tmax    = tbuffer;
     }
 
     float tymin = ((box.location.y - box.size) - ro.y) / rd.y;
@@ -63,9 +62,9 @@ Collision iBox(in vec3 ro, in vec3 rd, in Collider box)
 
     if (tymin > tymax)
     {
-       buffer = tymin;
-       tymin  = tymax;
-       tymax  = buffer;
+       tbuffer = tymin;
+       tymin   = tymax;
+       tymax   = tbuffer;
     }
 
     if ((tmin > tymax) || (tymin > tmax))
@@ -82,9 +81,9 @@ Collision iBox(in vec3 ro, in vec3 rd, in Collider box)
 
     if (tzmin > tzmax)
     {
-       buffer = tzmin;
-       tzmin  = tzmax;
-       tzmax  = buffer;
+       tbuffer = tzmin;
+       tzmin   = tzmax;
+       tzmax   = tbuffer;
     }
 
     if ((tmin > tzmax) || (tzmin > tmax))
@@ -108,30 +107,30 @@ Collision iPlane(in vec3 ro, in vec3 rd, in Collider pla)
 }
 
 Collision
-intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider objects[])
+intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4])
 {
    Collision tests[4];
    int       type;
    uint      count;
    bool      selector;
-   uint      nearest;
+   int       nearest;
    float     interval;
 
    // For each of our objects, run an intersection test.
    for(count = 0; count < 4; count++)
    {
-      switch(objects[count].type)
+      switch(object[count].type)
       {
          case 1: // Sphere Collider.
-            tests[count] = iSphere(ray_origin, ray_direction, objects[count]);
+            tests[count] = iSphere(ray_origin, ray_direction, object[count]);
          break;
 
          case 2: // Box Collider.
-            tests[count] = iBox(ray_origin, ray_direction, objects[count]);
+            tests[count] = iBox(ray_origin, ray_direction, object[count]);
          break;
 
          case 3: // Plane Collider.
-            tests[count] = iPlane(ray_origin, ray_direction, objects[count]);
+            tests[count] = iPlane(ray_origin, ray_direction, object[count]);
          break;
 
          //case 4: // ***Incoming*** Mass/SVO collider.
@@ -145,10 +144,10 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider objects[])
    // Since we are presuming everything is 100% opaque, find the nearest collision, if any.
    for(count = 0; count < 4; count++)
    {
-      selector  = tests[count].distance > 0.0;
-      selector *= tests[count].distance < interval;
-      nearest   = selector ? count : nearest;
-      interval  = selector ? tests[count].distance : interval;
+      selector = tests[count].distance > 0.0;
+      selector = selector && (tests[count].distance < interval);
+      nearest  = selector ? int(count) : nearest;
+      interval = selector ? tests[count].distance : interval;
    }
 
    if(interval == 10000.0) return Collision(-1, -1.0, vec3(0.0, 0.0, 0.0));
@@ -162,16 +161,16 @@ void main(void)
    // For the new input, we will need a list of objects to be displayed.
    // In this list, we must include each objects type, origin, orientation, size/scale.
    // Lets set up some test objects.
-   Collider objects[4];
+   Collider object[4];
    //                    Type,    Location,         Size,   Color
-   objects[0] = Collider(1, vec3( 1.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 1.0));
-   objects[1] = Collider(1, vec3( 0.0,  5.0,  0.0), 1.0, vec3(0.0, 0.0, 1.0));
-   objects[2] = Collider(2, vec3( 0.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 0.0));
-   objects[3] = Collider(3, vec3( 0.0, -1.0,  0.0), 1.0, vec3(1.0, 0.8, 0.6));
+   object[0] = Collider(1, vec3( 1.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 1.0));
+   object[1] = Collider(1, vec3( 0.0,  5.0,  0.0), 1.0, vec3(0.0, 0.0, 1.0));
+   object[2] = Collider(2, vec3( 0.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 0.0));
+   object[3] = Collider(3, vec3( 0.0, -1.0,  0.0), 1.0, vec3(1.0, 0.8, 0.6));
 
    // Lets move the first sphere in our object list.
-   objects[0].location.x = 8.0 * cos(time);
-   objects[0].location.z = 8.0 * sin(time);
+   object[0].location.x = 8.0 * cos(time);
+   object[0].location.z = 8.0 * sin(time);
 
    // Some constant light from a constant direction for all objects, no shadows yet.
    vec3 light_direction = normalize(vec3(.57703));
@@ -180,11 +179,11 @@ void main(void)
    vec2 uv = (gl_FragCoord.xy/resolution.xy);
 
    // We generate a ray with origin ro and direction rd.
-   vec3 ray_origin    = vec3(0, 1.0, 12.0);
-   vec3 ray_direction = normalize(vec3((-1.0+2.0*uv) * vec2(1.78,1.0), -1.0));
+   vec3 ray_origin    = vec3(0.0, 1.0, 12.0);
+   vec3 ray_direction = normalize(vec3((-1.0+2.0*uv) * vec2(1.78, 1.0), -1.0));
 
    // We intersect the ray with the 3d scene.
-   Collision collision = intersect(ray_origin, ray_direction, objects);
+   Collision collision = intersect(ray_origin, ray_direction, object);
 
    // We draw black by default.
    vec3 pixel = vec3(0.0);
@@ -192,11 +191,11 @@ void main(void)
    if(collision.subject > -1)
    {
       // Apply our object color to the pixel.
-      pixel = objects[collision.subject].color;
+      pixel = object[collision.subject].color;
 
       // Apply some simple lighting to our object surfaces.
       pixel *= dot(collision.deflection, light_direction);
    }
 
-   gl_FragColor = vec4(pixel, 1.0);
+   FragColor = vec4(pixel, 1.0);
 }
