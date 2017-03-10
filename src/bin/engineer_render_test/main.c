@@ -116,9 +116,9 @@ Eo *
 engineer_render_test_viewport_init(Eo *window)
 {
    Evas_Object *viewport = engineer_viewport_add(window);
-   evas_object_size_hint_weight_set(viewport, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   evas_object_size_hint_align_set(viewport, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   evas_object_show(viewport);
+   //evas_object_size_hint_weight_set(viewport, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   //evas_object_size_hint_align_set(viewport, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   //evas_object_show(viewport);
 
    return viewport;
 }

@@ -2,6 +2,7 @@
 #define _ENGINEER_VIEWPORT_H_
 
 #include "../headers/Engineer.h"
+#include <math.h>
 //#include <OpenGL/gl.h>
 //#include <elm_widget.h>
 
@@ -26,10 +27,10 @@ struct _GL_Data
 
 struct shader_data_t
 {
-  uint  type;
-  float location[3];
-  float size;
-  float color[3];
+  GLuint  type;
+  GLfloat location[3];
+  GLfloat size;
+  GLfloat color[3];
 } shader_data;
 
 typedef struct

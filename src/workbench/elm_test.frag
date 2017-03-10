@@ -1,10 +1,14 @@
-#version 310 es
+#version 300 es
 
 #ifdef GL_ES
 precision highp float;
 #endif
 
-#define MISS Collision(-1, -1.0, vec3(0.0, 0.0, 0.0))
+out vec4 FragColor;
+
+uniform vec2  resolution;
+uniform float time;
+uniform uint
 
 struct Collider
 {
@@ -21,88 +25,94 @@ struct Collision
    vec3  deflection;
 };
 
-struct Ray
-{
-   vec3 inverse;
-   vec3 signs;
-};
-
 layout (std430, binding = 0) buffer shader_data // Not used yet.
 {
    Collider objects[];
 };
 
-uniform vec2      resolution;
-uniform float     time;
-
-out vec4 FragColor;
-
-Collision iSphere(in vec3 ray_origin, in vec3 ray_direction, in Collider sphere)
+Collision iSphere(in vec3 ray_origin, in vec3 ray_direction, in Collider sph)
 {
-   vec3 oc = ray_origin - sphere.location;
+   vec3 oc = ray_origin - sph.location;
    float b = 2.0 * dot(oc, ray_direction);
-   float c = dot(oc, oc) - sphere.size * sphere.size;
+   float c = dot(oc, oc) - sph.size * sph.size;
    float h = b * b - 4.0 * c;
 
    if(h < 0.0) return Collision(-1, -1.0, vec3(0.0, 0.0, 0.0));
 
    float distance = (-b -sqrt(h)) / 2.0;
-   vec3  normal   = ((ray_origin + distance * ray_direction) - sphere.location) / sphere.size;
+   vec3  normal   = ((ray_origin + distance * ray_direction) - sph.location) / sph.size;
 
    return Collision(-1, distance, normal);
 }
 
-Collision iBox(in vec3 ray_origin, in vec3 ray_direction, in Collider box)
+Collision iBox(in vec3 ro, in vec3 rd, in Collider box)
 {
-    float tmin, tmax, tymin, tymax, tzmin, tzmax;
-    vec3 inverse, sign;
+    float tbuffer;
+    float tmin = ((box.location.x - box.size) - ro.x) / rd.x;
+    float tmax = ((box.location.x + box.size) - ro.x) / rd.x;
 
-    inverse = vec3(1.0) / ray_direction;
-    sign.x  = float(inverse.x >= 0.0) * 2.0 - 1.0;
-    sign.y  = float(inverse.y >= 0.0) * 2.0 - 1.0;
-    sign.z  = float(inverse.z >= 0.0) * 2.0 - 1.0;
+    if (tmin > tmax)
+    {
+       tbuffer = tmin;
+       tmin    = tmax;
+       tmax    = tbuffer;
+    }
 
-    tmin  = ((box.location.x - (box.size * sign.x)) - ray_origin.x) * inverse.x;
-    tmax  = ((box.location.x + (box.size * sign.x)) - ray_origin.x) * inverse.x;
+    float tymin = ((box.location.y - box.size) - ro.y) / rd.y;
+    float tymax = ((box.location.y + box.size) - ro.y) / rd.y;
 
-    tymin = ((box.location.y - (box.size * sign.y)) - ray_origin.y) * inverse.y;
-    tymax = ((box.location.y + (box.size * sign.y)) - ray_origin.y) * inverse.y;
+    if (tymin > tymax)
+    {
+       tbuffer = tymin;
+       tymin   = tymax;
+       tymax   = tbuffer;
+    }
 
     if ((tmin > tymax) || (tymin > tmax))
-        return MISS;
+        return Collision(-1, -1.0, vec3(0.0, 0.0, 0.0));
+
     if (tymin > tmin)
         tmin = tymin;
+
     if (tymax < tmax)
         tmax = tymax;
 
-    tzmin = ((box.location.z - (box.size * sign.z)) - ray_origin.z) * inverse.z;
-    tzmax = ((box.location.z + (box.size * sign.z)) - ray_origin.z) * inverse.z;
+    float tzmin = ((box.location.z - box.size) - ro.z) / rd.z;
+    float tzmax = ((box.location.z + box.size) - ro.z) / rd.z;
+
+    if (tzmin > tzmax)
+    {
+       tbuffer = tzmin;
+       tzmin   = tzmax;
+       tzmax   = tbuffer;
+    }
 
     if ((tmin > tzmax) || (tzmin > tmax))
-        return MISS;
+        return Collision(-1, -1.0, vec3(0.0, 0.0, 0.0));
+
     if (tzmin > tmin)
         tmin = tzmin;
+
     if (tzmax < tmax)
         tmax = tzmax;
 
     return Collision(-1, tmin, vec3(0.0, 0.0, 1.0));
 }
 
-Collision iPlane(in vec3 ray_origin, in vec3 ray_direction, in Collider pla)
+Collision iPlane(in vec3 ro, in vec3 rd, in Collider pla)
 {
    // Normal of an up facing y plane: 0.0, 1.0, 0.0
    // Equation of a y-aligned plane: y = 0 = ro.y + t*rd.y
-   // Normal of a camera facing z plane: 0.0, 0.0, 1.0;
 
-   return Collision(-1, -ray_origin.y/ray_direction.y, vec3(0.0, 1.0, 0.0));
+   return Collision(-1, -ro.y/rd.y, vec3(0.0, 1.0, 0.0));
 }
 
 Collision
-intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4]) // in Collider object[4]
+intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4])
 {
    Collision tests[4];
    int       type;
-   int       count;
+   int      count;
    bool      selector;
    int       nearest;
    float     interval;
@@ -149,6 +159,9 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4]) // i
 
 void main(void)
 {
+   // For the new input, we will need a list of objects to be displayed.
+   // In this list, we must include each objects type, origin, orientation, size/scale.
+   // Lets set up some test objects.
    Collider object[4];
    //                    Type,    Location,         Size,   Color
    object[0] = Collider(uint(1), vec3( 1.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 1.0));
@@ -171,7 +184,7 @@ void main(void)
    vec3 ray_direction = normalize(vec3((-1.0+2.0*uv) * vec2(1.78, 1.0), -1.0));
 
    // We intersect the ray with the 3d scene.
-   Collision collision = intersect(ray_origin, ray_direction, object); // ,object
+   Collision collision = intersect(ray_origin, ray_direction, object);
 
    // We draw black by default.
    vec3 pixel = vec3(0.0);
@@ -187,3 +200,4 @@ void main(void)
 
    FragColor = vec4(pixel, 1.0);
 }
+
