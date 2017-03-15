@@ -18,6 +18,7 @@ struct _GL_Data
    GLuint       vbo;
    GLuint       ssbo;
 
+   GLuint       objects_location;
    GLuint       resolution_location;
    GLuint       time_location;
 

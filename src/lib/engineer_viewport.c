@@ -92,6 +92,8 @@ init_shaders(GL_Data *gld)
    gl->glGetProgramiv(gld->program, GL_LINK_STATUS, &linked);
 
    gl->glUseProgram(gld->program);
+
+   //gld->objects_location    = gl->glGetUniformLocation(gld->program, "objects");
    gld->resolution_location = gl->glGetUniformLocation(gld->program, "resolution");
    gld->time_location       = gl->glGetUniformLocation(gld->program, "time");
 
@@ -139,10 +141,12 @@ _init_gl(Evas_Object *obj)
                              0, 0);
    gl->glEnableVertexAttribArray(0);
 
-   gld->ssbo = 0;
+   gld->ssbo = 1;
    gl->glGenBuffers(1, &gld->ssbo);
    gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, gld->ssbo);
    gl->glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(objects), objects, GL_DYNAMIC_COPY);
+   gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
 }
 
 static void
@@ -198,41 +202,41 @@ _draw_gl(Evas_Object *obj)
 
    // Lets set up some test objects to render...
    // 585 = 512 + 64 + 8 + 1
-   objects[0].type        = 1;
-   objects[0].location[0] = 1.0 * 8.0 * cos(gld->time);
-   objects[0].location[1] = 1.0;
-   objects[0].location[2] = 0.0 * 8.0 * sin(gld->time);
-   objects[0].size        = 1.0;
-   objects[0].color[0]    = 0.0;
-   objects[0].color[1]    = 1.0;
-   objects[0].color[2]    = 1.0;
+   objects[0].type        =  1;
+   objects[0].location[0] =  1.0 * 8.0 * cos(gld->time);
+   objects[0].location[1] =  1.0;
+   objects[0].location[2] =  0.0 * 8.0 * sin(gld->time);
+   objects[0].size        =  1.0;
+   objects[0].color[0]    =  0.0;
+   objects[0].color[1]    =  1.0;
+   objects[0].color[2]    =  1.0;
 
-   objects[1].type        = 1;
-   objects[1].location[0] = 1.0;
-   objects[1].location[1] = 5.0;
-   objects[1].location[2] = 0.0;
-   objects[1].size        = 1.0;
-   objects[1].color[0]    = 0.0;
-   objects[1].color[1]    = 0.0;
-   objects[1].color[2]    = 1.0;
+   objects[1].type        =  1;
+   objects[1].location[0] =  1.0;
+   objects[1].location[1] =  5.0;
+   objects[1].location[2] =  0.0;
+   objects[1].size        =  1.0;
+   objects[1].color[0]    =  0.0;
+   objects[1].color[1]    =  0.0;
+   objects[1].color[2]    =  1.0;
 
-   objects[2].type        = 2;
-   objects[2].location[0] = 0.0;
-   objects[2].location[1] = 1.0;
-   objects[2].location[2] = 0.0;
-   objects[2].size        = 1.0;
-   objects[2].color[0]    = 0.0;
-   objects[2].color[1]    = 1.0;
-   objects[2].color[2]    = 0.0;
+   objects[2].type        =  2;
+   objects[2].location[0] =  0.0;
+   objects[2].location[1] =  1.0;
+   objects[2].location[2] =  0.0;
+   objects[2].size        =  1.0;
+   objects[2].color[0]    =  0.0;
+   objects[2].color[1]    =  1.0;
+   objects[2].color[2]    =  0.0;
 
-   objects[3].type        =  3;
-   objects[3].location[0] =  0.0;
-   objects[3].location[1] = -1.0;
-   objects[3].location[2] =  0.0;
-   objects[3].size        =  1.0;
-   objects[3].color[0]    =  1.0;
-   objects[3].color[1]    =  0.8;
-   objects[3].color[2]    =  0.6;
+   objects[3].type        =   3;
+   objects[3].location[0] =   0.0;
+   objects[3].location[1] =  -1.0;
+   objects[3].location[2] =   0.0;
+   objects[3].size        =   1.0;
+   objects[3].color[0]    =   1.0;
+   objects[3].color[1]    =   0.8;
+   objects[3].color[2]    =   0.6;
 
    // Draw a Triangle
    gl->glEnable(GL_BLEND);

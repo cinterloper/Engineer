@@ -27,13 +27,13 @@ struct Ray
    vec3 signs;
 };
 
-layout (std430, binding = 0) buffer shader_data // Not used yet.
+layout (std430, binding=1) buffer shader_data // Not used yet.
 {
    Collider objects[];
 };
 
-uniform vec2      resolution;
-uniform float     time;
+uniform vec2  resolution;
+uniform float time;
 
 out vec4 FragColor;
 
@@ -44,7 +44,7 @@ Collision iSphere(in vec3 ray_origin, in vec3 ray_direction, in Collider sphere)
    float c = dot(oc, oc) - sphere.size * sphere.size;
    float h = b * b - 4.0 * c;
 
-   if(h < 0.0) return Collision(-1, -1.0, vec3(0.0, 0.0, 0.0));
+   if(h < 0.0) return MISS;
 
    float distance = (-b -sqrt(h)) / 2.0;
    vec3  normal   = ((ray_origin + distance * ray_direction) - sphere.location) / sphere.size;
@@ -85,6 +85,8 @@ Collision iBox(in vec3 ray_origin, in vec3 ray_direction, in Collider box)
     if (tzmax < tmax)
         tmax = tzmax;
 
+    vec3 normal;
+
     return Collision(-1, tmin, vec3(0.0, 0.0, 1.0));
 }
 
@@ -94,7 +96,7 @@ Collision iPlane(in vec3 ray_origin, in vec3 ray_direction, in Collider pla)
    // Equation of a y-aligned plane: y = 0 = ro.y + t*rd.y
    // Normal of a camera facing z plane: 0.0, 0.0, 1.0;
 
-   return Collision(-1, -ray_origin.y/ray_direction.y, vec3(0.0, 1.0, 0.0));
+   return Collision(-1, ray_origin.y/-ray_direction.y, vec3(0.0, 1.0, 0.0));
 }
 
 Collision
@@ -105,7 +107,12 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4]) // i
    int       count;
    bool      selector;
    int       nearest;
+   float     draw_distance;
    float     interval;
+
+   // Set up our maximum draw distance.
+   draw_distance = pow(2.0, 32.0);
+   interval = draw_distance;
 
    // For each of our objects, run an intersection test.
    for(count = 0; count < 4; count++)
@@ -129,9 +136,6 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4]) // i
       }
    }
 
-   // Set up our maximum draw distance.
-   interval = 1000.0;
-
    // Since we are presuming everything is 100% opaque, find the nearest collision, if any.
    for(count = 0; count < 4; count++)
    {
@@ -141,7 +145,7 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4]) // i
       interval = selector ? tests[count].distance : interval;
    }
 
-   if(interval == 10000.0) return Collision(-1, -1.0, vec3(0.0, 0.0, 0.0));
+   if(interval == draw_distance) return MISS;
 
    tests[nearest].subject = nearest;
    return tests[nearest];
@@ -150,15 +154,15 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4]) // i
 void main(void)
 {
    Collider object[4];
-   //                    Type,    Location,         Size,   Color
-   object[0] = Collider(uint(1), vec3( 1.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 1.0));
-   object[1] = Collider(uint(1), vec3( 0.0,  5.0,  0.0), 1.0, vec3(0.0, 0.0, 1.0));
-   object[2] = Collider(uint(2), vec3( 0.0,  1.0,  0.0), 1.0, vec3(0.0, 1.0, 0.0));
-   object[3] = Collider(uint(3), vec3( 0.0, -1.0,  0.0), 1.0, vec3(1.0, 0.8, 0.6));
+   //                      Type,                Location, Size,                Color
+   object[0] = Collider(uint(1), vec3( 1.0,  0.0, -12.0),  1.0, vec3(0.0, 1.0, 1.0));
+   object[1] = Collider(uint(1), vec3( 0.0,  4.0, -12.0),  1.0, vec3(0.0, 0.0, 1.0));
+   object[2] = Collider(uint(2), vec3( 0.0,  0.0, -12.0),  1.0, vec3(0.0, 1.0, 0.0));
+   object[3] = Collider(uint(3), vec3( 0.0, -4.0, -12.0),  1.0, vec3(1.0, 0.8, 0.6));
 
    // Lets move the first sphere in our object list.
-   object[0].location.x = 8.0 * cos(time);
-   object[0].location.z = 8.0 * sin(time);
+   object[0].location.x += 8.0 * cos(time);
+   object[0].location.z += 8.0 * sin(time);
 
    // Some constant light from a constant direction for all objects, no shadows yet.
    vec3 light_direction = normalize(vec3(.57703));
@@ -167,8 +171,9 @@ void main(void)
    vec2 uv = (gl_FragCoord.xy/resolution.xy);
 
    // We generate a ray with origin ro and direction rd.
-   vec3 ray_origin    = vec3(0.0, 1.0, 12.0);
-   vec3 ray_direction = normalize(vec3((-1.0+2.0*uv) * vec2(1.78, 1.0), -1.0));
+   vec2 aspect_ratio  = vec2(1.78, 1.0);
+   vec3 ray_origin    = vec3(0.0, 0.0, 0.0);
+   vec3 ray_direction = normalize(vec3((-1.0+2.0*uv) * aspect_ratio, -1.0));
 
    // We intersect the ray with the 3d scene.
    Collision collision = intersect(ray_origin, ray_direction, object); // ,object
