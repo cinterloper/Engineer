@@ -8,10 +8,10 @@ precision highp float;
 
 struct Collider
 {
-   uint  type;
    vec3  location;
-   float size;
+   uint  type;
    vec3  color;
+   float size;
 };
 
 struct Collision
@@ -27,7 +27,7 @@ struct Ray
    vec3 signs;
 };
 
-layout (std430, binding=1) buffer shader_data // Not used yet.
+layout (std430, binding = 1) buffer shader_data
 {
    Collider objects[];
 };
@@ -100,7 +100,7 @@ Collision iPlane(in vec3 ray_origin, in vec3 ray_direction, in Collider pla)
 }
 
 Collision
-intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4]) // in Collider object[4]
+intersect(in vec3 ray_origin, in vec3 ray_direction) // in Collider object[4]
 {
    Collision tests[4];
    int       type;
@@ -117,18 +117,18 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4]) // i
    // For each of our objects, run an intersection test.
    for(count = 0; count < 4; count++)
    {
-      switch(object[count].type)
+      switch(objects[count].type)
       {
          case uint(1): // Sphere Collider.
-            tests[count] = iSphere(ray_origin, ray_direction, object[count]);
+            tests[count] = iSphere(ray_origin, ray_direction, objects[count]);
          break;
 
          case uint(2): // Box Collider.
-            tests[count] = iBox(ray_origin, ray_direction, object[count]);
+            tests[count] = iBox(ray_origin, ray_direction, objects[count]);
          break;
 
          case uint(3): // Plane Collider.
-            tests[count] = iPlane(ray_origin, ray_direction, object[count]);
+            tests[count] = iPlane(ray_origin, ray_direction, objects[count]);
          break;
 
          //case 4: // ***Incoming*** Mass/SVO collider.
@@ -153,17 +153,6 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4]) // i
 
 void main(void)
 {
-   Collider object[4];
-   //                      Type,                Location, Size,                Color
-   object[0] = Collider(uint(1), vec3( 1.0,  0.0, -12.0),  1.0, vec3(0.0, 1.0, 1.0));
-   object[1] = Collider(uint(1), vec3( 0.0,  4.0, -12.0),  1.0, vec3(0.0, 0.0, 1.0));
-   object[2] = Collider(uint(2), vec3( 0.0,  0.0, -12.0),  1.0, vec3(0.0, 1.0, 0.0));
-   object[3] = Collider(uint(3), vec3( 0.0, -4.0, -12.0),  1.0, vec3(1.0, 0.8, 0.6));
-
-   // Lets move the first sphere in our object list.
-   object[0].location.x += 8.0 * cos(time);
-   object[0].location.z += 8.0 * sin(time);
-
    // Some constant light from a constant direction for all objects, no shadows yet.
    vec3 light_direction = normalize(vec3(.57703));
 
@@ -176,7 +165,7 @@ void main(void)
    vec3 ray_direction = normalize(vec3((-1.0+2.0*uv) * aspect_ratio, -1.0));
 
    // We intersect the ray with the 3d scene.
-   Collision collision = intersect(ray_origin, ray_direction, object); // ,object
+   Collision collision = intersect(ray_origin, ray_direction);
 
    // We draw black by default.
    vec3 pixel = vec3(0.0);
@@ -184,7 +173,7 @@ void main(void)
    if(collision.subject > -1)
    {
       // Apply our object color to the pixel.
-      pixel = object[collision.subject].color;
+      pixel = objects[collision.subject].color;
 
       // Apply some simple lighting to our object surfaces.
       pixel *= dot(collision.deflection, light_direction);

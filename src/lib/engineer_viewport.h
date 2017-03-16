@@ -28,10 +28,10 @@ struct _GL_Data
 
 struct shader_data_t
 {
-  GLuint  type;
   GLfloat location[3];
-  GLfloat size;
+  GLuint  type;
   GLfloat color[3];
+  GLfloat size;
 } shader_data;
 
 typedef struct

@@ -159,6 +159,17 @@ intersect(in vec3 ray_origin, in vec3 ray_direction, in Collider object[4])
 
 void main(void)
 {
+      //Collider object[4];
+   //                      Type,                Location, Size,                Color
+   //object[0] = Collider(uint(1), vec3( 1.0,  0.0, -12.0),  1.0, vec3(0.0, 1.0, 1.0));
+   //object[1] = Collider(uint(1), vec3( 0.0,  4.0, -12.0),  1.0, vec3(0.0, 0.0, 1.0));
+   //object[2] = Collider(uint(2), vec3( 0.0,  0.0, -12.0),  1.0, vec3(0.0, 1.0, 0.0));
+   //object[3] = Collider(uint(3), vec3( 0.0, -4.0, -12.0),  1.0, vec3(1.0, 0.8, 0.6));
+
+   // Lets move the first sphere in our object list.
+   //object[0].location.x += 8.0 * cos(time);
+   //object[0].location.z += 8.0 * sin(time);
+
    // For the new input, we will need a list of objects to be displayed.
    // In this list, we must include each objects type, origin, orientation, size/scale.
    // Lets set up some test objects.
