@@ -1,7 +1,7 @@
 #ifndef _FPSCONTROL_H_
 #define _FPSCONTROL_H_
 
-#include "../headers/Engineer.h"
+#include "Engineer.h"
 
 #define STATE \
    FIELD(topspeed, Sclr) \
@@ -9,7 +9,7 @@
 
 //#define EVENTS
 
-#include "engineer_module.h"
+#include "Engineer_Module.h"
 
 #endif
 

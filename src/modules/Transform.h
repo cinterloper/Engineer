@@ -1,7 +1,7 @@
 #ifndef _TRANSFORM_H_
 #define _TRANSFORM_H_
 
-#include "../headers/Engineer.h"
+#include "Engineer.h"
 
 #define STATE \
    FIELD(position,    Vec3) \
@@ -16,6 +16,6 @@
    EVENT(rotate) \
    EVENT(reorient) \
 
-#include "engineer_module.h"
+#include "Engineer_Module.h"
 
 #endif

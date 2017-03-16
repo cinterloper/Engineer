@@ -1,15 +1,20 @@
+struct @extern Data  {}
+struct @extern State {}
+
 struct @extern Engineer_Component_Class {}
 struct @extern Engineer_Entity_History  {}
 struct @extern Engineer_Scene_Frame     {}
 
-type   @extern Index:       uint64;
-type   @extern ClassID:     uint64;
-type   @extern EntityID:    uint64;
-type   @extern ComponentID: uint64;
-type   @extern EventID:     uint64;
-type   @extern ClassLabel:  string;
-type   @extern EventLabel:  string;
-type   @extern StateLabel:  string;
+type @extern Index:       uint64;
+type @extern ClassID:     uint64;
+
+type @extern EntityID:    uint64;
+type @extern ComponentID: uint64;
+type @extern EventID:     uint64;
+
+type @extern ClassLabel:  string;
+type @extern EventLabel:  string;
+type @extern StateLabel:  string;
 
 class Engineer.Scene(Efl.Object)
 {
@@ -249,7 +254,7 @@ class Engineer.Scene(Efl.Object)
          {
             @in target:  ComponentID;
             @in parent:  EntityID;
-            @in payload: void_ptr;
+            @in payload: ptr(Data);
          }
          return: bool;
       }
@@ -261,7 +266,7 @@ class Engineer.Scene(Efl.Object)
             @in sender:  EntityID;
             @in class:   ptr(Engineer_Component_Class);
             @in parent:  EntityID;
-            @in payload: void_ptr;
+            @in payload: ptr(Data);
          }
          return: ComponentID;
       }
@@ -282,7 +287,7 @@ class Engineer.Scene(Efl.Object)
             @in target: ComponentID;
             @in key:    StateLabel;
          }
-         return: void_ptr;
+         return: ptr(State);
       }
 
       notify_event
@@ -292,7 +297,7 @@ class Engineer.Scene(Efl.Object)
             @in sender:   EntityID;
             @in type:     EventID;
             @in entityid: EntityID;
-            @in payload:  void_ptr;
+            @in payload:  ptr(Data);
             @in size:     uint64;
          }
       }
@@ -315,7 +320,7 @@ class Engineer.Scene(Efl.Object)
             @in class:       ptr(Engineer_Component_Class);
             @in componentid: ComponentID;
             @in parent:      EntityID;
-            @in payload:     void_ptr;
+            @in payload:     ptr(Data);
          }
       }
 

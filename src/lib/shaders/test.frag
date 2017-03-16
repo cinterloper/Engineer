@@ -93,12 +93,8 @@ Collision iBox(in vec3 ray_origin, in vec3 ray_direction, in Collider box)
 Collision iPlane(in vec3 ray_origin, in vec3 ray_direction, in Collider plane)
 {
    // Normal of an up facing y plane: 0.0, 1.0, 0.0
-   // Equation of a y-aligned plane: y = 0 = ro.y + t*rd.y
+   // Equation of a y-aligned plane: y = 0 = ray_origin.y + t * ray_direction.y
    // Normal of a camera facing z plane: 0.0, 0.0, 1.0;
-
-   //vec3 inverse;
-
-   //inverse = vec3(1.0) / ray_direction.y;
 
    return Collision(-1, plane.location.y/ray_direction.y, vec3(0.0, 1.0, 0.0));
 }

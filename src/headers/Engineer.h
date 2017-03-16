@@ -41,11 +41,11 @@ extern "C" {
 #include <Ecore_Getopt.h>
 #include <Elementary.h>
 
-#include "../lib/global/index.h"
+#include "global/index.h"
 
-#include "../lib/engineer_node.h"
-#include "../lib/engineer_scene.h"
-#include "../lib/engineer_viewport.h"
+#include "engineer_node.h"
+#include "engineer_scene.h"
+#include "engineer_viewport.h"
 
 /// @file
 /// @brief These routines are used for Engineer library interaction.

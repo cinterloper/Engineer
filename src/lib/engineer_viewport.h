@@ -1,7 +1,7 @@
 #ifndef _ENGINEER_VIEWPORT_H_
 #define _ENGINEER_VIEWPORT_H_
 
-#include "../headers/Engineer.h"
+#include "Engineer.h"
 #include <math.h>
 //#include <OpenGL/gl.h>
 //#include <elm_widget.h>

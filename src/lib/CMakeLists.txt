@@ -11,6 +11,11 @@ add_dependencies(Engineer
    eolian_gen
 )
 
+target_include_directories(Engineer
+   PUBLIC ${CMAKE_SOURCE_DIR}/src/headers
+   PUBLIC ${CMAKE_SOURCE_DIR}/src/lib
+)
+
 # Link the external libraries needed to run Engineer.
 target_link_libraries(Engineer
    m

@@ -1,7 +1,7 @@
 #ifndef _MASS_H_
 #define _MASS_H_
 
-#include "../headers/Engineer.h"
+#include "Engineer.h"
 
 #define STATE \
    FIELD(bounding_box,     Sclr) \
@@ -14,7 +14,7 @@
    EVENT(force) \
    EVENT(twist)
 
-#include "engineer_module.h"
+#include "Engineer_Module.h"
 
 #endif
 

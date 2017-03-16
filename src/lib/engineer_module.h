@@ -1,8 +1,8 @@
 #ifndef _ENGINEER_MODULE_H_
 #define _ENGINEER_MODULE_H_
 
-#include "../headers/Engineer.h"
-#define TARGET(target) ../modules/target.h
+#include "Engineer.h"
+#define TARGET(target) target.h
    #include STRINGIFY(TARGET(COMPONENT))
 
 #ifndef STATE
@@ -92,6 +92,7 @@ Engineer_Module_Data;
 
 Eo*      engineer_module_new(Eo *parent);
 uint64_t engineer_module_classid(void);
+
 void engineer_module_component_awake(Eo *module, uint64_t index, Engineer_Component *data);
 void engineer_module_component_start(Eo *module, uint64_t index, Engineer_Component *data);
 void engineer_module_component_update(Eo *module, uint64_t index, Engineer_Component *data);
@@ -102,51 +103,6 @@ EVENTS
 #undef EVENT
 
 #include "engineer_module.eo.h"
-
-/*** Component stub macros ***/
-
-#define awake(data) \
-   engineer_module_component_awake(Eo *module EINA_UNUSED, uint64_t index EINA_UNUSED, data)
-
-#define start(data) \
-   engineer_module_component_start(Eo *module EINA_UNUSED, uint64_t index EINA_UNUSED, data)
-
-#define update(data) \
-   engineer_module_component_update(Eo *module EINA_UNUSED, uint64_t index EINA_UNUSED, data)
-
-#define event(key, data, payload, size) \
-   engineer_module_component_event_##key(data, payload, size)
-
-/** Component method macros ***/
-
-// Valid Keys: all single keys:F1-F12:arrowup:arrowdown:arrowleft:arrowright:num0-9,:
-//    tab, capslock, lshift, rshift, lctrl, rctrl, alt, altgr, window, lshift, rshift
-//#define keypressed(key)  engineer_module_keypressed_get(key)
-//#define keyheld(key)
-//#define keyreleased(key)
-
-//#define mousedelta(key)
-//#define mouseclicked(button)       engineer_module_mouseclicked_get(button)
-//#define mousedoubleclicked(button)
-//#define mousedragged(button)
-//#define mousereleased(button)
-
-#define entity_notify(target, event, payload, size) \
-   engineer_scene_notify_event(target, index, event, payload, size)
-
-#define entity_create(parent) \
-   engineer_scene_notify_entity_create(module, parent, index)
-
-#define component_create(class, parent, payload) \
-   engineer_scene_component_create(efl_parent_get(module), eina_inarray_get(pd->id, index), class, parent, payload)
-
-#define component_search(target, class) \
-   engineer_scene_entity_component_search(efl_parent_get(module), target, class)
-
-#define component_query(target, key) \
-   engineer_scene_component_state_get(module, target, key)
-
-
 
 #endif
 

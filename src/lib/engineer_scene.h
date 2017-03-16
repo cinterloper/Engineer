@@ -1,7 +1,10 @@
 #ifndef _ENGINEER_SCENE_H_
 #define _ENGINEER_SCENE_H_
 
-#include "../headers/Engineer.h"
+#include "Engineer.h"
+
+typedef struct {} Data;
+typedef struct {} State;
 
 typedef struct
 {

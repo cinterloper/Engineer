@@ -1,7 +1,7 @@
 #ifndef _ENGINEER_NODE_H_
 #define _ENGINEER_NODE_H_
 
-#include "../headers/Engineer.h"
+#include "Engineer.h"
 
 // EntityID's and ComponentID's are each 64 bits long, with the largest 24 bits of the number
 //    specifying the cluster Ip address of the originating Node. This allows compatibility with

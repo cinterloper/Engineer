@@ -84,7 +84,7 @@ _engineer_scene_efl_object_finalize(Eo *obj, Engineer_Scene_Data *pd)
    eina_hash_foreach(nodepd->classes, module_fill, obj);
 
    pd->iterator = ecore_timer_add((double)1/pd->clockrate, _engineer_scene_iterate_cb, obj);
-   ecore_timer_freeze(pd->iterator);
+   //ecore_timer_freeze(pd->iterator);
 
    // If our Scene is new, create a root Entity and set it up.
    if (eina_inarray_count(pd->id) == 0)
@@ -295,7 +295,7 @@ _engineer_scene_dispatch(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
             eina_inarray_push(input, eina_inarray_nth(outbox, offset + 5 + count));
 
          // Invoke our module's component_factory method.
-         engineer_scene_component_factory(obj, target, parent, input);
+         engineer_scene_component_factory(obj, target, parent, (Data*)input);
 
          eina_inarray_free(input);
          break;
@@ -714,7 +714,7 @@ _engineer_scene_entity_components_get(Eo *obj, Engineer_Scene_Data *pd EINA_UNUS
 
 EOLIAN static Eina_Bool
 _engineer_scene_component_factory(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
-        ComponentID target, EntityID parent, void *payload)
+        ComponentID target, EntityID parent, Data *payload)
 {
    Eo *node, *module;
    Engineer_Component_Class *class;
@@ -732,7 +732,7 @@ _engineer_scene_component_factory(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
 
 EOLIAN static ComponentID
 _engineer_scene_component_create(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
-        EntityID sender, Engineer_Component_Class *class, EntityID parent, void *payload)
+        EntityID sender, Engineer_Component_Class *class, EntityID parent, Data *payload)
 {
    Eo *node;
    uint64_t newid;
@@ -760,7 +760,7 @@ _engineer_scene_component_attach(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
    class->component_attach(module, target, newparent);
 }
 
-EOLIAN static void *
+EOLIAN static State *
 _engineer_scene_component_state_get(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
         ComponentID target, StateLabel key)
 {
@@ -778,7 +778,7 @@ _engineer_scene_component_state_get(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED
 
 EOLIAN static void
 _engineer_scene_notify_event(Eo *obj, Engineer_Scene_Data *pd, EntityID sender,
-        EntityID reciever, EventID type, void *payload, uint64_t size)
+        EntityID reciever, EventID type, Data *payload, uint64_t size)
 {
    Eina_Inarray *inbox;
    uint64_t     *input;
@@ -831,7 +831,7 @@ _engineer_scene_notify_entity_create(Eo *obj, Engineer_Scene_Data *pd, EntityID 
 
 EOLIAN static void
 _engineer_scene_notify_component_create(Eo *obj, Engineer_Scene_Data *pd, EntityID sender,
-        Engineer_Component_Class *class, ComponentID componentid, EntityID parent, void *payload)
+        Engineer_Component_Class *class, ComponentID componentid, EntityID parent, Data *payload)
 {
    Eina_Inarray *outbox;
    uint64_t type, *input;

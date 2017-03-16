@@ -15,8 +15,7 @@ foreach(MODULE ${MODULES})
    )
 
    target_include_directories(${NAME}
-      PRIVATE ${CMAKE_SOURCE_DIR}/src/lib
-      #PRIVATE ${CMAKE_SOURCE_DIR}/src/modules
+      PRIVATE ${CMAKE_SOURCE_DIR}/src/modules
    )
 
    # Link the external libraries needed to run Engineer.
