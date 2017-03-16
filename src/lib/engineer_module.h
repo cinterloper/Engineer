@@ -137,7 +137,7 @@ EVENTS
 #define entity_create(parent) \
    engineer_scene_notify_entity_create(module, parent, index)
 
-#define componentcreate(class, parent, payload) \
+#define component_create(class, parent, payload) \
    engineer_scene_component_create(efl_parent_get(module), eina_inarray_get(pd->id, index), class, parent, payload)
 
 #define component_search(target, class) \

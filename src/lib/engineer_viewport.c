@@ -143,10 +143,9 @@ _init_gl(Evas_Object *obj)
 
    gl->glGenBuffers(1, &gld->ssbo);
    gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, gld->ssbo);
-   gl->glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(objects), objects, GL_DYNAMIC_COPY);
    gl->glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, gld->ssbo);
+   gl->glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(shader_data) * 4, objects, GL_DYNAMIC_COPY);
    gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
 }
 
 static void
@@ -249,7 +248,7 @@ _draw_gl(Evas_Object *obj)
    gl->glUniform1ui(gld->count_location,          gld->count);
 
    gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, gld->ssbo);
-   gl->glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(objects), objects);
+   gl->glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(shader_data) * gld->count, objects);
    gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
    gl->glBindBuffer(GL_ARRAY_BUFFER, gld->vbo);

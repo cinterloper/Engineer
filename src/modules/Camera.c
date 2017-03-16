@@ -16,6 +16,8 @@ void update(Engineer_Component *data EINA_UNUSED)
    //Vec3 orientation;
    //Vec2 resolution;
    // We also need to get the target resolution from our viewport object.
+   //
+   // For each collider object in the scene, make a list containing them all.
 }
 
 bool event(accelerate, Engineer_Component *data EINA_UNUSED, void *payload EINA_UNUSED, uint64_t size EINA_UNUSED)
