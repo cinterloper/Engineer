@@ -33,7 +33,7 @@ layout (std430, binding = 1) buffer shader_data
 };
 
 uniform vec2  resolution;
-uniform float time;
+uniform uint  count;
 
 out vec4 FragColor;
 
@@ -100,11 +100,11 @@ Collision iPlane(in vec3 ray_origin, in vec3 ray_direction, in Collider pla)
 }
 
 Collision
-intersect(in vec3 ray_origin, in vec3 ray_direction) // in Collider object[4]
+intersect(in vec3 ray_origin, in vec3 ray_direction)
 {
    Collision tests[4];
    int       type;
-   int       count;
+   int       counter;
    bool      selector;
    int       nearest;
    float     draw_distance;
@@ -115,20 +115,20 @@ intersect(in vec3 ray_origin, in vec3 ray_direction) // in Collider object[4]
    interval = draw_distance;
 
    // For each of our objects, run an intersection test.
-   for(count = 0; count < 4; count++)
+   for(counter = 0; counter < int(count); counter++)
    {
-      switch(objects[count].type)
+      switch(objects[counter].type)
       {
          case uint(1): // Sphere Collider.
-            tests[count] = iSphere(ray_origin, ray_direction, objects[count]);
+            tests[counter] = iSphere(ray_origin, ray_direction, objects[counter]);
          break;
 
          case uint(2): // Box Collider.
-            tests[count] = iBox(ray_origin, ray_direction, objects[count]);
+            tests[counter] = iBox(ray_origin, ray_direction, objects[counter]);
          break;
 
          case uint(3): // Plane Collider.
-            tests[count] = iPlane(ray_origin, ray_direction, objects[count]);
+            tests[counter] = iPlane(ray_origin, ray_direction, objects[counter]);
          break;
 
          //case 4: // ***Incoming*** Mass/SVO collider.
@@ -137,12 +137,12 @@ intersect(in vec3 ray_origin, in vec3 ray_direction) // in Collider object[4]
    }
 
    // Since we are presuming everything is 100% opaque, find the nearest collision, if any.
-   for(count = 0; count < 4; count++)
+   for(counter = 0; counter < int(count); counter++)
    {
-      selector = tests[count].distance > 0.0;
-      selector = selector && (tests[count].distance < interval);
-      nearest  = selector ? int(count) : nearest;
-      interval = selector ? tests[count].distance : interval;
+      selector = tests[counter].distance > 0.0;
+      selector = selector && (tests[counter].distance < interval);
+      nearest  = selector ? int(counter) : nearest;
+      interval = selector ? tests[counter].distance : interval;
    }
 
    if(interval == draw_distance) return MISS;

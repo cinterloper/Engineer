@@ -20,10 +20,11 @@ struct _GL_Data
 
    GLuint       objects_location;
    GLuint       resolution_location;
-   GLuint       time_location;
+   GLuint       count_location;
 
-   GLfloat      resolution[2];
    GLfloat      time;
+   GLfloat      resolution[2];
+   GLuint       count;
 };
 
 struct shader_data_t

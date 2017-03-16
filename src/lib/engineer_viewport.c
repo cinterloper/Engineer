@@ -95,7 +95,7 @@ init_shaders(GL_Data *gld)
 
    //gld->objects_location    = gl->glGetUniformLocation(gld->program, "shader_data");
    gld->resolution_location = gl->glGetUniformLocation(gld->program, "resolution");
-   gld->time_location       = gl->glGetUniformLocation(gld->program, "time");
+   gld->count_location      = gl->glGetUniformLocation(gld->program, "count");
 
    if (!linked)
    {
@@ -202,6 +202,8 @@ _draw_gl(Evas_Object *obj)
 
    // Lets set up some test objects to render...
    // 585 = 512 + 64 + 8 + 1
+   gld->count = 4;
+
    objects[0].type        =     1;
    objects[0].location[0] =   0.0 + 8.0 * cos(gld->time);
    objects[0].location[1] =   0.0;
@@ -244,7 +246,7 @@ _draw_gl(Evas_Object *obj)
    gl->glUseProgram(gld->program);
 
    gl->glUniform2fv(gld->resolution_location, 1,  gld->resolution);
-   gl->glUniform1fv(gld->time_location,       1, &gld->time);
+   gl->glUniform1ui(gld->count_location,          gld->count);
 
    gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, gld->ssbo);
    gl->glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(objects), objects);
