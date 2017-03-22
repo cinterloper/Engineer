@@ -11,10 +11,10 @@
    FIELD(bounds,      Vec3)
 
 #define EVENTS \
-   EVENT(move) \
-   EVENT(teleport) \
-   EVENT(rotate) \
-   EVENT(reorient) \
+   EVENT(move,     1) \
+   EVENT(teleport, 1) \
+   EVENT(rotate,   1) \
+   EVENT(reorient, 1) \
 
 #include "Engineer_Module.h"
 

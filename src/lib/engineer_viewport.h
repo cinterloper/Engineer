@@ -3,7 +3,6 @@
 
 #include "Engineer.h"
 #include <math.h>
-//#include <OpenGL/gl.h>
 //#include <elm_widget.h>
 
 typedef struct _GL_Data GL_Data;

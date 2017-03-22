@@ -5,6 +5,7 @@
 
 typedef struct {} Data;
 typedef struct {} State;
+typedef struct {} Payload;
 
 typedef struct
 {
@@ -68,8 +69,8 @@ engineer_scene_new(Eo *parent, const char *name);
 
 Eina_Bool _engineer_scene_iterate_cb(void *obj);
 
-#define NOTIFY(a, b, c) \
-   engineer_scene_entity_notify(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED, a, b, c)
+//#define NOTIFY(a, b, c)
+//   engineer_scene_entity_notify(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED, a, b, c)
 
 #include "engineer_scene.eo.h"
 

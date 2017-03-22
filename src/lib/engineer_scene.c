@@ -348,10 +348,25 @@ _engineer_scene_entity_parent_set(Eo *obj, Engineer_Scene_Data *pd,
 
 EOLIAN static EntityID
 _engineer_scene_entity_parent_get(Eo *obj, Engineer_Scene_Data *pd,
-        EntityID target)
+        EntityID target, uint64_t offset)
 {
    target = engineer_scene_entity_lookup(obj, target);
-   return *(EntityID*)eina_inarray_nth(pd->future->parent, target);
+
+   switch(offset)
+   {
+      case 0:
+         return *(EntityID*)eina_inarray_nth(pd->future->parent, target);
+      break;
+      case 1:
+         return *(EntityID*)eina_inarray_nth(pd->present->parent, target);
+      break;
+      case 2:
+         return *(EntityID*)eina_inarray_nth(pd->past->parent, target);
+      break;
+      default:
+         return ULONG_NULL;
+      break;
+   }
 }
 
 EOLIAN static void
@@ -550,7 +565,7 @@ _engineer_scene_entity_attach(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
 
    targetnext  = engineer_scene_entity_siblingnext_get(obj, target);
    targetprev  = engineer_scene_entity_siblingprev_get(obj, target);
-   oldparent   = engineer_scene_entity_parent_get(obj, target);
+   oldparent   = engineer_scene_entity_parent_get(obj, target, 0);
    firstentity = engineer_scene_entity_firstentity_get(obj, oldparent);
 
    // Check to see if this Entity has it's relationship data defined.
@@ -616,7 +631,7 @@ _engineer_scene_entity_component_search(Eo *obj, Engineer_Scene_Data *pd EINA_UN
    class = engineer_node_component_class_get(node, classid);
 
    module    = engineer_scene_module_get(obj, class);
-   component = class->component_siblingnext_get(module, first);
+   component = class->component_siblingnext_get(module, first, 1);
    while(component != first)
    {
       currentid = engineer_node_component_classid_get(node, component);
@@ -624,7 +639,7 @@ _engineer_scene_entity_component_search(Eo *obj, Engineer_Scene_Data *pd EINA_UN
       class     = engineer_node_component_class_get(node, currentid);
 
       module    = engineer_scene_module_get(obj, class);
-      component = class->component_siblingnext_get(module, component);
+      component = class->component_siblingnext_get(module, component, 1);
    }
    return ULONG_NULL;
 }
@@ -760,6 +775,20 @@ _engineer_scene_component_attach(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
    class->component_attach(module, target, newparent);
 }
 
+EOLIAN static EntityID
+_engineer_scene_component_parent_get(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
+        ComponentID target, uint64_t offset)
+{
+   Eo *node, *module;
+   Engineer_Component_Class *class;
+
+   node   = efl_parent_get(obj);
+   class  = engineer_node_component_class_get(node, target);
+   module = engineer_scene_module_get(obj, class);
+
+   return class->component_parent_get(module, target, offset);
+}
+
 EOLIAN static State *
 _engineer_scene_component_state_get(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
         ComponentID target, StateLabel key)
@@ -777,12 +806,12 @@ _engineer_scene_component_state_get(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED
 /*** Scene Notification Requests ***/
 
 EOLIAN static void
-_engineer_scene_notify_event(Eo *obj, Engineer_Scene_Data *pd, EntityID sender,
-        EntityID reciever, EventID type, Data *payload, uint64_t size)
+_engineer_scene_notify_event(Eo *obj, Engineer_Scene_Data *pd,
+        ComponentID sender, EntityID reciever, EventID type, Payload *payload, uint64_t size)
 {
    Eina_Inarray *inbox;
    uint64_t     *input;
-   uint64_t index, count;
+   uint64_t      index, count;
 
    index = engineer_scene_entity_lookup(obj, reciever);
    inbox = eina_inarray_nth(pd->future->inbox, index);

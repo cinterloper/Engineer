@@ -12,7 +12,6 @@ engineer_module_new(Eo *parent)
 uint64_t
 engineer_module_classid(void)
 {
-   printf("Engineer Module ClassID Check: "STRINGIFY(COMPONENT)".\n");
    return engineer_hash_murmur3(STRINGIFY(COMPONENT), strlen(STRINGIFY(COMPONENT)), 242424);
 }
 
@@ -47,7 +46,7 @@ _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
 
    // Create the Event Enumeration Hash Lookup Table.
    pd->events = eina_hash_int64_new(NULL);
-   #define EVENT(key) \
+   #define EVENT(key, size) \
       hash  = engineer_hash_murmur3(STRINGIFY(key), strlen(STRINGIFY(key)), 242424); \
       index = key##EVENT; \
       eina_hash_add(pd->events, &hash, (uint64_t*)index);
@@ -65,9 +64,9 @@ _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
    {
       frame->name = eina_inarray_new(sizeof(Eina_Stringshare*), 0);
 
-      frame->parent      = eina_inarray_new(sizeof(uint64_t), 0);
-      frame->siblingnext = eina_inarray_new(sizeof(uint64_t), 0);
-      frame->siblingprev = eina_inarray_new(sizeof(uint64_t), 0);
+      frame->parent      = eina_inarray_new(sizeof(EntityID),    0);
+      frame->siblingnext = eina_inarray_new(sizeof(ComponentID), 0);
+      frame->siblingprev = eina_inarray_new(sizeof(ComponentID), 0);
 
       #define FIELD(key, type) \
          type##NEW(&frame->key);
@@ -80,7 +79,7 @@ _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
    pd->present = eina_inarray_nth(pd->buffer, 1);
    pd->past    = eina_inarray_nth(pd->buffer, 2);
 
-   pd->id     = eina_inarray_new(sizeof(uint64_t), 0);
+   pd->id     = eina_inarray_new(sizeof(ComponentID), 0);
    pd->lookup = eina_hash_int64_new(NULL);
 
    return obj;
@@ -95,11 +94,11 @@ _engineer_module_efl_object_destructor(Eo *obj, Engineer_Module_Data *pd EINA_UN
 EOLIAN static Eina_Bool
 _engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
 {
-   printf("Engineer Module Update Checkpoint.\n");
-   printf("Murmur3 Test Hash Output 3: %ld.\n", engineer_module_classid());
+   //printf("Murmur3 Test Hash Output: %ld.\n", engineer_module_classid());
+   printf("Engineer Module Check: "STRINGIFY(COMPONENT)".\n");
    Engineer_Component     buffer;
    Engineer_Module_Frame *frame;
-   uint64_t               index;
+   uint64_t               this, index;
 
    // Cycle the timeline to get to our next frame.
    frame       = pd->past;
@@ -135,6 +134,8 @@ _engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
    uint64_t     *parent;
    EINA_INARRAY_FOREACH(pd->present->parent, parent)
    {
+      this = *(ComponentID*)eina_inarray_nth(pd->id, index);
+
       // Set up our buffer here.
       engineer_module_cache_read(obj, &buffer, index);
 
@@ -142,7 +143,7 @@ _engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
       engineer_module_dispatch(obj, &buffer, inbox);
 
       // Run our modules update() method here.
-      engineer_module_component_update(obj, index, &buffer);
+      engineer_module_component_update(obj, this, index, &buffer);
 
       // Flush our buffer here
       engineer_module_cache_write(obj, &buffer, index);
@@ -152,8 +153,8 @@ _engineer_module_update(Eo *obj, Engineer_Module_Data *pd)
 }
 
 EOLIAN static void
-_engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        Engineer_Component *buffer EINA_UNUSED, Eina_Inarray *inbox EINA_UNUSED)
+_engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
+        Engineer_Component *buffer EINA_UNUSED, Eina_Inarray *inbox)
 {
    uint64_t count, offset, current, event, size;
    Component_Event type;
@@ -167,9 +168,9 @@ _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNU
       size  = *(uint64_t*)eina_inarray_nth(inbox, offset + 2);
       switch(type)
       {
-         #define EVENT(key) \
-            case key##EVENT: \
-            event(key, buffer, eina_inarray_nth(inbox, offset + 3), size); \
+         #define EVENT(key, arraysize) \
+            case key##EVENT:                                            \
+               event(key, buffer, eina_inarray_nth(inbox, offset + 3)); \
             break;
          EVENTS
          #undef EVENT
@@ -232,9 +233,9 @@ _engineer_module_cache_read(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
    printf("Engineer Module Cache Read Checkpoint 1. \n");
    buffer->name = *(char**)eina_inarray_nth(pd->present->name, index);
    printf("Engineer Module Cache Read Checkpoint 2. \n");
-   buffer->parent      = *(uint64_t*)eina_inarray_nth(pd->present->parent,      index);
-   buffer->nextsibling = *(uint64_t*)eina_inarray_nth(pd->present->siblingnext, index);
-   buffer->prevsibling = *(uint64_t*)eina_inarray_nth(pd->present->siblingprev, index);
+   buffer->parent      = *(EntityID*)eina_inarray_nth(pd->present->parent,         index);
+   buffer->nextsibling = *(ComponentID*)eina_inarray_nth(pd->present->siblingnext, index);
+   buffer->prevsibling = *(ComponentID*)eina_inarray_nth(pd->present->siblingprev, index);
    printf("Engineer Module Cache Read Checkpoint 3. \n");
    #define FIELD(key, type) \
       type##READ(&pd->present->key, &buffer->key, index);
@@ -272,10 +273,25 @@ _engineer_module_component_parent_set(Eo *obj, Engineer_Module_Data *pd,
 
 EOLIAN static EntityID
 _engineer_module_component_parent_get(Eo *obj, Engineer_Module_Data *pd,
-        ComponentID target)
+        ComponentID target, uint64_t offset)
 {
    target = engineer_module_component_lookup(obj, target);
-   return *(EntityID*)eina_inarray_nth(pd->future->parent, target);
+
+   switch(offset)
+   {
+      case 0:
+         return *(EntityID*)eina_inarray_nth(pd->future->parent, target);
+      break;
+      case 1:
+         return *(EntityID*)eina_inarray_nth(pd->present->parent, target);
+      break;
+      case 2:
+         return *(EntityID*)eina_inarray_nth(pd->past->parent, target);
+      break;
+      default:
+         return ULONG_NULL;
+      break;
+   }
 }
 
 EOLIAN static void
@@ -288,10 +304,25 @@ _engineer_module_component_siblingnext_set(Eo *obj, Engineer_Module_Data *pd,
 
 EOLIAN static ComponentID
 _engineer_module_component_siblingnext_get(Eo *obj, Engineer_Module_Data *pd,
-        ComponentID target)
+        ComponentID target, uint64_t offset)
 {
    target = engineer_module_component_lookup(obj, target);
-   return *(ComponentID*)eina_inarray_nth(pd->future->siblingnext, target);
+
+   switch(offset)
+   {
+      case 0:
+         return *(ComponentID*)eina_inarray_nth(pd->future->siblingnext, target);
+      break;
+      case 1:
+         return *(ComponentID*)eina_inarray_nth(pd->present->siblingnext, target);
+      break;
+      case 2:
+         return *(ComponentID*)eina_inarray_nth(pd->past->siblingnext, target);
+      break;
+      default:
+         return ULONG_NULL;
+      break;
+   }
 }
 
 EOLIAN static void
@@ -304,10 +335,25 @@ _engineer_module_component_siblingprev_set(Eo *obj, Engineer_Module_Data *pd,
 
 EOLIAN static ComponentID
 _engineer_module_component_siblingprev_get(Eo *obj, Engineer_Module_Data *pd,
-        ComponentID target)
+        ComponentID target, uint64_t offset)
 {
    target = engineer_module_component_lookup(obj, target);
-   return *(ComponentID*)eina_inarray_nth(pd->future->siblingprev, target);
+
+   switch(offset)
+   {
+      case 0:
+         return *(ComponentID*)eina_inarray_nth(pd->future->siblingprev, target);
+      break;
+      case 1:
+         return *(ComponentID*)eina_inarray_nth(pd->present->siblingprev, target);
+      break;
+      case 2:
+         return *(ComponentID*)eina_inarray_nth(pd->past->siblingprev, target);
+      break;
+      default:
+         return ULONG_NULL;
+      break;
+   }
 }
 
 /*** Component Services ***/
@@ -368,9 +414,9 @@ _engineer_module_component_attach(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
 
    if (target == UINT_NULL || newparent == UINT_NULL) return;
 
-   targetnext = engineer_module_component_siblingnext_get(obj, target);
-   targetprev = engineer_module_component_siblingprev_get(obj, target);
-   oldparent  = engineer_module_component_parent_get(obj, target);
+   targetnext = engineer_module_component_siblingnext_get(obj, target, 0);
+   targetprev = engineer_module_component_siblingprev_get(obj, target, 0);
+   oldparent  = engineer_module_component_parent_get(obj, target, 0);
    firstcom   = engineer_scene_entity_firstcomponent_get(scene, oldparent);
 
    // Check to see if this Component has it's relationship data defined.
@@ -385,8 +431,8 @@ _engineer_module_component_attach(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
 
    // Check to see if the old parent has only one child Component.
    // If so, set the firstcomponent entry of the parent to the null stub.
-   if (engineer_module_component_siblingnext_get(obj, firstcom) ==
-       engineer_module_component_siblingprev_get(obj, firstcom)  )
+   if (engineer_module_component_siblingnext_get(obj, firstcom, 0) ==
+       engineer_module_component_siblingprev_get(obj, firstcom, 0)  )
    {
       buffer = UINT_NULL;
       engineer_scene_entity_firstcomponent_set(scene, oldparent, buffer);
@@ -411,13 +457,13 @@ _engineer_module_component_attach(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
    else // add the target Component to the back end of the new parent's components list.
    {
       firstcom   = engineer_scene_entity_firstcomponent_get(scene, newparent);
-      targetnext = engineer_module_component_siblingnext_get(obj, firstcom);
-      targetprev = engineer_module_component_siblingprev_get(obj, firstcom);
+      targetnext = engineer_module_component_siblingnext_get(obj, firstcom, 0);
+      targetprev = engineer_module_component_siblingprev_get(obj, firstcom, 0);
 
       engineer_module_component_siblingnext_set(obj, target,
-         engineer_module_component_siblingnext_get(obj, targetprev));
+         engineer_module_component_siblingnext_get(obj, targetprev, 0));
       engineer_module_component_siblingprev_set(obj, target,
-         engineer_module_component_siblingprev_get(obj, targetnext));
+         engineer_module_component_siblingprev_get(obj, targetnext, 0));
 
       engineer_module_component_siblingnext_set(obj, targetprev, target);
       engineer_module_component_siblingprev_set(obj, targetnext, target);
@@ -461,6 +507,24 @@ _engineer_module_component_state_get(Eo *obj, Engineer_Module_Data *pd,
       return result;
    }
    else return engineer_scene_component_state_get(scene, target, key);
+}
+
+EOLIAN static uint64_t
+_engineer_module_event_sizeof(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        EventID event)
+{
+   uint64_t result = 0;
+
+   switch(event)
+   {
+      #define EVENT(key, size) \
+         case key##EVENT:      \
+            result = size;     \
+         break;
+      EVENTS
+      #undef EVENT
+   }
+   return result;
 }
 
 #include "engineer_module.eo.c"

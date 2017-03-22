@@ -128,17 +128,9 @@ class Engineer.Module(Efl.Object)
          params
          {
             @in target: ComponentID;
+            @in offset: uint64;
          }
          return: EntityID;
-      }
-
-      component_siblingnext_get
-      {
-         params
-         {
-            @in target: ComponentID;
-         }
-         return: ComponentID;
       }
 
       component_siblingnext_set
@@ -150,11 +142,12 @@ class Engineer.Module(Efl.Object)
          }
       }
 
-      component_siblingprev_get
+      component_siblingnext_get
       {
          params
          {
             @in target: ComponentID;
+            @in offset: uint64;
          }
          return: ComponentID;
       }
@@ -168,6 +161,16 @@ class Engineer.Module(Efl.Object)
          }
       }
 
+      component_siblingprev_get
+      {
+         params
+         {
+            @in target: ComponentID;
+            @in offset: uint64;
+         }
+         return: ComponentID;
+      }
+
       component_state_get
       {
          params
@@ -176,6 +179,15 @@ class Engineer.Module(Efl.Object)
             @in key:    StateLabel;
          }
          return: void_ptr;
+      }
+
+      event_sizeof
+      {
+         params
+         {
+            @in type: EventID;
+         }
+         return: uint64;
       }
    }
 

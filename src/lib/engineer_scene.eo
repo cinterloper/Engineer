@@ -1,5 +1,6 @@
-struct @extern Data  {}
-struct @extern State {}
+struct @extern Data    {}
+struct @extern State   {}
+struct @extern Payload {}
 
 struct @extern Engineer_Component_Class {}
 struct @extern Engineer_Entity_History  {}
@@ -154,6 +155,7 @@ class Engineer.Scene(Efl.Object)
          params
          {
             @in target: EntityID;
+            @in offset: uint64;
          }
          return: EntityID;
       }
@@ -280,6 +282,16 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
+      component_parent_get
+      {
+         params
+         {
+            @in target: ComponentID;
+            @in offset: uint64;
+         }
+         return: EntityID;
+      }
+
       component_state_get
       {
          params
@@ -294,10 +306,10 @@ class Engineer.Scene(Efl.Object)
       {
          params
          {
-            @in sender:   EntityID;
+            @in sender:   ComponentID;
+            @in reciever: EntityID;
             @in type:     EventID;
-            @in entityid: EntityID;
-            @in payload:  ptr(Data);
+            @in payload:  ptr(Payload);
             @in size:     uint64;
          }
       }

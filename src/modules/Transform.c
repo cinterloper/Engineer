@@ -15,7 +15,7 @@ void update(Engineer_Component *data EINA_UNUSED)
 {
 }
 
-bool event(move, Engineer_Component *data, void *payload, uint64_t size EINA_UNUSED)
+bool event(move, Engineer_Component *data, void *payload)
 {
   Vec3 position;
 
@@ -35,7 +35,7 @@ bool event(move, Engineer_Component *data, void *payload, uint64_t size EINA_UNU
   }
 }
 
-bool event(teleport, Engineer_Component *data, void *payload, uint64_t size EINA_UNUSED)
+bool event(teleport, Engineer_Component *data, void *payload)
 {
    Vec3 position;
 
@@ -57,12 +57,12 @@ bool event(teleport, Engineer_Component *data, void *payload, uint64_t size EINA
    }
 }
 
-bool event(rotate, Engineer_Component *data EINA_UNUSED, void *payload EINA_UNUSED, uint64_t size EINA_UNUSED)
+bool event(rotate, Engineer_Component *data EINA_UNUSED, void *payload EINA_UNUSED)
 {
    return EINA_FALSE;
 }
 
-bool event(reorient, Engineer_Component *data EINA_UNUSED, void *payload EINA_UNUSED, uint64_t size EINA_UNUSED)
+bool event(reorient, Engineer_Component *data EINA_UNUSED, void *payload EINA_UNUSED)
 {
    return EINA_FALSE;
 }

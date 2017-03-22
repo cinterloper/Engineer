@@ -26,7 +26,7 @@ Component_State;
 typedef enum
 {
    nullEVENT
-   #define EVENT(key) ,key##EVENT
+   #define EVENT(key, size) ,key##EVENT
    EVENTS
    #undef EVENT
 }
@@ -93,12 +93,15 @@ Engineer_Module_Data;
 Eo*      engineer_module_new(Eo *parent);
 uint64_t engineer_module_classid(void);
 
-void engineer_module_component_awake(Eo *module, uint64_t index, Engineer_Component *data);
-void engineer_module_component_start(Eo *module, uint64_t index, Engineer_Component *data);
-void engineer_module_component_update(Eo *module, uint64_t index, Engineer_Component *data);
+void engineer_module_component_awake(Eo *module,
+   ComponentID this, uint64_t index, Engineer_Component *data);
+void engineer_module_component_start(Eo *module,
+   ComponentID this, uint64_t index, Engineer_Component *data);
+void engineer_module_component_update(Eo *module,
+   ComponentID this, uint64_t index, Engineer_Component *data);
 
-#define EVENT(key) \
-   bool engineer_module_component_event_##key(Engineer_Component *data, void *note, uint64_t size);
+#define EVENT(key, unused) \
+   bool engineer_module_component_event_##key(Engineer_Component *data, void *note); //, uint64_t size)
 EVENTS
 #undef EVENT
 

@@ -36,7 +36,7 @@ extern "C" {
 
 #define PROJECT Engineer
 
-#define bool Eina_Bool
+//#define bool Eina_Bool
 
 #include <Ecore_Getopt.h>
 #include <Elementary.h>

@@ -49,7 +49,7 @@ void update(Engineer_Component *data EINA_UNUSED)
    */
 }
 
-bool event(accelerate, Engineer_Component *data EINA_UNUSED, void *payload, uint64_t size EINA_UNUSED)
+bool event(accelerate, Engineer_Component *data EINA_UNUSED, void *payload)
 {
    Vec3 force EINA_UNUSED = *(Vec3*)payload;
    /*

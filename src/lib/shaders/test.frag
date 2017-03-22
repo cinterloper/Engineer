@@ -4,7 +4,8 @@
 precision highp float;
 #endif
 
-#define MISS Collision(-1, -1.0, vec3(0.0, 0.0, 0.0))
+#define MISS   Collision(-1, -1.0, vec3(0.0, 0.0, 0.0))
+#define ORIGIN vec3(0.0, 0.0, 0.0);
 
 struct Collider
 {
@@ -161,7 +162,7 @@ void main(void)
 
    // We generate a ray with origin ro and direction rd.
    vec2 aspect_ratio  = vec2(1.78, 1.0);
-   vec3 ray_origin    = vec3(0.0, 0.0, 0.0);
+   vec3 ray_origin    = ORIGIN;
    vec3 ray_direction = normalize(vec3((-1.0+2.0*uv) * aspect_ratio, -1.0));
 
    // We intersect the ray with the 3d scene.

@@ -5,6 +5,9 @@
 #include <Elementary.h>
 #include "type/sclr.h"
 
+typedef Eina_Bool   bool;
+
+typedef const char* String;
 typedef const char* ClassLabel;
 typedef const char* StateLabel;
 typedef const char* EventLabel;
@@ -28,15 +31,15 @@ typedef struct
    void
    (*component_parent_set)(Eo *module, ComponentID target, EntityID newparent);
    EntityID
-   (*component_parent_get)(Eo *module, ComponentID target);
+   (*component_parent_get)(Eo *module, ComponentID target, uint64_t offset);
    void
    (*component_siblingnext_set)(Eo *module, ComponentID target, ComponentID newsibling);
    ComponentID
-   (*component_siblingnext_get)(Eo *module, ComponentID target);
+   (*component_siblingnext_get)(Eo *module, ComponentID target, uint64_t offset);
    void
    (*component_siblingprev_set)(Eo *module, ComponentID target, ComponentID newsibling);
    ComponentID
-   (*component_siblingprev_get)(Eo *module, ComponentID target);
+   (*component_siblingprev_get)(Eo *module, ComponentID target, uint64_t offset);
 
    // Component Services.
    Eina_Bool

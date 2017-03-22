@@ -11,8 +11,8 @@
    FIELD(angular_momentum, Vec3)
 
 #define EVENTS \
-   EVENT(force) \
-   EVENT(twist)
+   EVENT(force, 1) \
+   EVENT(twist, 1)
 
 #include "Engineer_Module.h"
 

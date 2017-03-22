@@ -95,17 +95,17 @@ engineer_render_test_game_init(Eo *root)
 
    // Load our component modules here.
    engineer_node_module_load(node, "Transform");
+   engineer_node_module_load(node, "Camera");
    // engineer_node_module_load(node, "Collider");
    // engineer_node_module_load(node, "Actor");
-   // engineer_node_module_load(node, "Camera");
+
 
    Eo *scene EINA_UNUSED = engineer_scene_new(node, "engrendertest");
 
-   //uint root, camera, sphere;
-   //root = engineer_scene_entity_create(scene, (uint)0, "Root");
+   //uint camera, sphere;
+   //camera = engineer_scene_entity_create(scene, (uint)0, (uint)0);
 
-   //camera = engineer_scene_entity_create(scene, root, "Camera");
-   // After the camera is made, attach it to the viewport Eo.
+   // After the camera is made, attach the viewport Eo to it.
 
    //sphere = engineer_scene_entity_create(scene, root, "Sphere");
 
