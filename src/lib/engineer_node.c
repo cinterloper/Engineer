@@ -48,11 +48,12 @@ _engineer_node_efl_object_finalize(Eo *obj, Engineer_Node_Data *pd)
    pd->componentclass  = eina_hash_int64_new(NULL);
 
    printf("Finalize Path: %s, Title: %s\n", pd->path, pd->game);
+   printf("Active Threads Test: %d\n", ecore_thread_available_get());
 
    // Set up our path var.  Usually /opt/$GAMENAME.
    //Eina_Stringshare *gamepath = eina_stringshare_printf("%s/%s/", pd->path, pd->title);
 
-   printf("Game Module Checkpoint.\n");
+   //printf("Game Module Checkpoint.\n\n");
 
    // Load any registered modules automatically.
 
@@ -134,13 +135,9 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    Eina_Stringshare *file = eina_stringshare_printf("../lib/lib%s.so", symbol);
    if(!ecore_file_exists(file)) {eina_stringshare_del(file); return ULONG_NULL;}
 
-   printf("Node Module Class Load Checkpoint 1. File:    %s\n", file);
-
    // Check to see if the module class is already registered.
    uint64_t *test = eina_hash_find(pd->classes, &classid);
    if(test != NULL) return *test;
-
-   printf("Node Module Class Load Checkpoint 2. ClassId: %"PRId64"\n", classid);
 
    // Create our eina_module reference handle.
    class->eina = eina_module_new(file);
@@ -215,8 +212,7 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    class->id = classid;
    eina_hash_add(pd->classes, &classid, class);
 
-   printf("Node Module Class Load Checkpoint 3.\n");
-
+   printf("Module Loaded. | ClassId: %"PRId64" | File: %s\n", classid, file);
    return classid;
 }
 /*

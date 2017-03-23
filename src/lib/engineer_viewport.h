@@ -36,8 +36,8 @@ struct shader_data_t
 
 typedef struct
 {
-   uint alpha;
-   uint camera;
+   uint        alpha;
+   ComponentID camera;
 }
 Engineer_Viewport_Data;
 

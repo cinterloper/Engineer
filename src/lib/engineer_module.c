@@ -31,9 +31,8 @@ _engineer_module_efl_object_finalize(Eo *obj, Engineer_Module_Data *pd)
    static const
    Engineer_Module_Frame  blank;
    Engineer_Module_Frame *frame;
-   Engineer_Component     eventid EINA_UNUSED;
-   uint64_t               hash    EINA_UNUSED;
-   uint64_t               index   EINA_UNUSED;
+   uint64_t               hash  EINA_UNUSED;
+   uint64_t               index EINA_UNUSED;
 
    // Create the State Field Enumeration Hash Lookup Table.
    pd->fields = eina_hash_int64_new(NULL);
@@ -181,38 +180,6 @@ _engineer_module_dispatch(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
    }
 }
 
-/*** Module Notification Wrappers ***/
-/*
-EOLIAN static void
-_engineer_module_notify_event(Eo *obj, Engineer_Module_Data *pd,
-        EntityID target, EntityID sender, EventLabel *type, void *payload, uint64_t size)
-{
-   Eo *scene;
-   uint64_t eventid;
-
-   scene   = efl_parent_get(obj);
-   sender  = *(uint64_t*)eina_inarray_nth(pd->id, sender);
-   eventid = engineer_hash_murmur3(type, strlen(type), 242424);
-   engineer_scene_notify_event(scene, target, sender, eventid, payload, size);
-}
-
-EOLIAN static EntityID
-_engineer_module_notify_entity_create(Eo *obj, Engineer_Module_Data *pd,
-        EntityID parent, Index senderindex)
-{
-   Eo *scene = efl_parent_get(obj);
-   Eo *node  = efl_parent_get(scene);
-   uint64_t senderid, entityid;
-
-   senderid = *(EntityID*)eina_inarray_nth(pd->future->parent, senderindex);
-   entityid = engineer_node_entity_id_use(node);
-
-   engineer_scene_entity_create(scene, senderid, entityid, parent);
-
-   return entityid;
-}
-
-*/
 /*** Module Cache Access Methods ***/
 
 EOLIAN static uint64_t
@@ -398,7 +365,7 @@ _engineer_module_component_factory(Eo *obj, Engineer_Module_Data *pd,
 
 EOLIAN static ComponentID
 _engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
-        EntityID sender, Engineer_Component_Class *class, EntityID parent, void *payload)
+        EntityID sender, ClassLabel class, EntityID parent, void *payload)
 {
    Eo *scene = efl_parent_get(obj);
 

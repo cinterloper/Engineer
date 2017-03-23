@@ -56,7 +56,7 @@ elm_main(int argc, char **argv)
 
    Eo *window   = engineer_render_test_window_init();
    Eo *viewport EINA_UNUSED = engineer_render_test_viewport_init(window);
-   engineer_render_test_game_init(window);
+   engineer_render_test_game_init(window, viewport);
 
    //engineer_run();
 
@@ -87,23 +87,25 @@ engineer_render_test_window_init()
 }
 
 void
-engineer_render_test_game_init(Eo *root)
+engineer_render_test_game_init(Eo *root, Eo *viewport EINA_UNUSED)
 {
    Eo *node = engineer_node_new(root,
                  "/home/brokenshakles/Projects/SoftwareEngines/Engineer/build",
                  "Engineer_Render_Test");
 
    // Load our component modules here.
+   printf("\nModule Load Checkpoint.\n");
    engineer_node_module_load(node, "Transform");
    engineer_node_module_load(node, "Camera");
    // engineer_node_module_load(node, "Collider");
    // engineer_node_module_load(node, "Actor");
 
 
-   Eo *scene EINA_UNUSED = engineer_scene_new(node, "engrendertest");
+   Eo *scene EINA_UNUSED = engineer_scene_new(node, "Engineer Render Test");
 
-   //uint camera, sphere;
-   //camera = engineer_scene_entity_create(scene, (uint)0, (uint)0);
+   uint camera EINA_UNUSED, sphere EINA_UNUSED;
+   camera = engineer_scene_entity_create(scene, (uint)0, (uint)0);
+   //engineer_scene_component_create(scene, (uint)0, "Camera", camera, NULL);
 
    // After the camera is made, attach the viewport Eo to it.
 

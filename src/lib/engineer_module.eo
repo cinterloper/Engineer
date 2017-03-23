@@ -89,7 +89,7 @@ class Engineer.Module(Efl.Object)
          params
          {
             @in sender:  EntityID;
-            @in class:   ptr(Engineer_Component_Class);
+            @in class:   ClassLabel;
             @in parent:  EntityID;
             @in payload: void_ptr;
          }

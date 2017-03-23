@@ -132,6 +132,24 @@ class Engineer.Scene(Efl.Object)
          return: ComponentID;
       }
 
+      entity_index_set
+      {
+         params
+         {
+            @in entityid: EntityID;
+            @in index:    Index;
+         }
+      }
+
+      entity_index_get
+      {
+         params
+         {
+            @in target: EntityID;
+         }
+         return: Index;
+      }
+
       entity_lookup
       {
          params
@@ -266,7 +284,7 @@ class Engineer.Scene(Efl.Object)
          params
          {
             @in sender:  EntityID;
-            @in class:   ptr(Engineer_Component_Class);
+            @in class:   ClassLabel;
             @in parent:  EntityID;
             @in payload: ptr(Data);
          }

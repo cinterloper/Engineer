@@ -24,6 +24,6 @@ Eo *
 engineer_render_test_viewport_init(Eo *window);
 
 void
-engineer_render_test_game_init(Eo *root);
+engineer_render_test_game_init(Eo *root, Eo *viewport);
 
 #endif
