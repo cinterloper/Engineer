@@ -898,19 +898,25 @@ _engineer_scene_notify_component_create(Eo *obj, Engineer_Scene_Data *pd, Entity
         Engineer_Component_Class *class, ComponentID componentid, EntityID parent, Data *payload)
 {
    Eina_Inarray *outbox;
-   uint64_t type, *input;
+   uint64_t empty, type, *input;
    uint32_t index, count;
 
+   empty  = 0;
    index  = engineer_scene_entity_lookup(obj, componentid);
-   outbox = eina_inarray_nth(pd->future->outbox, index);
+   outbox = *(Eina_Inarray**)eina_inarray_nth(pd->future->outbox, index);
 
    eina_inarray_push(outbox, &sender);
    eina_inarray_push(outbox, &type);
    eina_inarray_push(outbox, &class->id);
    eina_inarray_push(outbox, &componentid);
    eina_inarray_push(outbox, &parent);
-   for (count = 0; count < class->size; count ++)
-      eina_inarray_push(outbox, payload + (count << 3));
+
+   if(payload != NULL)
+   for (count = 0; count < class->size; count++)
+      eina_inarray_push(outbox, payload + (count * 8));
+   else
+   for (count = 0; count < class->size; count++)
+      eina_inarray_push(outbox, &empty);
 
    input = eina_inarray_nth(outbox, 0);
    *input += 1;
