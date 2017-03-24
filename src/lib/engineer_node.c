@@ -151,35 +151,31 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    class->module_update = eina_module_symbol_get(class->eina, "engineer_module_update");
    if(class->module_update == NULL) RETURN;
 
+   class->cache_sizeof = eina_module_symbol_get(class->eina,
+                                 "engineer_module_cache_sizeof");
+   if(class->cache_sizeof == NULL) RETURN;
 
    class->component_lookup     = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_lookup");
    if(class->component_lookup == NULL) RETURN;
-
    class->component_parent_set = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_parent_set");
    if(class->component_parent_set == NULL) RETURN;
-
    class->component_parent_get = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_parent_get");
    if(class->component_parent_get == NULL) RETURN;
-
    class->component_siblingnext_set = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_siblingnext_set");
    if(class->component_siblingnext_set  == NULL) RETURN;
-
    class->component_siblingnext_get = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_siblingnext_get");
    if(class->component_siblingnext_get  == NULL) RETURN;
-
    class->component_siblingprev_set = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_siblingprev_set");
    if(class->component_siblingprev_set  == NULL) RETURN;
-
    class->component_siblingprev_get = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_siblingprev_get");
    if(class->component_siblingprev_get  == NULL) RETURN;
-
 
    class->component_factory = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_factory");

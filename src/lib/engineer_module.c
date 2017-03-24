@@ -332,11 +332,16 @@ _engineer_module_component_factory(Eo *obj, Engineer_Module_Data *pd,
    Engineer_Module_Frame *frame;
    Index                  index;
 
+   //if(template == NULL)
+   //{
+   //   uint64_t payload[engineer_module_cache_sizeof(obj)];
+   //   template = (Engineer_Component*)payload;
+   //}
+
    if(engineer_module_component_lookup(obj, newid) == UINT_NULL)
    {
       //eina_inarray_push(pd->history, eina_inarray_new(sizeof(uint64_t), 0));
-      eina_inarray_push(pd->id, &newid);
-      index = eina_inarray_count(pd->id) - 1;
+      index = eina_inarray_push(pd->id, &newid);
       eina_hash_add(pd->lookup, &newid, (void*)index);
 
       template->name = eina_stringshare_printf("%s", template->name);
@@ -353,6 +358,13 @@ _engineer_module_component_factory(Eo *obj, Engineer_Module_Data *pd,
          #undef FIELD
       }
       engineer_module_component_attach(obj, newid, parent);
+      engineer_module_component_awake(obj, newid, index, template);
+
+      // Write our awake() processed template data to the future frame.
+      #define FIELD(key, type) \
+         type##WRITE(&pd->future->key, &template->key, index);
+      STATE
+      #undef FIELD
 
       printf("Component Create Checkpoint. CID: %ld, Parent: %ld, NextSib: %ld, PrevSib: %ld, Name: %s\n",
          newid, parent, newid, newid, template->name);

@@ -125,14 +125,16 @@ EOLIAN static Eo *
 _engineer_scene_module_get(Eo *obj EINA_UNUSED, Engineer_Scene_Data *pd,
         Engineer_Component_Class *class)
 {
-   return eina_hash_find(pd->modules, (void*)class->id);
+   return eina_hash_find(pd->modules, &class->id);
 }
 
 EOLIAN static Eina_Bool
 _engineer_scene_module_new(Eo *obj, Engineer_Scene_Data *pd,
         Engineer_Component_Class *class)
 {
-   eina_hash_add(pd->modules, &class->id, class->module_new(obj));
+   Eo *module = class->module_new(obj);
+   eina_hash_add(pd->modules, &class->id, module);
+   class->size = class->cache_sizeof(module);
 
    return EINA_TRUE;
 }
@@ -261,22 +263,21 @@ EOLIAN static void
 _engineer_scene_dispatch(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
         Eina_Inarray *outbox)
 {
-   uint64_t count, offset, current, type, size, target, parent;
+   uint64_t total, count, offset, current, type, size, target, parent;
 
    Engineer_Component_Class *class;
    Eina_Inarray *input;
 
-   count  = *(uint64_t*)eina_inarray_nth(outbox, 0);
+   total  = *(uint64_t*)eina_inarray_nth(outbox, 0);
    offset = 1;
-   for(current = 0; current < count; current++)
+   for(current = 0; current < total; current++)
    {
-      printf("Dispatch Checkpoint | Count: %ld | Current: %ld\n", count, current);
+      printf("Dispatch Checkpoint | Total: %ld | Current: %ld\n", total, current);
 
       type = (*(uint64_t*)eina_inarray_nth(outbox, offset + 1));
       switch(type)
       {
          case 0: // Respond by creating an Entity and attaching it to a parent Entity.
-         //printf("Entity Creation Notice Dispatched.\n");
          target = *(uint64_t*)eina_inarray_nth(outbox, offset + 2);
          parent = *(uint64_t*)eina_inarray_nth(outbox, offset + 3);
 
@@ -284,15 +285,16 @@ _engineer_scene_dispatch(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
 
          engineer_scene_entity_factory(obj, target, parent);
 
+         printf("Entity Creation Notice Dispatched.\n");
          break;
 
          case 1: // Respond by creating a Component and attaching it to a parent Entity.
-         //printf("Component Creation Notice Dispatched.\n");
          target = *(ComponentID*)eina_inarray_nth(outbox, offset + 3);
          parent = *(EntityID*)eina_inarray_nth(outbox, offset + 4);
 
          class  = engineer_node_component_class_get(efl_parent_get(obj), target);
-         size   = class->size;
+
+         size   = 5 + class->size;
 
          // Push our resident notice payload to the input buffer.
          input  =  eina_inarray_new(sizeof(uint64_t), class->size);
@@ -300,9 +302,11 @@ _engineer_scene_dispatch(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
             eina_inarray_push(input, eina_inarray_nth(outbox, offset + 5 + count));
 
          // Invoke our module's component_factory method.
-         engineer_scene_component_factory(obj, target, parent, (Data*)input);
+         engineer_scene_component_factory(obj, target, parent, (Data*)eina_inarray_nth(input, 0));
 
          eina_inarray_free(input);
+
+         printf("Component Creation Notice Dispatched.\n");
          break;
          /*
          case 2: // Request to Reattach an Entity to a new parent Entity.
@@ -480,6 +484,8 @@ EOLIAN static Eina_Bool
 _engineer_scene_entity_factory(Eo *obj, Engineer_Scene_Data *pd,
         EntityID newid, EntityID parent)
 {
+
+
    Engineer_Scene_Frame *frame;
    Eina_Inarray         *box;
    Index                 index;
@@ -902,7 +908,8 @@ _engineer_scene_notify_component_create(Eo *obj, Engineer_Scene_Data *pd, Entity
    uint32_t index, count;
 
    empty  = 0;
-   index  = engineer_scene_entity_lookup(obj, componentid);
+   type   = 1;
+   index  = engineer_scene_entity_index_get(obj, sender);
    outbox = *(Eina_Inarray**)eina_inarray_nth(pd->future->outbox, index);
 
    eina_inarray_push(outbox, &sender);

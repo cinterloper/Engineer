@@ -1,9 +1,7 @@
 #include "Camera.h"
 
-void awake(Engineer_Component *data EINA_UNUSED)
+void awake(Engineer_Component *data)
 {
-   // Store our viewport if it was submitted in the template.
-
    // Get the address of our Transform.
    EntityID    parent    = component_parent_get(this);
    ComponentID transform = entity_search(parent, "Transform");
@@ -12,8 +10,6 @@ void awake(Engineer_Component *data EINA_UNUSED)
    {
       data->transformid = transform;
    }
-
-   //entity_notify(parent, "viewport_attach", );
 }
 
 void start(Engineer_Component *data EINA_UNUSED)
@@ -21,12 +17,13 @@ void start(Engineer_Component *data EINA_UNUSED)
 
 }
 
-void update(Engineer_Component *data EINA_UNUSED)
+void update(Engineer_Component *data)
 {
    // First check to see if we have an attached viewport to export to, if not, skip this update.
    if(data->viewport != 0)
    {
-      //Vec3 position; // need to get our position from our entity transform.
+      // Get our camera scenespace position from our Entity Transform Position.
+      Vec3 *position EINA_UNUSED = (Vec3*)component_query(data->transformid, "Position");
 
       // For each collider object in the scene, make a list containing them all.
       // be sure to convert from worldspace co-ords to cameraspace co-ords

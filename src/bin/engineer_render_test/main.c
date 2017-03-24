@@ -87,11 +87,14 @@ engineer_render_test_window_init()
 }
 
 void
-engineer_render_test_game_init(Eo *root, Eo *viewport EINA_UNUSED)
+engineer_render_test_game_init(Eo *root, Eo *viewport)
 {
-   Eo *node = engineer_node_new(root,
+   Eo *scene, *node = engineer_node_new(root,
                  "/home/brokenshakles/Projects/SoftwareEngines/Engineer/build",
                  "Engineer_Render_Test");
+
+   uint64_t sceneroot EINA_UNUSED, camera, cameratransform EINA_UNUSED, cameradata[8];
+   uint64_t sphere EINA_UNUSED, cameracomponent EINA_UNUSED;
 
    // Load our component modules here.
    printf("\nModule Load Checkpoint.\n");
@@ -100,18 +103,25 @@ engineer_render_test_game_init(Eo *root, Eo *viewport EINA_UNUSED)
    //engineer_node_module_load(node, "Collider");
    //engineer_node_module_load(node, "Actor");
 
-   Eo *scene EINA_UNUSED = engineer_scene_new(node, "Engineer Render Test");
+   scene = engineer_scene_new(node, "Engineer Render Test");
+   sceneroot = (uint)0;
 
-   uint camera EINA_UNUSED, sphere EINA_UNUSED;
-   camera = engineer_scene_entity_create(scene, (uint)0, (uint)0);
-   engineer_scene_component_create(scene, (uint)0, "Camera", camera, NULL);
+   cameradata[0] = (uint64_t)viewport;
 
-   // After the camera is made, attach the viewport Eo to it.
+   camera          = engineer_scene_entity_create(scene, (uint)0, (uint)0);
+   cameratransform = engineer_scene_component_create(scene, (uint)0, "Transform", camera, NULL);
+   cameracomponent = engineer_scene_component_create(scene, (uint)0, "Camera",    camera, (Data*)cameradata);
 
-   //sphere1 = engineer_scene_entity_create(scene, root, "Sphere");
-   //sphere2 = engineer_scene_entity_create(scene, root, "Sphere");
-   //box1    = engineer_scene_entity_create(scene, root, "Sphere");
-   //plane1  = engineer_scene_entity_create(scene, root, "Sphere");
+   //sphere1          = engineer_scene_entity_create(scene, (uint)0, (uint)0);
+   //sphere1transform = engineer_scene_component_create(scene, (uint)0, "Transform", sphere1, NULL);
+   //sphere1collider  = engineer_scene_component_create(scene, (uint)0, "Collider", sphere1, NULL);
+   //
+   //sphere2          = engineer_scene_entity_create(scene, (uint)0, (uint)0);
+   //sphere2transform = engineer_scene_component_create(scene, (uint)0, "Transform", sphere2, NULL);
+   //sphere2collider  = engineer_scene_component_create(scene, (uint)0, "Collider", sphere2, NULL);
+   //
+   //box1            = engineer_scene_entity_create(scene, root, "Sphere");
+   //plane1          = engineer_scene_entity_create(scene, root, "Sphere");
 
    //engineer_node_file_save(node);
 }

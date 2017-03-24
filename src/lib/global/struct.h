@@ -25,6 +25,10 @@ typedef struct
    Eina_Bool
    (*module_update)(Eo *module);
 
+   // Cache Utility API
+   uint64_t
+   (*cache_sizeof)(Eo *module);
+
    // Component Metadata getters/setters.
    Index
    (*component_lookup)(Eo *module, ComponentID componentid);
