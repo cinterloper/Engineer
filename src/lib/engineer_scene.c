@@ -312,7 +312,11 @@ _engineer_scene_dispatch(Eo *obj, Engineer_Scene_Data *pd EINA_UNUSED,
          eina_inarray_push(input, &zero);
          eina_inarray_push(input, &zero);
          for(count = 0; count < class->size; count++)
+         {
             eina_inarray_push(input, eina_inarray_nth(outbox, offset + 5 + count));
+            printf("Payload Push Checkpoint.\n");
+            printf("Payload Push Check Count: %ld, Input: %ld\n", count, *(uint64_t*)eina_inarray_nth(outbox, offset + 5 + count));
+         }
 
          // Invoke our module's component_factory method.
          engineer_scene_component_factory(obj, target, parent, (Data*)eina_inarray_nth(input, 0));
@@ -993,6 +997,7 @@ _engineer_scene_notify_component_create(Eo *obj, Engineer_Scene_Data *pd, Entity
    Eina_Inarray *outbox;
    uint64_t empty, type, *input, index;
    uint32_t count;
+   uint64_t *payload2 = (uint64_t*)payload;
 
    empty  = 0;
    type   = 1;
@@ -1007,10 +1012,7 @@ _engineer_scene_notify_component_create(Eo *obj, Engineer_Scene_Data *pd, Entity
 
    if(payload != NULL)
    for (count = 0; count < class->size; count++)
-   {
-      eina_inarray_push(outbox, payload);
-      payload += 8;
-   }
+      eina_inarray_push(outbox, payload2 + count);
    else
    for (count = 0; count < class->size; count++)
       eina_inarray_push(outbox, &empty);

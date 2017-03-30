@@ -210,8 +210,6 @@ _draw_gl(Evas_Object *obj)
    if(gld->time > (2 * 3.141592653589793238462643383)) gld->time = 0;
    gld->time += (float)1/30;
 
-   gld->count = 4;
-
    objects[0].type        =     1;
    objects[0].location[0] =   0.0 + 8.0 * cos(gld->time);
    objects[0].location[1] =   0.0;
@@ -220,33 +218,6 @@ _draw_gl(Evas_Object *obj)
    objects[0].color[0]    =   0.0;
    objects[0].color[1]    =   1.0;
    objects[0].color[2]    =   1.0;
-
-   objects[1].type        =     1;
-   objects[1].location[0] =   0.0;
-   objects[1].location[1] =   4.0;
-   objects[1].location[2] = -12.0;
-   objects[1].size        =   1.0;
-   objects[1].color[0]    =   0.0;
-   objects[1].color[1]    =   0.0;
-   objects[1].color[2]    =   1.0;
-
-   objects[2].type        =     2;
-   objects[2].location[0] =   0.0;
-   objects[2].location[1] =   0.0;
-   objects[2].location[2] = -12.0;
-   objects[2].size        =   1.0;
-   objects[2].color[0]    =   0.0;
-   objects[2].color[1]    =   1.0;
-   objects[2].color[2]    =   0.0;
-
-   objects[3].type        =     3;
-   objects[3].location[0] =   0.0;
-   objects[3].location[1] = - 4.0;
-   objects[3].location[2] = -12.0;
-   objects[3].size        =   1.0;
-   objects[3].color[0]    =   1.0;
-   objects[3].color[1]    =   0.8;
-   objects[3].color[2]    =   0.6;
 */
    // Draw a Triangle
    gl->glEnable(GL_BLEND);
