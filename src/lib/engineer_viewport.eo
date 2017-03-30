@@ -1,3 +1,5 @@
+struct @extern Vec3 {}
+
 class Engineer.Viewport(Efl.Object)
 {
    implements
@@ -29,6 +31,29 @@ class Engineer.Viewport(Efl.Object)
          }
       }
 
+      camera_position_set
+      {
+         params
+         {
+            @in position: ptr(Vec3);
+         }
+      }
+
+      render
+      {
+      }
+
+      object_flush
+      {
+      }
+
+      object_push
+      {
+         params
+         {
+            @in payload: void_ptr;
+         }
+      }
    }
 
 }

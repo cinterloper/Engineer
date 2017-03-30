@@ -3,7 +3,10 @@
 
 #include "Engineer.h"
 
-//#define STATE
+#define STATE          \
+   FIELD(bounds, Vec3) \
+   FIELD(shape,  Sclr) \
+   FIELD(color,  Sclr)
 
 //#define EVENTS
 

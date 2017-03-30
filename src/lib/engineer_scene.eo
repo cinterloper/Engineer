@@ -150,15 +150,6 @@ class Engineer.Scene(Efl.Object)
          return: Index;
       }
 
-      entity_lookup
-      {
-         params
-         {
-            @in target: EntityID;
-         }
-         return: Index;
-      }
-
       entity_parent_set
       {
          params
@@ -300,6 +291,15 @@ class Engineer.Scene(Efl.Object)
          }
       }
 
+      component_parent_set
+      {
+         params
+         {
+            @in target:    ComponentID;
+            @in newparent: EntityID;
+         }
+      }
+
       component_parent_get
       {
          params
@@ -308,6 +308,44 @@ class Engineer.Scene(Efl.Object)
             @in offset: uint64;
          }
          return: EntityID;
+      }
+
+      component_siblingnext_set
+      {
+         params
+         {
+            @in target:     ComponentID;
+            @in newsibling: ComponentID;
+         }
+      }
+
+      component_siblingnext_get
+      {
+         params
+         {
+            @in target: ComponentID;
+            @in offset: uint64;
+         }
+         return: ComponentID;
+      }
+
+      component_siblingprev_set
+      {
+         params
+         {
+            @in target:     ComponentID;
+            @in newsibling: ComponentID;
+         }
+      }
+
+      component_siblingprev_get
+      {
+         params
+         {
+            @in target: ComponentID;
+            @in offset: uint64;
+         }
+         return: ComponentID;
       }
 
       component_state_get
@@ -351,6 +389,15 @@ class Engineer.Scene(Efl.Object)
             @in componentid: ComponentID;
             @in parent:      EntityID;
             @in payload:     ptr(Data);
+         }
+      }
+
+      broadphase_frustum_sweep
+      {
+         params
+         {
+            @in viewport:        Efl.Object;
+            @in cameratransform: ComponentID;
          }
       }
 

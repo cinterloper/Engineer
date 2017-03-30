@@ -53,7 +53,7 @@ AnglWRITE(Eina_Inarray **key, Angl *bufferkey, uint64_t index)
 inline void
 AnglCOPY(Eina_Inarray **source, Eina_Inarray **destination, uint64_t index)
 {
-   eina_inarray_replace_at(*source, index, *destination);
+   eina_inarray_replace_at(*destination, index, eina_inarray_nth(*source, index));
 }
 
 #endif

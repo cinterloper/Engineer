@@ -1,6 +1,9 @@
 struct @extern Engineer_Component_Class {}
-type   @extern ClassID:     uint64;
-type   @extern ComponentID: uint64;
+
+type @extern ClassID:     uint64;
+type @extern ComponentID: uint64;
+
+type @extern ClassLabel:  string;
 
 struct Engineer_Node_Peer
 {
@@ -163,6 +166,24 @@ class Engineer.Node(Efl.Object)
          params
          {
             @in target: ComponentID;
+         }
+         return: ptr(Engineer_Component_Class);
+      }
+
+      component_class_get_by_id
+      {
+         params
+         {
+            @in classid: ClassID;
+         }
+         return: ptr(Engineer_Component_Class);
+      }
+
+      component_class_get_by_label
+      {
+         params
+         {
+            @in classlabel: ClassLabel;
          }
          return: ptr(Engineer_Component_Class);
       }

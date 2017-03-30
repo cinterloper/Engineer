@@ -5,12 +5,23 @@
 #include <Elementary.h>
 #include "type/sclr.h"
 
+// 585 = 512 + 64 + 8 + 1
+
 typedef Eina_Bool   bool;
 
 typedef const char* String;
 typedef const char* ClassLabel;
 typedef const char* StateLabel;
 typedef const char* EventLabel;
+
+typedef struct
+{
+   GLfloat location[3];
+   GLuint type;
+   GLfloat color[3];
+   GLfloat size;
+}
+Collider_Data;
 
 typedef struct
 {
@@ -29,9 +40,8 @@ typedef struct
    uint64_t
    (*cache_sizeof)(Eo *module);
 
-   // Component Metadata getters/setters.
    Index
-   (*component_lookup)(Eo *module, ComponentID componentid);
+   (*component_index_get)(Eo *module, ComponentID componentid);
    void
    (*component_parent_set)(Eo *module, ComponentID target, EntityID newparent);
    EntityID

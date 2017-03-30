@@ -105,7 +105,16 @@ class Engineer.Module(Efl.Object)
          }
       }
 
-      component_lookup
+      component_index_set
+      {
+         params
+         {
+            @in componentid: ComponentID;
+            @in index:       Index;
+         }
+      }
+
+      component_index_get
       {
          params
          {

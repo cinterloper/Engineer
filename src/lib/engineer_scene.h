@@ -61,6 +61,8 @@ typedef struct
 
  //Engineer_Octspace *broadphase; // Our broadphase "Octspace" type octree, used by Transform.
    Eina_Hash         *modules;    // Module Data Eo lookup hash, using murmur3 hashes as keys.
+
+   uint64_t block;
 }
 Engineer_Scene_Data;
 

@@ -155,9 +155,9 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
                                  "engineer_module_cache_sizeof");
    if(class->cache_sizeof == NULL) RETURN;
 
-   class->component_lookup     = eina_module_symbol_get(class->eina,
-                                 "engineer_module_component_lookup");
-   if(class->component_lookup == NULL) RETURN;
+   class->component_index_get  = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_index_get");
+   if(class->component_index_get == NULL) RETURN;
    class->component_parent_set = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_parent_set");
    if(class->component_parent_set == NULL) RETURN;
@@ -333,7 +333,7 @@ _engineer_node_component_status_set(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    }
 }
 
-// Takes in a ClassID and returns the associated Class interface pointer.
+// Takes in a ComponentID and returns the associated Class interface pointer.
 EOLIAN static Engineer_Component_Class *
 _engineer_node_component_class_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
         ComponentID target)
@@ -341,6 +341,24 @@ _engineer_node_component_class_get(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    ClassID classid;
 
    classid = (ClassID)eina_hash_find(pd->componentclass, &target);
+   return eina_hash_find(pd->classes, &classid);
+}
+
+// Takes in a ClassID and returns the associated Class interface pointer.
+EOLIAN static Engineer_Component_Class *
+_engineer_node_component_class_get_by_id(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        ClassID classid)
+{
+   return eina_hash_find(pd->classes, &classid);
+}
+
+EOLIAN static Engineer_Component_Class *
+_engineer_node_component_class_get_by_label(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
+        ClassLabel classlabel)
+{
+   ClassID classid;
+
+   classid = engineer_hash_murmur3(classlabel, strlen(classlabel), 242424);
    return eina_hash_find(pd->classes, &classid);
 }
 

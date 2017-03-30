@@ -10,6 +10,7 @@ typedef struct _GL_Data GL_Data;
 // GL related data here..
 struct _GL_Data
 {
+   Eo          *viewport;
    Evas_GL_API *glapi;
    GLuint       program;
    GLuint       vtx_shader;
@@ -26,20 +27,18 @@ struct _GL_Data
    GLuint       count;
 };
 
-struct shader_data_t
-{
-  GLfloat location[3];
-  GLuint  type;
-  GLfloat color[3];
-  GLfloat size;
-} shader_data;
-
 typedef struct
 {
-   uint        alpha;
-   ComponentID camera;
+   Evas_Object   *gl;
+   uint           alpha;
+   Vec3           position;
+   ComponentID    camera;   // The camera that is currently registered to the viewport.
+   Eina_Inarray  *objects;  // Stores the visible collider/shader_data sent in by the camera.
 }
 Engineer_Viewport_Data;
+
+//Collider_Data objects[4];
+void *objects;
 
 EOLIAN Eo *
 engineer_viewport_add(Eo *obj);

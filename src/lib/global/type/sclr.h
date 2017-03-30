@@ -80,7 +80,7 @@ SclrWRITE(Eina_Inarray **key, Sclr *bufferkey, uint64_t index)
 inline void
 SclrCOPY(Eina_Inarray **source, Eina_Inarray **destination, uint64_t index)
 {
-   eina_inarray_replace_at(*source, index, *destination);
+   eina_inarray_replace_at(*destination, index, eina_inarray_nth(*source, index));
 }
 
 #endif

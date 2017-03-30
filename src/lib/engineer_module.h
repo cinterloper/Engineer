@@ -34,7 +34,7 @@ Component_Event;
 
 typedef struct
 {
-   const char *name;
+   //const char *name;
 
    uint64_t parent;
    uint64_t nextsibling;
@@ -48,7 +48,7 @@ Engineer_Component;
 
 typedef struct
 {
-   Eina_Inarray *name;
+   //Eina_Inarray *name;
 
    Eina_Inarray *parent;
    Eina_Inarray *siblingnext;

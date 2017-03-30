@@ -2,6 +2,7 @@
 #define _CAMERA_H_
 
 #include "Engineer.h"
+#include "engineer_viewport.h"
 
 #define STATE \
    FIELD(viewport,    Sclr) \

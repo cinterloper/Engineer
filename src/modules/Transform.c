@@ -1,10 +1,8 @@
 #include "Transform.h"
 
-void awake(Engineer_Component *data)
+void awake(Engineer_Component *data EINA_UNUSED)
 {
-   data->position.x = 0;
-   data->position.y = 0;
-   data->position.z = 0;
+   printf("Transform Awake Checkpoint.\n");
 }
 
 void start(Engineer_Component *data EINA_UNUSED)

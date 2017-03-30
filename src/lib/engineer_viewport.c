@@ -115,8 +115,6 @@ init_shaders(GL_Data *gld)
    return 1;
 }
 
-struct shader_data_t objects[4];
-
 // Callbacks
 static void
 _init_gl(Evas_Object *obj)
@@ -144,7 +142,7 @@ _init_gl(Evas_Object *obj)
    gl->glGenBuffers(1, &gld->ssbo);
    gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, gld->ssbo);
    gl->glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, gld->ssbo);
-   gl->glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(shader_data) * 4, objects, GL_DYNAMIC_COPY);
+   gl->glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Collider_Data) * 4, objects, GL_DYNAMIC_COPY);
    gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
@@ -184,10 +182,14 @@ _resize_gl(Evas_Object *obj)
 static void
 _draw_gl(Evas_Object *obj)
 {
+   printf("_draw_gl Checkpoint.\n");
+
    Evas_GL_API *gl = elm_glview_gl_api_get(obj);
    GL_Data *gld = evas_object_data_get(obj, "gld");
    if (!gld) return;
    int w, h;
+
+   Engineer_Viewport_Data *pd = efl_data_scope_get(gld->viewport, ENGINEER_VIEWPORT_CLASS);
 
    elm_glview_size_get(obj, &w, &h);
 
@@ -196,11 +198,18 @@ _draw_gl(Evas_Object *obj)
 
    gld->resolution[0] = w;
    gld->resolution[1] = h;
+
+   // Lets set up some test objects to render...
+   gld->count = eina_inarray_count(pd->objects);
+
+   if(gld->count > 0)
+      objects = eina_inarray_nth(pd->objects, 0);
+   else
+      objects = NULL;
+/*
    if(gld->time > (2 * 3.141592653589793238462643383)) gld->time = 0;
    gld->time += (float)1/30;
 
-   // Lets set up some test objects to render...
-   // 585 = 512 + 64 + 8 + 1
    gld->count = 4;
 
    objects[0].type        =     1;
@@ -238,7 +247,7 @@ _draw_gl(Evas_Object *obj)
    objects[3].color[0]    =   1.0;
    objects[3].color[1]    =   0.8;
    objects[3].color[2]    =   0.6;
-
+*/
    // Draw a Triangle
    gl->glEnable(GL_BLEND);
 
@@ -247,9 +256,12 @@ _draw_gl(Evas_Object *obj)
    gl->glUniform2fv(gld->resolution_location, 1,  gld->resolution);
    gl->glUniform1ui(gld->count_location,          gld->count);
 
-   gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, gld->ssbo);
-   gl->glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(shader_data) * gld->count, objects);
-   gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+   if(objects != NULL)
+   {
+      gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, gld->ssbo);
+      gl->glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Collider_Data) * gld->count, objects);
+      gl->glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+   }
 
    gl->glBindBuffer(GL_ARRAY_BUFFER, gld->vbo);
 
@@ -258,7 +270,7 @@ _draw_gl(Evas_Object *obj)
    // Optional - Flush the GL pipeline
    gl->glFinish();
 }
-
+/*
 static Eina_Bool
 _anim(void *data)
 {
@@ -266,20 +278,20 @@ _anim(void *data)
    elm_glview_changed_set(data);
    return ECORE_CALLBACK_RENEW;
 }
-/*
+
 static void
 _close_cb(void *data, Evas_Object *obj EINA_UNUSED,
           void *event_info EINA_UNUSED)
 {
    evas_object_del(data);
 }
-*/
+
 static void
 _gl_del_cb(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_info EINA_UNUSED)
 {
    ecore_animator_del(data);
 }
-
+*/
 /*** Begin Efl_Object Section ***/
 
 EOLIAN Eo *
@@ -299,12 +311,15 @@ _engineer_viewport_efl_object_finalize(Eo *obj, Engineer_Viewport_Data *pd EINA_
 {
    obj = efl_finalize(efl_super(obj, ENGINEER_VIEWPORT_CLASS));
 
+   pd->objects = eina_inarray_new(sizeof(Collider_Data), 0);
+
    Evas_Object *bx, *gl, *lb;
-   Ecore_Animator *ani;
+   //Ecore_Animator *ani;
    GL_Data *gld = NULL;
 
    if (!(gld = calloc(1, sizeof(GL_Data)))) return NULL;
 
+   gld->viewport = obj;
    gld->time = 0;
 
    evas_object_event_callback_add(efl_parent_get(obj), EVAS_CALLBACK_FREE, _win_free_cb, gld);
@@ -316,6 +331,7 @@ _engineer_viewport_efl_object_finalize(Eo *obj, Engineer_Viewport_Data *pd EINA_
    evas_object_show(bx);
 
    gl = elm_glview_version_add(efl_parent_get(obj), EVAS_GL_GLES_3_X);
+   pd->gl = gl;
    if (gl)
    {
       evas_object_size_hint_align_set(gl, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -337,11 +353,11 @@ _engineer_viewport_efl_object_finalize(Eo *obj, Engineer_Viewport_Data *pd EINA_
 
       elm_object_focus_set(gl, EINA_TRUE);
 
-      ani = ecore_animator_add(_anim, gl);
+      //ani = ecore_animator_add(_anim, gl);
 
       gld->glapi = elm_glview_gl_api_get(gl);
       evas_object_data_set(gl, "gld", gld);
-      evas_object_event_callback_add(gl, EVAS_CALLBACK_DEL, _gl_del_cb, ani);
+      //evas_object_event_callback_add(gl, EVAS_CALLBACK_DEL, _gl_del_cb, ani);
    }
    else
    {
@@ -391,6 +407,32 @@ EOLIAN static uint
 _engineer_viewport_camera_get(Eo *obj EINA_UNUSED, Engineer_Viewport_Data *pd)
 {
    return pd->camera;
+}
+
+EOLIAN static void
+_engineer_viewport_camera_position_set(Eo *obj EINA_UNUSED, Engineer_Viewport_Data *pd EINA_UNUSED,
+        Vec3 *position)
+{
+   pd->position = *position;
+}
+
+EOLIAN static void
+_engineer_viewport_render(Eo *obj EINA_UNUSED, Engineer_Viewport_Data *pd)
+{
+   elm_glview_changed_set(pd->gl);
+}
+
+EOLIAN static void
+_engineer_viewport_object_flush(Eo *obj EINA_UNUSED, Engineer_Viewport_Data *pd)
+{
+   eina_inarray_flush(pd->objects);
+}
+
+EOLIAN static void
+_engineer_viewport_object_push(Eo *obj EINA_UNUSED, Engineer_Viewport_Data *pd,
+        void *payload)
+{
+   eina_inarray_push(pd->objects, payload);
 }
 
 #include "engineer_viewport.eo.c"
