@@ -73,6 +73,15 @@ class Engineer.Module(Efl.Object)
          }
       }
 
+      event_sizeof
+      {
+         params
+         {
+            @in type: EventID;
+         }
+         return: uint64;
+      }
+
       component_factory
       {
          params
@@ -82,27 +91,6 @@ class Engineer.Module(Efl.Object)
             @in template: ptr(Engineer_Component);
          }
          return: bool;
-      }
-
-      component_create
-      {
-         params
-         {
-            @in sender:  EntityID;
-            @in class:   ClassLabel;
-            @in parent:  EntityID;
-            @in payload: void_ptr;
-         }
-         return: ComponentID;
-      }
-
-      component_attach
-      {
-         params
-         {
-            @in target:    ComponentID;
-            @in newparent: EntityID;
-         }
       }
 
       component_index_set
@@ -190,14 +178,6 @@ class Engineer.Module(Efl.Object)
          return: void_ptr;
       }
 
-      event_sizeof
-      {
-         params
-         {
-            @in type: EventID;
-         }
-         return: uint64;
-      }
    }
 
 }

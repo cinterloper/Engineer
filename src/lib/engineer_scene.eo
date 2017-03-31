@@ -103,35 +103,6 @@ class Engineer.Scene(Efl.Object)
          return: bool;
       }
 
-      entity_create
-      {
-         params
-         {
-            @in sender: EntityID;
-            @in parent: EntityID;
-         }
-         return: EntityID;
-      }
-
-      entity_attach
-      {
-         params
-         {
-            @in target:    EntityID;
-            @in newparent: EntityID;
-         }
-      }
-
-      entity_component_search
-      {
-         params
-         {
-            @in entityid: EntityID;
-            @in target:   ClassLabel;
-         }
-         return: ComponentID;
-      }
-
       entity_index_set
       {
          params
@@ -183,6 +154,7 @@ class Engineer.Scene(Efl.Object)
          params
          {
             @in target: EntityID;
+            @in offset: uint64;
          }
          return: EntityID;
       }
@@ -201,6 +173,7 @@ class Engineer.Scene(Efl.Object)
          params
          {
             @in target: EntityID;
+            @in offset: uint64;
          }
          return: EntityID;
       }
@@ -219,6 +192,7 @@ class Engineer.Scene(Efl.Object)
          params
          {
             @in target: EntityID;
+            @in offset: uint64;
          }
          return: EntityID;
       }
@@ -237,6 +211,7 @@ class Engineer.Scene(Efl.Object)
          params
          {
             @in target: EntityID;
+            @in offset: uint64;
          }
          return: ComponentID;
       }
@@ -259,6 +234,35 @@ class Engineer.Scene(Efl.Object)
          return: ptr(Eina.Inarray);
       }
 
+      entity_create
+      {
+         params
+         {
+            @in sender: EntityID;
+            @in parent: EntityID;
+         }
+         return: EntityID;
+      }
+
+      entity_attach
+      {
+         params
+         {
+            @in target:    EntityID;
+            @in newparent: EntityID;
+         }
+      }
+
+      entity_component_search
+      {
+         params
+         {
+            @in entityid: EntityID;
+            @in target:   ClassLabel;
+         }
+         return: ComponentID;
+      }
+
       component_factory
       {
          params
@@ -268,27 +272,6 @@ class Engineer.Scene(Efl.Object)
             @in payload: ptr(Data);
          }
          return: bool;
-      }
-
-      component_create
-      {
-         params
-         {
-            @in sender:  EntityID;
-            @in class:   ClassLabel;
-            @in parent:  EntityID;
-            @in payload: ptr(Data);
-         }
-         return: ComponentID;
-      }
-
-      component_attach
-      {
-         params
-         {
-            @in target:    ComponentID;
-            @in newparent: EntityID;
-         }
       }
 
       component_parent_set
@@ -356,6 +339,27 @@ class Engineer.Scene(Efl.Object)
             @in key:    StateLabel;
          }
          return: ptr(State);
+      }
+
+      component_create
+      {
+         params
+         {
+            @in sender:  EntityID;
+            @in class:   ClassLabel;
+            @in parent:  EntityID;
+            @in payload: ptr(Data);
+         }
+         return: ComponentID;
+      }
+
+      component_attach
+      {
+         params
+         {
+            @in target:    ComponentID;
+            @in newparent: EntityID;
+         }
       }
 
       notify_event

@@ -40,6 +40,9 @@ typedef struct
    uint64_t
    (*cache_sizeof)(Eo *module);
 
+   // Component Services.
+   Eina_Bool
+   (*component_factory)(Eo *module, ComponentID target, EntityID parent, void *input);
    Index
    (*component_index_get)(Eo *module, ComponentID componentid);
    void
@@ -54,19 +57,6 @@ typedef struct
    (*component_siblingprev_set)(Eo *module, ComponentID target, ComponentID newsibling);
    ComponentID
    (*component_siblingprev_get)(Eo *module, ComponentID target, uint64_t offset);
-
-   // Component Services.
-   Eina_Bool
-   (*component_factory)(Eo *module,
-      ComponentID target, EntityID parent, void *input);
-
-   // Component Methods.
-   Eina_Bool
-   (*component_create)(Eo *module,
-      EntityID sender, void *class, ComponentID componentid, EntityID parent, void *payload);
-   void
-   (*component_attach)(Eo *module,
-      ComponentID target, EntityID newparent);
    void *
    (*component_state_get)(Eo *module, ComponentID target, StateLabel key);
 }

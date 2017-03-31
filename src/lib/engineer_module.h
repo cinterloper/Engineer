@@ -101,7 +101,7 @@ void engineer_module_component_update(Eo *module,
    ComponentID this, uint64_t index, Engineer_Component *data);
 
 #define EVENT(key, unused) \
-   bool engineer_module_component_event_##key(Engineer_Component *data, void *note); //, uint64_t size)
+   bool engineer_module_component_event_##key(Engineer_Component *data, void *note);
 EVENTS
 #undef EVENT
 

@@ -155,6 +155,10 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
                                  "engineer_module_cache_sizeof");
    if(class->cache_sizeof == NULL) RETURN;
 
+   class->component_factory = eina_module_symbol_get(class->eina,
+                                 "engineer_module_component_factory");
+   if(class->component_factory == NULL) RETURN;
+
    class->component_index_get  = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_index_get");
    if(class->component_index_get == NULL) RETURN;
@@ -176,27 +180,6 @@ _engineer_node_module_load(Eo *obj EINA_UNUSED, Engineer_Node_Data *pd,
    class->component_siblingprev_get = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_siblingprev_get");
    if(class->component_siblingprev_get  == NULL) RETURN;
-
-   class->component_factory = eina_module_symbol_get(class->eina,
-                                 "engineer_module_component_factory");
-   if(class->component_factory == NULL) RETURN;
-   class->component_create  = eina_module_symbol_get(class->eina,
-                                 "engineer_module_component_create");
-   if(class->component_create  == NULL) RETURN;
-   /*
-   class->component_destroy = eina_module_symbol_get(class->eina,
-                                 "engineer_module_component_destroy");
-   if (class->component_destroy == NULL) RETURN;
-   module->component_archive = eina_module_symbol_get(class->eina,
-                                 "engineer_module_component_archive");
-   if (class->component_archive == NULL) RETURN;
-   module->component_recall  = eina_module_symbol_get(class->eina,
-                                 "engineer_module_component_recall");
-   if (class->component_recall  == NULL) RETURN;
-   */
-   class->component_attach = eina_module_symbol_get(class->eina,
-                                "engineer_module_component_attach");
-   if(class->component_attach == NULL) RETURN;
    class->component_state_get  = eina_module_symbol_get(class->eina,
                                  "engineer_module_component_state_get");
    if(class->component_state_get  == NULL) RETURN;

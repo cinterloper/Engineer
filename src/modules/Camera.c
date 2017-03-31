@@ -2,11 +2,11 @@
 
 void awake(Engineer_Component *data)
 {
+   printf("Camera Awake Checkpoint.\n");
+
    // Get the address of our Transform.
    EntityID    parent    = component_parent_get(this);
    ComponentID transform = entity_search(parent, "Transform");
-
-   printf("Camera Awake Checkpoint. TransformID: %ld\n", transform);
 
    if(transform != (long)ULONG_NULL)
    {
@@ -32,7 +32,6 @@ void update(Engineer_Component *data)
       // We need to get our collider objects module Eo pointer.
       Eo *scene = efl_parent_get(module);
       engineer_viewport_object_flush((Eo*)data->viewport);
-      printf("Camera Update Transform ID Check: %ld\n", data->transformid);
       engineer_scene_broadphase_frustum_sweep(scene, (Eo*)data->viewport, data->transformid);
       engineer_viewport_render((Eo*)data->viewport);
    }

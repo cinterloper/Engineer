@@ -121,21 +121,21 @@ engineer_render_test_game_init(Eo *root, Eo *viewport)
    transformdata[0]  = (Sclr)(0 * BASIS);
    transformdata[1]  = (Sclr)(0 * BASIS);
    transformdata[2]  = (Sclr)(8 * BASIS);
-   transformdata[3]  = (Sclr)(0 * BASIS);
-   transformdata[4]  = (Sclr)(0 * BASIS);
-   transformdata[5]  = (Sclr)(0 * BASIS);
-   transformdata[6]  = (Sclr)(0 * BASIS);
-   transformdata[7]  = (Sclr)(0 * BASIS);
-   transformdata[8]  = (Sclr)(0 * BASIS);
-   transformdata[9]  = (Sclr)(0 * BASIS);
-   transformdata[10] = (Sclr)(0 * BASIS);
-   transformdata[11] = (Sclr)(0 * BASIS);
+   //transformdata[3]  = (Sclr)(0 * BASIS);
+   //transformdata[4]  = (Sclr)(0 * BASIS);
+   //transformdata[5]  = (Sclr)(0 * BASIS);
+   //transformdata[6]  = (Sclr)(0 * BASIS);
+   //transformdata[7]  = (Sclr)(0 * BASIS);
+   //transformdata[8]  = (Sclr)(0 * BASIS);
+   //transformdata[9]  = (Sclr)(0 * BASIS);
+   //transformdata[10] = (Sclr)(0 * BASIS);
+   //transformdata[11] = (Sclr)(0 * BASIS);
    cameradata[0] = (Sclr)viewport;
-   cameradata[1] = (Sclr)(0 * BASIS);
-   cameradata[2] = (Sclr)(0 * BASIS);
-   cameradata[3] = (Sclr)(0 * BASIS);
-   cameradata[4] = (Sclr)(0 * BASIS);
-   cameradata[5] = (Sclr)(0 * BASIS);
+   //cameradata[1] = (Sclr)(0 * BASIS);
+   //cameradata[2] = (Sclr)(0 * BASIS);
+   //cameradata[3] = (Sclr)(0 * BASIS);
+   //cameradata[4] = (Sclr)(0 * BASIS);
+   //cameradata[5] = (Sclr)(0 * BASIS);
 
    camera = engineer_scene_entity_create(scene, sceneroot, sceneroot);
    engineer_scene_component_create(scene, sceneroot, "Transform", camera, (Data*)transformdata);
@@ -148,9 +148,9 @@ engineer_render_test_game_init(Eo *root, Eo *viewport)
    colliderdata[0]  = (uint64_t)1; // Size.
    colliderdata[1]  = (uint64_t)0;
    colliderdata[2]  = (uint64_t)0;
-   collidercolor->red   = (char)0;
-   collidercolor->green = (char)255;
-   collidercolor->blue  = (char)255;
+   collidercolor->red   = (unsigned char)0;
+   collidercolor->green = (unsigned char)255;
+   collidercolor->blue  = (unsigned char)255;
    colliderdata[4]  = *(uint64_t*)collidercolor;
 
    sphere1 = engineer_scene_entity_create(scene, sceneroot, sceneroot);
@@ -162,9 +162,9 @@ engineer_render_test_game_init(Eo *root, Eo *viewport)
    transformdata[1] = (Sclr)(4 * BASIS);
    transformdata[2] = (Sclr)(0 * BASIS);
    colliderdata[0]  = (uint64_t)1; // Size.
-   collidercolor->red   = (char)0;
-   collidercolor->green = (char)0;
-   collidercolor->blue  = (char)255;
+   collidercolor->red   = (unsigned char)0;
+   collidercolor->green = (unsigned char)0;
+   collidercolor->blue  = (unsigned char)255;
    colliderdata[4]  = *(uint64_t*)collidercolor;
 
    sphere2 = engineer_scene_entity_create(scene, sceneroot, sceneroot);
@@ -176,9 +176,9 @@ engineer_render_test_game_init(Eo *root, Eo *viewport)
    transformdata[1] = (Sclr)(0 * BASIS);
    transformdata[2] = (Sclr)(0 * BASIS);
    colliderdata[0]  = (uint64_t)1; // Size.
-   collidercolor->red   = (char)0;
+   collidercolor->red   = (unsigned char)0;
    collidercolor->green = (unsigned char)255;
-   collidercolor->blue  = (char)0;
+   collidercolor->blue  = (unsigned char)0;
    colliderdata[4]  = *(uint64_t*)collidercolor;
 
    box1 = engineer_scene_entity_create(scene, sceneroot, sceneroot);
@@ -190,7 +190,7 @@ engineer_render_test_game_init(Eo *root, Eo *viewport)
    transformdata[1] = (Sclr)(-2 * BASIS);
    transformdata[2] = (Sclr)( 0 * BASIS);
    colliderdata[0]  = (uint64_t)1; // Size.
-   collidercolor->red   = (char)255;
+   collidercolor->red   = (unsigned char)255;
    collidercolor->green = (unsigned char)(255 * 0.8);
    collidercolor->blue  = (unsigned char)(255 * 0.6);
    colliderdata[4]  = *(uint64_t*)collidercolor;

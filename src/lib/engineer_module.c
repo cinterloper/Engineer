@@ -214,15 +214,78 @@ _engineer_module_cache_write(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_
    #undef FIELD
 }
 
-/*** Component Metadata Getters/Setters ***/
-/*
-EOLIAN static Index
-_engineer_module_component_lookup(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
-        ComponentID componentid)
+/*** Event Services ***/
+
+EOLIAN static uint64_t
+_engineer_module_event_sizeof(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
+        EventID event)
 {
-   return (Index)eina_hash_find(pd->lookup, &componentid) - 1;
+   uint64_t result = 0;
+
+   switch(event)
+   {
+      #define EVENT(key, size) \
+         case key##EVENT:      \
+            result = size;     \
+         break;
+      EVENTS
+      #undef EVENT
+   }
+   return result;
 }
-*/
+
+/*** Component Services ***/
+
+EOLIAN static Eina_Bool
+_engineer_module_component_factory(Eo *obj, Engineer_Module_Data *pd,
+        ComponentID newid, EntityID parent, Engineer_Component *template)
+{
+   Eo *scene = efl_parent_get(obj);
+   Index index;
+   EntityID blank = ULONG_NULL;
+
+   if(engineer_module_component_index_get(obj, newid) == (Index)ULONG_NULL)
+   {
+      //eina_inarray_push(pd->history, eina_inarray_new(sizeof(uint64_t), 0));
+      index = eina_inarray_push(pd->id, &newid);
+
+      engineer_module_component_index_set(obj, newid, index);
+
+      eina_inarray_push(pd->future->parent,      &blank);
+      eina_inarray_push(pd->future->siblingnext, &blank);
+      eina_inarray_push(pd->future->siblingprev, &blank);
+
+      engineer_scene_component_attach(scene, newid, parent);
+
+      eina_inarray_push(pd->present->parent,      eina_inarray_nth(pd->future->parent,      index));
+      eina_inarray_push(pd->present->siblingnext, eina_inarray_nth(pd->future->siblingnext, index));
+      eina_inarray_push(pd->present->siblingprev, eina_inarray_nth(pd->future->siblingprev, index));
+
+      engineer_module_component_awake(obj, newid, index, template);
+
+      eina_inarray_push(pd->past->parent,      eina_inarray_nth(pd->present->parent,      index));
+      eina_inarray_push(pd->past->siblingnext, eina_inarray_nth(pd->present->siblingnext, index));
+      eina_inarray_push(pd->past->siblingprev, eina_inarray_nth(pd->present->siblingprev, index));
+
+      // Push our awake() processed template data to the active frames. (Was type##WRITE)
+      #define FIELD(key, type)                          \
+         type##PUSH(&pd->future->key,  &template->key); \
+         type##PUSH(&pd->present->key, &template->key); \
+         type##PUSH(&pd->past->key,    &template->key);
+      STATE
+      #undef FIELD
+
+      printf("Component Created. | ComponentID: %ld, Parent: %ld, NextSib: %ld, PrevSib: %ld\n",
+         newid,
+         parent,
+         *(ComponentID*)eina_inarray_nth(pd->present->siblingnext, index),
+         *(ComponentID*)eina_inarray_nth(pd->present->siblingprev, index)
+      );
+   }
+
+   return EINA_TRUE;
+}
+
 EOLIAN static void
 _engineer_module_component_index_set(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd,
         ComponentID componentid, Index index)
@@ -287,14 +350,11 @@ EOLIAN static ComponentID
 _engineer_module_component_siblingnext_get(Eo *obj, Engineer_Module_Data *pd,
         ComponentID target, uint64_t offset)
 {
-   //printf("component_siblingnext_get() Checkpoint 1. Input ComponentID: %ld\n", target);
    target = engineer_module_component_index_get(obj, target);
-   //printf("component_siblingnext_get() Checkpoint 2. Component Index: %ld\n", target);
 
    switch(offset)
    {
       case 0:
-         //printf("component_siblingnext_get() Checkpoint 3. Result: %ld\n", *(ComponentID*)eina_inarray_nth(pd->future->siblingnext, target));
          return *(ComponentID*)eina_inarray_nth(pd->future->siblingnext, target);
       break;
       case 1:
@@ -321,14 +381,11 @@ EOLIAN static ComponentID
 _engineer_module_component_siblingprev_get(Eo *obj, Engineer_Module_Data *pd,
         ComponentID target, uint64_t offset)
 {
-   //printf("component_siblingprev_get() Checkpoint 1. Input ComponentID: %ld\n", target);
    target = engineer_module_component_index_get(obj, target);
-   //printf("component_siblingprev_get() Checkpoint 2. Component Index: %ld\n", target);
 
    switch(offset)
    {
       case 0:
-         //printf("component_siblingprev_get() Checkpoint 3. Result: %ld\n", *(ComponentID*)eina_inarray_nth(pd->future->siblingprev, target));
          return *(ComponentID*)eina_inarray_nth(pd->future->siblingprev, target);
       break;
       case 1:
@@ -340,134 +397,6 @@ _engineer_module_component_siblingprev_get(Eo *obj, Engineer_Module_Data *pd,
       default:
          return ULONG_NULL;
       break;
-   }
-}
-
-/*** Component Services ***/
-
-EOLIAN static Eina_Bool
-_engineer_module_component_factory(Eo *obj, Engineer_Module_Data *pd,
-        ComponentID newid, EntityID parent, Engineer_Component *template)
-{
-   Index index;
-   EntityID blank = ULONG_NULL;
-
-   if(engineer_module_component_index_get(obj, newid) == (Index)ULONG_NULL)
-   {
-      //eina_inarray_push(pd->history, eina_inarray_new(sizeof(uint64_t), 0));
-      index = eina_inarray_push(pd->id, &newid);
-
-      engineer_module_component_index_set(obj, newid, index);
-
-      eina_inarray_push(pd->future->parent,      &blank);
-      eina_inarray_push(pd->future->siblingnext, &newid);
-      eina_inarray_push(pd->future->siblingprev, &newid);
-
-      engineer_module_component_attach(obj, newid, parent);
-
-      eina_inarray_push(pd->present->parent,      eina_inarray_nth(pd->future->parent, index));
-      eina_inarray_push(pd->present->siblingnext, eina_inarray_nth(pd->future->siblingnext, index));
-      eina_inarray_push(pd->present->siblingprev, eina_inarray_nth(pd->future->siblingprev, index));
-
-      engineer_module_component_awake(obj, newid, index, template);
-
-      eina_inarray_push(pd->past->parent,      eina_inarray_nth(pd->present->parent, index));
-      eina_inarray_push(pd->past->siblingnext, eina_inarray_nth(pd->present->siblingnext, index));
-      eina_inarray_push(pd->past->siblingprev, eina_inarray_nth(pd->present->siblingprev, index));
-
-      // Push our awake() processed template data to the active frames. (Was type##WRITE)
-      #define FIELD(key, type)                          \
-         type##PUSH(&pd->future->key,  &template->key); \
-         type##PUSH(&pd->present->key, &template->key); \
-         type##PUSH(&pd->past->key,    &template->key);
-      STATE
-      #undef FIELD
-
-      printf("Component Created. | ComponentID: %ld, Parent: %ld, NextSib: %ld, PrevSib: %ld\n",
-         newid,
-         parent,
-         *(ComponentID*)eina_inarray_nth(pd->present->siblingnext, index),
-         *(ComponentID*)eina_inarray_nth(pd->present->siblingprev, index)
-      );
-   }
-
-   return EINA_TRUE;
-}
-
-/*** Component Methods ***/
-
-EOLIAN static ComponentID
-_engineer_module_component_create(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
-        EntityID sender, ClassLabel class, EntityID parent, void *payload)
-{
-   Eo *scene = efl_parent_get(obj);
-
-   return engineer_scene_component_create(scene, sender, class, parent, payload);
-}
-
-EOLIAN static void
-_engineer_module_component_attach(Eo *obj, Engineer_Module_Data *pd EINA_UNUSED,
-       ComponentID target, EntityID newparent)
-{
-   uint64_t buffer, targetnext, targetprev, oldparent, firstcomponent;
-   Eo *scene = efl_parent_get(obj);
-
-   if (target == (ComponentID)ULONG_NULL || newparent == (ComponentID)ULONG_NULL) return;
-
-   targetnext = engineer_scene_component_siblingnext_get(scene, target, 0);
-   targetprev = engineer_scene_component_siblingprev_get(scene, target, 0);
-   oldparent  = engineer_scene_component_parent_get(scene, target, 0);
-
-   // If our old parent is ULONG_NULL then this Component is new.
-   if(oldparent != ULONG_NULL)
-   {
-      firstcomponent = engineer_scene_entity_firstcomponent_get(scene, oldparent);
-
-      // Check to see if the old parent has any components.
-      if (firstcomponent != ULONG_NULL)
-      {
-         // Check to see if the old parent has only one child Component.
-         // If so, set the firstcomponent entry of the parent to the null stub.
-         if (engineer_scene_component_siblingnext_get(scene, firstcomponent, 0) ==
-             engineer_scene_component_siblingprev_get(scene, firstcomponent, 0)  )
-         {
-            buffer = ULONG_NULL;
-            engineer_scene_entity_firstcomponent_set(scene, oldparent, buffer);
-         }
-         else // relink the remaining child Entities.
-         {
-            // Check to see if the target is the old parents first child component.
-            // If so, reset the old parents first child to the next component sibling.
-            if ((uint64_t)target == firstcomponent)
-               engineer_scene_entity_firstcomponent_set(scene, oldparent, targetnext);
-
-            engineer_scene_component_siblingnext_set(scene, targetprev, targetnext);
-            engineer_scene_component_siblingprev_set(scene, targetnext, targetprev);
-         }
-      }
-   }
-
-   // Set the new parent EntityID for the target Component.
-   engineer_scene_component_parent_set(scene, target, newparent);
-
-   // Check to see if new parent has any components. If not, set up the first component properly.
-   if (engineer_scene_entity_firstcomponent_get(scene, newparent) == (ComponentID)ULONG_NULL)
-   {
-      engineer_scene_entity_firstcomponent_set(scene, newparent, target);
-
-      engineer_scene_component_siblingnext_set(scene, target, target);
-      engineer_scene_component_siblingprev_set(scene, target, target);
-   }
-   else // add the target Component to the back end of the new parent's components list.
-   {
-      firstcomponent = engineer_scene_entity_firstcomponent_get(scene, newparent);
-      targetprev     = engineer_scene_component_siblingprev_get(scene, firstcomponent, 0);
-
-      engineer_scene_component_siblingnext_set(scene, target, firstcomponent);
-      engineer_scene_component_siblingprev_set(scene, target, targetprev);
-
-      engineer_scene_component_siblingnext_set(scene, targetprev,     target);
-      engineer_scene_component_siblingprev_set(scene, firstcomponent, target);
    }
 }
 
@@ -498,24 +427,6 @@ _engineer_module_component_state_get(Eo *obj, Engineer_Module_Data *pd,
         result = NULL;
    }
 
-   return result;
-}
-
-EOLIAN static uint64_t
-_engineer_module_event_sizeof(Eo *obj EINA_UNUSED, Engineer_Module_Data *pd EINA_UNUSED,
-        EventID event)
-{
-   uint64_t result = 0;
-
-   switch(event)
-   {
-      #define EVENT(key, size) \
-         case key##EVENT:      \
-            result = size;     \
-         break;
-      EVENTS
-      #undef EVENT
-   }
    return result;
 }
 
