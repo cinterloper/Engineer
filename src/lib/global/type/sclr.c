@@ -1,5 +1,8 @@
 #include "sclr.h"
 
+extern inline Sclr
+sclr(double input);
+
 extern inline void
 SclrSIZE(uint64_t *counter);
 

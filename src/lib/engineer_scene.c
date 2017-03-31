@@ -201,11 +201,11 @@ _engineer_scene_iterate(Eo *obj, Engineer_Scene_Data *pd)
    for(index = 0; index < eina_inarray_count(pd->id); index++)
    {
       // FIELD(name)
-      #define METADATA \
-         FIELD(parent) \
-         FIELD(siblingnext) \
-         FIELD(siblingprev) \
-         FIELD(firstentity) \
+      #define METADATA         \
+         FIELD(parent)         \
+         FIELD(siblingnext)    \
+         FIELD(siblingprev)    \
+         FIELD(firstentity)    \
          FIELD(firstcomponent)
 
       #define FIELD(key) \
@@ -1052,7 +1052,8 @@ _engineer_scene_broadphase_frustum_sweep(Eo *obj EINA_UNUSED, Engineer_Scene_Dat
       Sclr red:   8;
       Sclr green: 8;
       Sclr blue:  8;
-      Sclr blank: 40;
+      Sclr alpha: 8;
+      Sclr blank: 32;
    };
    struct collidercolor_t *collidercolor;
 

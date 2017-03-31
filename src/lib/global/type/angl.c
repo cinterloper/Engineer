@@ -1,5 +1,8 @@
 #include "angl.h"
 
+extern inline Angl
+angl(double input);
+
 extern inline void
 AnglSIZE(uint64_t *counter);
 

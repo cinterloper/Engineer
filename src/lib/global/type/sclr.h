@@ -7,7 +7,6 @@
 typedef BASE Sclr;
 
 typedef Sclr Index;
-
 typedef Sclr ClassID;
 typedef Sclr EntityID;
 typedef Sclr ComponentID;
@@ -15,6 +14,12 @@ typedef Sclr StateID;
 typedef Sclr EventID;
 
 #define SclrSOA Eina_Inarray*
+
+inline Sclr
+sclr(double input)
+{
+   return (Sclr)(input * BASIS);
+}
 /*
 inline void
 SclrFACTORY(Sclr *target, uint64_t subtype)

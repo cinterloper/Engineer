@@ -214,10 +214,6 @@ _draw_gl(Evas_Object *obj)
    objects[0].location[0] =   0.0 + 8.0 * cos(gld->time);
    objects[0].location[1] =   0.0;
    objects[0].location[2] = -12.0 + 8.0 * sin(gld->time);
-   objects[0].size        =   1.0;
-   objects[0].color[0]    =   0.0;
-   objects[0].color[1]    =   1.0;
-   objects[0].color[2]    =   1.0;
 */
    // Draw a Triangle
    gl->glEnable(GL_BLEND);

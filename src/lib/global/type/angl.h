@@ -8,6 +8,12 @@ typedef BASE Angl;
 
 #define AnglSOA Eina_Inarray*
 
+inline Angl
+angl(double input)
+{
+   return (Angl)(input * BASIS);
+}
+
 inline void
 AnglSIZE(uint64_t *counter)
 {
